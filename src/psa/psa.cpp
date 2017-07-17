@@ -76,8 +76,14 @@ bool processCommandLine(int argc, TCHAR *argv[], ProcessingOperations *pPO)
 
 
 			case _T('t'):
-				pPO->generateProcessesTree();
-				break;
+				{
+					DWORD proc_pid = 0;
+					if (3 == argc && isdigit(*argv[argc - 1]))
+						proc_pid = _ttoi(argv[argc - 1]);
+
+					pPO->generateProcessesTree(proc_pid);
+				}
+			break;
 			
 			case _T('?'):
 			default:

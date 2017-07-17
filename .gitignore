@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+
+# Other files and folders
+*.db
+*.user
+*.vc.vc.opendb
+*.vcxproj.user
+.vs/
+bin/
+bin64/
+ipch/
+src/psa/x64/
+testing/testGenericTree/x64/

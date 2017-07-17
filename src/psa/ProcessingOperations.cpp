@@ -358,7 +358,7 @@ bool ProcessingOperations::findProcessInfo(DWORD const processID, PROCESS_MEMORY
 	return true;
 }
 
-void ProcessingOperations::generateProcessesTree()
+void ProcessingOperations::generateProcessesTree(DWORD proc_pid)
 {
 	if (m_mapProcesses.empty())
 		BuildProcessesMap();
@@ -368,5 +368,14 @@ void ProcessingOperations::generateProcessesTree()
 	tree_builder.mapBuilder();
 	tree_builder.mapHandshake();
 	tree_builder.buildTree();
-	tree_builder.printTree();
+
+	auto it = m_mapProcesses.find(proc_pid);
+	if (it != m_mapProcesses.end())
+	{
+		tree_builder.printTree(proc_pid);
+	}
+	else
+	{
+		cout << "Invalid Process ID | PID " << proc_pid << " not detected in memory" << std::endl;
+	}
 }

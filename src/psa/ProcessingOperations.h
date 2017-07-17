@@ -23,7 +23,7 @@ class ProcessingOperations
 	bool printProcessInformation(const ustring& process_name, bool show_details = false);
 	void printTopExpensiveProcesses(int top);
 
-	void generateProcessesTree();
+	void generateProcessesTree(DWORD proc_pid);
 	
    protected:
      void printError( TCHAR* msg );

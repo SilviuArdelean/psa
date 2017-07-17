@@ -5,6 +5,7 @@
 
 ProcsTreeBuilder::ProcsTreeBuilder(std::multimap<DWORD, proc_info>* ptrMap)
 	: m_ptrMapProcesses(ptrMap)
+	, m_ptrSearchTreeNode(nullptr)
 {
 	m_ptrRoot = new proc_info(FAKE_ROOT_PID, FAKE_ROOT_PARENT_PID, _T("o"));
 	m_ptrTree = new generic_tree<proc_info>(nullptr, *m_ptrRoot);
@@ -61,7 +62,7 @@ void ProcsTreeBuilder::mapHandshake()
 		if ((ob.second.data.parentPID != 0) && 
 			!_parentProcExists(ob.second.data.parentPID))
 		{
-			ob.second.data.parentPID = 0;		// parent process does not exists anymore
+			ob.second.data.parentPID = FAKE_ROOT_PID;		// parent process does not exists anymore
 		}
 
 		if (ob.second.data.parentPID == 0
@@ -100,11 +101,36 @@ void ProcsTreeBuilder::_BuildTree(GenericTreeNode<proc_info>* node)
 	}
 }
 
-void ProcsTreeBuilder::printTree()
+void ProcsTreeBuilder::printTree(DWORD procPID)
 {
-	generic_tree_handler<proc_info>::dfs_traverse(m_ptrTree->get_root());
+	GenericTreeNode<proc_info>* pNode = nullptr;
+
+	if (0 == procPID || FAKE_ROOT_PID == procPID) {
+		pNode = m_ptrTree->get_root();
+	}
+	else {
+		m_ptrSearchTreeNode = nullptr;
+		_findSpecificProcess(m_ptrTree->get_root(), procPID);
+		pNode = m_ptrSearchTreeNode;
+	}
+
+	generic_tree_handler<proc_info>::dfs_traverse(pNode);
 }
 
+void ProcsTreeBuilder::_findSpecificProcess(GenericTreeNode<proc_info>* pNode, DWORD procPID)
+{
+	if (pNode->data.procPID == procPID)
+	{
+		m_ptrSearchTreeNode = pNode;
+		return;
+	}
+
+	for (auto itNode = pNode->listChildren.begin(); itNode != pNode->listChildren.end(); ++itNode)
+	{
+		GenericTreeNode<proc_info> *pItem = *itNode;
+		_findSpecificProcess(pItem, procPID);
+	}
+}
 
 bool ProcsTreeBuilder::_isSystemProcess(const proc_info& proc_data)
 {
