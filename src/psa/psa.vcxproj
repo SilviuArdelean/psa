@@ -157,6 +157,7 @@
     <ClInclude Include="..\..\include\general.h" />
     <ClInclude Include="..\..\include\generic_tree.h" />
     <ClInclude Include="..\..\include\generic_tree_handler.h" />
+    <ClInclude Include="..\..\include\smart_handler.h" />
     <ClInclude Include="ProcessingOperations.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="string_utils.h" />

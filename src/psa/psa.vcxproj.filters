@@ -45,6 +45,7 @@
     <ClInclude Include="XGetopt.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\smart_handler.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source">

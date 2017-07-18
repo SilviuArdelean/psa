@@ -3,11 +3,11 @@
 #include "ProcessingOperations.h"
 #include <iostream>
 #include <vector>
-#include <set>
 #include <algorithm>
 #include "string_utils.h"
 #include "ProcsTreeBuilder.h"
 #include "Winternl.h"
+#include "smart_handler.h"
 
 using namespace std;
 
@@ -70,7 +70,7 @@ BOOL ProcessingOperations::BuildProcessesMap()
    PROCESSENTRY32 pe32;
 
    // Take a snapshot of all processes in the system.
-   HANDLE hProcessSnap = CreateToolhelp32Snapshot( TH32CS_SNAPPROCESS, 0 );
+   smart_handle hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
    if( hProcessSnap == INVALID_HANDLE_VALUE )
    {
       printError( TEXT("CreateToolhelp32Snapshot (of processes)") );
@@ -85,7 +85,6 @@ BOOL ProcessingOperations::BuildProcessesMap()
    if( !Process32First( hProcessSnap, &pe32 ) )
    {
       printError( TEXT("Retrieve information about the first process has failed") ); // show cause of failure
-      CloseHandle( hProcessSnap );          // clean the snapshot object
       return FALSE;
    }
 
@@ -95,33 +94,10 @@ BOOL ProcessingOperations::BuildProcessesMap()
    {
 		 FILETIME  crtProcCreationTime, crtProcExitTime, crtProcKernelTime, crtProcUserTime;
 	
-		  HANDLE hCrtProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID );
+		  smart_handle hCrtProcess(OpenProcess( PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID ));
 		  if( nullptr != hCrtProcess )
 		  {
 			 ::GetProcessTimes( hCrtProcess, &crtProcCreationTime, &crtProcExitTime, &crtProcKernelTime, &crtProcUserTime );
-			 CloseHandle( hCrtProcess );
-		  }
-
-		  HANDLE hParentProc = ::OpenProcess( PROCESS_QUERY_INFORMATION, FALSE, pe32.th32ParentProcessID );
-		  if ( nullptr != hParentProc)
-		  {
-			 FILETIME  parentCreationTime, parentExitTime, parentKernelTime, parentUserTime;
-			 GetProcessTimes( hParentProc, &parentCreationTime, &parentExitTime, &parentKernelTime, &parentUserTime );
-		   
-
-			 CloseHandle( hParentProc );
-	 
-			// get current time in FILETIME format
-			//FILETIME crtSysTime;
-			//::GetSystemTimeAsFileTime(&crtSysTime);
-
-			// if the the parentProcess is terminated and the detected th32ParentProcessID is not a valid one
-			// if ( ::CompareFileTime( &crtProcCreationTime, &parentCreationTime ) > 0 
-			//	// ||  ::CompareFileTime( &crtProcCreationTime, &crtSysTime ) > 0 
-			//	 )
-			//{
-			//	pe32.th32ParentProcessID = 0;
-			//}
 		  }
 
 		  proc_info pi(pe32.th32ProcessID, 
@@ -132,9 +108,7 @@ BOOL ProcessingOperations::BuildProcessesMap()
 
 	   } while( Process32Next( hProcessSnap, &pe32 ) );
 
-   CloseHandle( hProcessSnap );
-
-   return( TRUE );
+   return TRUE;
 }
 
 void ProcessingOperations::printError( TCHAR* msg )
@@ -325,7 +299,7 @@ bool ProcessingOperations::printProcessDetailedInfo(DWORD pid)
 
 bool ProcessingOperations::findProcessInfo(DWORD const processID, PROCESS_MEMORY_COUNTERS_EX& pmc)
 {
-	HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
+	smart_handle hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
 									PROCESS_VM_READ,
 									FALSE, processID);
 	if (NULL == hProcess)
@@ -351,8 +325,6 @@ bool ProcessingOperations::findProcessInfo(DWORD const processID, PROCESS_MEMORY
 					pmc.PeakPagefileUsage)
 			*/
 	}
-
-	CloseHandle(hProcess);
 
 	return true;
 }
