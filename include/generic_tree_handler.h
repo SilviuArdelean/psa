@@ -1,5 +1,7 @@
 ﻿#pragma once
 #include "generic_tree.h"
+#include <fcntl.h>  
+#include <io.h>  
 
 template <typename T>
 class generic_tree_handler
@@ -7,7 +9,7 @@ class generic_tree_handler
 
   public:
 
-	static void dfs_traverse(GenericTreeNode<T>* node, bool lastRN = false)
+	static void dfs_traverse(generic_node<T>* node, bool lastRN = false)
 	{
 		if (!node)
 			return;
@@ -58,7 +60,7 @@ class generic_tree_handler
 		}
 	}
 
-	static void dfs_traverse_nonunicode(GenericTreeNode<T>* node)
+	static void dfs_traverse_nonunicode(generic_node<T>* node)
 	{
 		if (!node)
 			return;

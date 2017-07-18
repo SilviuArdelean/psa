@@ -19,11 +19,11 @@ class ProcessingOperations
 
 	procs_map*  GetProcessesMap()   { 		return &m_mapProcesses; }
 
-	bool printAllProcessesInformation(bool show_details = false);
-	bool printProcessInformation(const ustring& process_name, bool show_details = false);
+	bool printAllProcessesInformation(bool const show_details = false);
+	bool printProcessInformation(const ustring& process_name, bool const show_details = false);
 	void printTopExpensiveProcesses(int top);
 
-	void generateProcessesTree(DWORD proc_pid);
+	void generateProcessesTree(DWORD const proc_pid);
 	
    protected:
      void printError( TCHAR* msg );

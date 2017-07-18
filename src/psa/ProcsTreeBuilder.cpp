@@ -7,15 +7,12 @@ ProcsTreeBuilder::ProcsTreeBuilder(std::multimap<DWORD, proc_info>* ptrMap)
 	: m_ptrMapProcesses(ptrMap)
 	, m_ptrSearchTreeNode(nullptr)
 {
-	m_ptrRoot = new proc_info(FAKE_ROOT_PID, FAKE_ROOT_PARENT_PID, _T("o"));
-	m_ptrTree = new generic_tree<proc_info>(nullptr, *m_ptrRoot);
+	m_ptrRoot = std::unique_ptr<proc_info>(new proc_info(FAKE_ROOT_PID, FAKE_ROOT_PARENT_PID, _T("o")));
+	m_ptrTree = std::unique_ptr<generic_tree<proc_info>>(new generic_tree<proc_info>(nullptr, *m_ptrRoot));
 }
-
 
 ProcsTreeBuilder::~ProcsTreeBuilder()
 {
-	delete m_ptrRoot;
-	delete m_ptrTree;
 }
 
 std::wostream& operator << (std::wostream& stream, const proc_info& info)
@@ -32,7 +29,7 @@ void ProcsTreeBuilder::mapBuilder()
 {
 	m_mapProc4Tree.clear();
 
-	m_mapProc4Tree.insert(std::pair<DWORD, GenericTreeNode<proc_info>>(m_ptrRoot->procPID, *m_ptrRoot));
+	m_mapProc4Tree.insert(std::pair<DWORD, generic_node<proc_info>>(m_ptrRoot->procPID, *m_ptrRoot));
 
 	for (auto it = m_ptrMapProcesses->begin(); it != m_ptrMapProcesses->end(); ++it)
 	{
@@ -40,8 +37,8 @@ void ProcsTreeBuilder::mapBuilder()
 						it->second.parentPID,
 						it->second.procName);
 
-		GenericTreeNode<proc_info>  node_data(pi);
-		m_mapProc4Tree.insert(std::pair<DWORD, GenericTreeNode<proc_info>>(pi.procPID, node_data));
+		generic_node<proc_info>  node_data(pi);
+		m_mapProc4Tree.insert(std::pair<DWORD, generic_node<proc_info>>(pi.procPID, node_data));
 	}
 }
 
@@ -82,7 +79,7 @@ void ProcsTreeBuilder::buildTree()
 	_BuildTree(m_ptrTree->get_root());
 }
 
-void ProcsTreeBuilder::_BuildTree(GenericTreeNode<proc_info>* node)
+void ProcsTreeBuilder::_BuildTree(generic_node<proc_info>* node)
 {
 	// nice to have: find a better optimal solution to build the tree
 	for (auto itrev = m_mapProc4Tree.begin(); itrev != m_mapProc4Tree.end(); ++itrev)
@@ -101,9 +98,9 @@ void ProcsTreeBuilder::_BuildTree(GenericTreeNode<proc_info>* node)
 	}
 }
 
-void ProcsTreeBuilder::printTree(DWORD procPID)
+void ProcsTreeBuilder::printTree(DWORD const procPID)
 {
-	GenericTreeNode<proc_info>* pNode = nullptr;
+	generic_node<proc_info>* pNode = nullptr;
 
 	if (0 == procPID || FAKE_ROOT_PID == procPID) {
 		pNode = m_ptrTree->get_root();
@@ -117,7 +114,7 @@ void ProcsTreeBuilder::printTree(DWORD procPID)
 	generic_tree_handler<proc_info>::dfs_traverse(pNode);
 }
 
-void ProcsTreeBuilder::_findSpecificProcess(GenericTreeNode<proc_info>* pNode, DWORD procPID)
+void ProcsTreeBuilder::_findSpecificProcess(generic_node<proc_info>* pNode, DWORD const procPID)
 {
 	if (pNode->data.procPID == procPID)
 	{
@@ -127,7 +124,7 @@ void ProcsTreeBuilder::_findSpecificProcess(GenericTreeNode<proc_info>* pNode, D
 
 	for (auto itNode = pNode->listChildren.begin(); itNode != pNode->listChildren.end(); ++itNode)
 	{
-		GenericTreeNode<proc_info> *pItem = *itNode;
+		generic_node<proc_info> *pItem = *itNode;
 		_findSpecificProcess(pItem, procPID);
 	}
 }
@@ -137,7 +134,7 @@ bool ProcsTreeBuilder::_isSystemProcess(const proc_info& proc_data)
 	return (proc_data.procPID == 4 && proc_data.parentPID == 0);
 }
 
-GenericTreeNode<proc_info>* ProcsTreeBuilder::_getMapParentPtr(DWORD parentPID)
+generic_node<proc_info>* ProcsTreeBuilder::_getMapParentPtr(DWORD parentPID)
 {
 	auto it_parent = m_mapProc4Tree.find(parentPID);
 	return ((it_parent != m_mapProc4Tree.end())

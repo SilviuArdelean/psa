@@ -74,7 +74,7 @@ BOOL ProcessingOperations::BuildProcessesMap()
    if( hProcessSnap == INVALID_HANDLE_VALUE )
    {
       printError( TEXT("CreateToolhelp32Snapshot (of processes)") );
-      return( FALSE );
+      return FALSE;
    }
 
    // Set the size of the structure before using it.
@@ -86,7 +86,7 @@ BOOL ProcessingOperations::BuildProcessesMap()
    {
       printError( TEXT("Retrieve information about the first process has failed") ); // show cause of failure
       CloseHandle( hProcessSnap );          // clean the snapshot object
-      return( FALSE );
+      return FALSE;
    }
 
    m_mapProcesses.clear();
@@ -95,7 +95,6 @@ BOOL ProcessingOperations::BuildProcessesMap()
    {
 		 FILETIME  crtProcCreationTime, crtProcExitTime, crtProcKernelTime, crtProcUserTime;
 	
-     
 		  HANDLE hCrtProcess = OpenProcess( PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID );
 		  if( nullptr != hCrtProcess )
 		  {
@@ -229,7 +228,7 @@ bool ProcessingOperations::get_filter_results(const ustring& process_name, const
 			: string_utils::search_substring(filter, process_name)));
 }
 
-bool ProcessingOperations::printAllProcessesInformation(bool show_details)
+bool ProcessingOperations::printAllProcessesInformation(bool const show_details)
 {
 	int processesCount = 0;
 	ULONG64 processesAllSize = 0;
@@ -268,7 +267,7 @@ bool ProcessingOperations::printAllProcessesInformation(bool show_details)
 	return true;
 }
 
-bool ProcessingOperations::printProcessInformation(const ustring& filter, bool show_details)
+bool ProcessingOperations::printProcessInformation(const ustring& filter, bool const show_details)
 {
 	int processesCount = 0;
 	ULONG64 processesAllSize = 0;
@@ -358,7 +357,7 @@ bool ProcessingOperations::findProcessInfo(DWORD const processID, PROCESS_MEMORY
 	return true;
 }
 
-void ProcessingOperations::generateProcessesTree(DWORD proc_pid)
+void ProcessingOperations::generateProcessesTree(DWORD const proc_pid)
 {
 	if (m_mapProcesses.empty())
 		BuildProcessesMap();

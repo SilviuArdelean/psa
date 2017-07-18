@@ -4,15 +4,13 @@
 #include <memory>
 #include <iostream>
 #include <iomanip>
-#include <fcntl.h>  
-#include <io.h>  
 
 template <typename S>
-struct GenericTreeNode
+struct generic_node
 {
-	GenericTreeNode() = delete;
+	generic_node() = delete;
 
-	GenericTreeNode(S& _data)
+	generic_node(S& _data)
 		:
 		data(_data)
 		, parent(nullptr)
@@ -20,7 +18,7 @@ struct GenericTreeNode
 	{
 	}
 
-	GenericTreeNode(GenericTreeNode* _parent, S& _data)
+	generic_node(generic_node* const _parent, S const & _data)
 		:
 		data(_data)
 		, parent(_parent)
@@ -28,7 +26,7 @@ struct GenericTreeNode
 		level = (parent) ? parent->level+1 : 0;
 	}
 
-	GenericTreeNode(const GenericTreeNode& other)
+	generic_node(const generic_node& other)
 		: data(other.data)
 		, listChildren(std::move(other.listChildren))
 		, parent(other.parent)
@@ -36,7 +34,7 @@ struct GenericTreeNode
 	{
 	}
 
-	GenericTreeNode& operator = (const GenericTreeNode& rhs)
+	generic_node& operator = (const generic_node& rhs)
 	{
 		if (this != &rhs)
 		{
@@ -48,10 +46,8 @@ struct GenericTreeNode
 		return *this;
 	}
 
-	GenericTreeNode(GenericTreeNode&& other)
+	generic_node(generic_node&& other)
 	{
-		listChildren.empty();
-
 		data			= other.data;
 		parent			= other.parent;
 		listChildren	= std::move(other.listChildren);
@@ -62,12 +58,10 @@ struct GenericTreeNode
 		other.level = 0;
 	}
 
-	GenericTreeNode& operator=(GenericTreeNode&& other)
+	generic_node& operator=(generic_node&& other)
 	{
 		if (this != &other)
 		{
-			listChildren.empty();
-
 			data		 = other.data;
 			parent		 = other.parent;
 			listChildren = std::move(other.listChildren);
@@ -85,9 +79,9 @@ struct GenericTreeNode
 
 	S				data;
 	short				level;
-	GenericTreeNode<S>*	parent;
+	generic_node<S>*	parent;
 
-	std::list<GenericTreeNode<S>*>	listChildren;
+	std::list<generic_node<S>*>	listChildren;
 };
 
 template <typename T>
@@ -95,7 +89,7 @@ class generic_tree
 {
 public:
 
-	generic_tree(GenericTreeNode<T>* _parent, T& root_value)
+	generic_tree(generic_node<T>* _parent, T& root_value)
 	{
 		ptrRoot = _new_node(_parent, root_value);
 	}
@@ -105,24 +99,24 @@ public:
 		_tree_cleaner(ptrRoot);
 	}
 
-	GenericTreeNode<T>* add(GenericTreeNode<T>* _parent, T& _data)
+	generic_node<T>* add(generic_node<T>* _parent, T& _data)
 	{
-		GenericTreeNode<T> *pnew = _new_node(_parent, _data);
+		generic_node<T> *pnew = _new_node(_parent, _data);
 		_parent->listChildren.push_back(pnew);
 
 		return pnew;
 	}
 
-	GenericTreeNode<T>* get_root() const { return ptrRoot; }
+	generic_node<T>* get_root() const { return ptrRoot; }
 
 protected:
 
-	GenericTreeNode<T>* _new_node(GenericTreeNode<T>* _parent, T& _data)
+	generic_node<T>* _new_node(generic_node<T>* _parent, T& _data)
 	{
-		return new GenericTreeNode<T>(_parent, _data);
+		return new generic_node<T>(_parent, _data);
 	}
 
-	void _tree_cleaner(GenericTreeNode<T> *node)
+	void _tree_cleaner(generic_node<T> *node)
 	{
 		if (!node) return;
 
@@ -133,5 +127,5 @@ protected:
 	}
 
 protected:
-	GenericTreeNode<T> * ptrRoot;
+	generic_node<T> * ptrRoot;
 };

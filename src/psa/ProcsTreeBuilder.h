@@ -13,23 +13,24 @@ public:
 	void mapBuilder();
 	void mapHandshake();
 	void buildTree();
-	void printTree(DWORD procPID = 0);
+	void printTree(DWORD const procPID = 0);
 
 	friend std::wostream& operator << (std::wostream& stream, const proc_info& info);
 
 protected:
 	DWORD	_parentProcExists(DWORD nParentID) const;
 	bool	_isSystemProcess(const proc_info& proc_data);
-	void	_BuildTree(GenericTreeNode<proc_info>* node);
+	void	_BuildTree(generic_node<proc_info>* node);
 
-	void	_findSpecificProcess(GenericTreeNode<proc_info>* pNode, DWORD procPID);
+	void	_findSpecificProcess(generic_node<proc_info>* pNode, DWORD const procPID);
 
-	GenericTreeNode<proc_info>*  _getMapParentPtr(DWORD parentPID);
+	generic_node<proc_info>*  _getMapParentPtr(DWORD parentPID);
 
-	proc_info*										m_ptrRoot;
-	GenericTreeNode<proc_info>*						m_ptrSearchTreeNode;
-	generic_tree<proc_info>*						m_ptrTree;
+	std::unique_ptr<proc_info>						m_ptrRoot;
+	std::unique_ptr<generic_tree<proc_info>>		m_ptrTree;
+
+	generic_node<proc_info>*						m_ptrSearchTreeNode;
 	std::multimap<DWORD, proc_info>*					m_ptrMapProcesses;
-	std::multimap<int, GenericTreeNode<proc_info> >		m_mapProc4Tree;	
+	std::multimap<int, generic_node<proc_info> >		m_mapProc4Tree;	
 };
 
