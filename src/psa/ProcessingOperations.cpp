@@ -8,6 +8,7 @@
 #include "ProcsTreeBuilder.h"
 #include "Winternl.h"
 #include "smart_handler.h"
+#include "fixed_priority_queue.h"
 
 using namespace std;
 
@@ -134,7 +135,7 @@ void ProcessingOperations::printError( TCHAR* msg )
    _tprintf( TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg );
 }
 
-void ProcessingOperations::printTopExpensiveProcesses(int top)
+void ProcessingOperations::printTopExpensiveProcesses(const int top)
 {
 	if (m_mapProcesses.empty())
 		BuildProcessesMap();
@@ -146,10 +147,27 @@ void ProcessingOperations::printTopExpensiveProcesses(int top)
 		int		pid;
 		ustring file_name;
 		SIZE_T	file_size;
+
+		bool operator > (const data4sort& rhs) const
+		{
+			return file_size > rhs.file_size;
+		}
+
+		bool operator < (const data4sort& rhs) const
+		{
+			return file_size < rhs.file_size;
+		}
 	};
 
-	vector<data4sort> vect4top;
-	vect4top.reserve(m_mapProcesses.size());
+	struct LessThanByFileSize
+	{
+		bool operator()(const data4sort& lhs, const data4sort& rhs) const
+		{
+			return lhs.file_size < rhs.file_size;
+		}
+	};
+
+	fixed_priority_queue<data4sort, vector<data4sort>, LessThanByFileSize> top_queue(top);
 
 	for (auto &ob : m_mapProcesses)
 	{
@@ -161,15 +179,9 @@ void ProcessingOperations::printTopExpensiveProcesses(int top)
 			data.file_name = ob.second.procName;
 			data.file_size = pmc.PrivateUsage;
 
-			vect4top.push_back(data);
+			top_queue.push(data);
 		}
 	}
-	
-	std::sort(vect4top.begin(), vect4top.end(), 
-					[](const data4sort& lhs, const data4sort& rhs)
-					{
-						return lhs.file_size > rhs.file_size;
-					});
 
 	int counter = 0;
 	SIZE_T processesAllSize = 0;
@@ -179,20 +191,20 @@ void ProcessingOperations::printTopExpensiveProcesses(int top)
 	_tprintf_s(_T(" PID        Process Name \t RAM Usage\n"));
 	_tprintf_s(_T("-------------------------------------------\n"));
 
-	for (auto &ob : vect4top)
+	while (!top_queue.empty())
 	{
-		_tprintf_s(_T(" [%d]    %-15s \t %.2lf MB\n"), 
-							ob.pid, ob.file_name.c_str(), (double)ob.file_size / MB_DIVIDER);
+		auto ob = top_queue.top();
 
-		counter++;
+		_tprintf_s(_T(" [%d]    %-15s \t %.2lf MB\n"),
+			ob.pid, ob.file_name.c_str(), (double)ob.file_size / MB_DIVIDER);
+
 		processesAllSize += ob.file_size;
 
-		if (counter == top)
-			break;
+		top_queue.pop();
 	}
 
 	_tprintf_s(_T("-------------------------------------------\n"));
-	cout << "   Total used memory: " << (double) processesAllSize / MB_DIVIDER << " MB" << std::endl;
+	cout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER << " MB" << std::endl;
 }
 
 bool ProcessingOperations::get_filter_results(const ustring& process_name, const ustring& filter)

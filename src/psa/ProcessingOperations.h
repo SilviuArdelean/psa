@@ -21,7 +21,7 @@ class ProcessingOperations
 
 	bool printAllProcessesInformation(bool const show_details = false);
 	bool printProcessInformation(const ustring& process_name, bool const show_details = false);
-	void printTopExpensiveProcesses(int top);
+	void printTopExpensiveProcesses(const int top);
 
 	void generateProcessesTree(DWORD const proc_pid);
 	
