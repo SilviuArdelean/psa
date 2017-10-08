@@ -7,7 +7,7 @@ ProcsTreeBuilder::ProcsTreeBuilder(std::multimap<DWORD, proc_info>* ptrMap)
 	: m_ptrMapProcesses(ptrMap)
 	, m_ptrSearchTreeNode(nullptr)
 {
-	m_ptrRoot = std::unique_ptr<proc_info>(new proc_info(FAKE_ROOT_PID, FAKE_ROOT_PARENT_PID, _T("o")));
+	m_ptrRoot = std::unique_ptr<proc_info>(new proc_info(FAKE_ROOT_PID, FAKE_ROOT_PARENT_PID, _T("o"), 0));
 	m_ptrTree = std::unique_ptr<generic_tree<proc_info>>(new generic_tree<proc_info>(nullptr, *m_ptrRoot));
 }
 
@@ -35,7 +35,8 @@ void ProcsTreeBuilder::mapBuilder()
 	{
 		proc_info pi(it->second.procPID,
 						it->second.parentPID,
-						it->second.procName);
+						it->second.procName,
+						it->second.usedMemory);
 
 		generic_node<proc_info>  node_data(pi);
 		m_mapProc4Tree.insert(std::pair<DWORD, generic_node<proc_info>>(pi.procPID, node_data));
