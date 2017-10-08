@@ -36,9 +36,6 @@
     <ClInclude Include="stdafx.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="string_utils.h">
-      <Filter>Header</Filter>
-    </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header</Filter>
     </ClInclude>
@@ -47,6 +44,9 @@
     </ClInclude>
     <ClInclude Include="..\..\include\smart_handler.h" />
     <ClInclude Include="..\..\include\fixed_priority_queue.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\string_utils.h">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>

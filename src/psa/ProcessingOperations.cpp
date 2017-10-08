@@ -103,7 +103,8 @@ BOOL ProcessingOperations::BuildProcessesMap()
 
 		  proc_info pi(pe32.th32ProcessID, 
 						  pe32.th32ParentProcessID,
-						  pe32.szExeFile);
+						  pe32.szExeFile,
+						  getProcessUsedMemory(pe32.th32ProcessID));
 
 		  m_mapProcesses.insert(pair<DWORD, proc_info>(pe32.th32ProcessID, pi));
 
@@ -145,17 +146,17 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top)
 
 	struct data4sort {
 		int		pid;
-		ustring file_name;
-		SIZE_T	file_size;
+		ustring proc_name;
+		SIZE_T	used_memory;
 
 		bool operator > (const data4sort& rhs) const
 		{
-			return file_size > rhs.file_size;
+			return used_memory > rhs.used_memory;
 		}
 
 		bool operator < (const data4sort& rhs) const
 		{
-			return file_size < rhs.file_size;
+			return used_memory < rhs.used_memory;
 		}
 	};
 
@@ -163,7 +164,7 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top)
 	{
 		bool operator()(const data4sort& lhs, const data4sort& rhs) const
 		{
-			return lhs.file_size < rhs.file_size;
+			return lhs.used_memory < rhs.used_memory;
 		}
 	};
 
@@ -171,16 +172,12 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top)
 
 	for (auto &ob : m_mapProcesses)
 	{
-		PROCESS_MEMORY_COUNTERS_EX pmc;
-		if (findProcessInfo(ob.second.procPID, pmc))
-		{
-			data4sort data;
-			data.pid = ob.second.procPID;
-			data.file_name = ob.second.procName;
-			data.file_size = pmc.PrivateUsage;
+		data4sort data;
+		data.pid = ob.second.procPID;
+		data.proc_name = ob.second.procName;
+		data.used_memory = ob.second.usedMemory;
 
-			top_queue.push(data);
-		}
+		top_queue.push(data);
 	}
 
 	int counter = 0;
@@ -196,9 +193,9 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top)
 		auto ob = top_queue.top();
 
 		_tprintf_s(_T(" [%d]    %-15s \t %.2lf MB\n"),
-			ob.pid, ob.file_name.c_str(), (double)ob.file_size / MB_DIVIDER);
+			ob.pid, ob.proc_name.c_str(), (double)ob.used_memory / MB_DIVIDER);
 
-		processesAllSize += ob.file_size;
+		processesAllSize += ob.used_memory;
 
 		top_queue.pop();
 	}
@@ -229,18 +226,16 @@ bool ProcessingOperations::printAllProcessesInformation(bool const show_details)
 
 		auto procPID = proc_obj.second.procPID;
 
-		PROCESS_MEMORY_COUNTERS_EX pmc;
-		if (findProcessInfo(procPID, pmc))
 		{
 			_tprintf_s(_T("PID [%d] \t %-15s %.4lf MB\n"),
-				procPID, proc_obj.second.procName.c_str(), (double)pmc.PrivateUsage / MB_DIVIDER);
+				procPID, proc_obj.second.procName.c_str(), (double)proc_obj.second.usedMemory / MB_DIVIDER);
 
 			if (show_details)
 			{
 				printProcessDetailedInfo(procPID);
 			}
 
-			processesAllSize += pmc.PrivateUsage;
+			processesAllSize += proc_obj.second.usedMemory;
 			processesCount++;
 		}
 	}
@@ -270,18 +265,16 @@ bool ProcessingOperations::printProcessInformation(const ustring& filter, bool c
 		{
 			auto procPID = proc_obj.second.procPID;
 
-			PROCESS_MEMORY_COUNTERS_EX pmc;
-			if (findProcessInfo(procPID, pmc))
 			{
 				_tprintf_s(_T("PID [%d] \t %-15s %.4lf MB\n"),
-					procPID, proc_obj.second.procName.c_str(), (double)pmc.PrivateUsage / MB_DIVIDER);
+					procPID, proc_obj.second.procName.c_str(), (double)proc_obj.second.usedMemory / MB_DIVIDER);
 
 				if (show_details)
 				{
 					printProcessDetailedInfo(procPID);
 				}
 
-				processesAllSize += pmc.PrivateUsage;
+				processesAllSize += proc_obj.second.usedMemory;
 				processesCount++;
 			}
 		}
@@ -309,13 +302,18 @@ bool ProcessingOperations::printProcessDetailedInfo(DWORD pid)
 	return true;
 }
 
-bool ProcessingOperations::findProcessInfo(DWORD const processID, PROCESS_MEMORY_COUNTERS_EX& pmc)
+SIZE_T ProcessingOperations::getProcessUsedMemory(DWORD const processID) const
 {
+
+#ifdef _WIN32
 	smart_handle hProcess = OpenProcess(PROCESS_QUERY_INFORMATION |
 									PROCESS_VM_READ,
 									FALSE, processID);
 	if (NULL == hProcess)
-		return false;
+		return 0;
+
+	PROCESS_MEMORY_COUNTERS_EX pmc;
+	::ZeroMemory(&pmc, sizeof(PROCESS_MEMORY_COUNTERS_EX));
 
 	if (K32GetProcessMemoryInfo(hProcess, (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc)))
 	{
@@ -338,7 +336,9 @@ bool ProcessingOperations::findProcessInfo(DWORD const processID, PROCESS_MEMORY
 			*/
 	}
 
-	return true;
+	return pmc.PrivateUsage;
+#elif
+#endif
 }
 
 void ProcessingOperations::generateProcessesTree(DWORD const proc_pid)

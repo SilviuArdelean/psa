@@ -30,7 +30,7 @@ class ProcessingOperations
 	 bool printProcessDetailedInfo(DWORD pid);
 	 bool get_filter_results(const ustring& process_name, const ustring& current_process);
 
-	 bool findProcessInfo(DWORD const processID, PROCESS_MEMORY_COUNTERS_EX& pmc);
+	 SIZE_T getProcessUsedMemory(DWORD const processID) const;
 	
      BOOL SetPrivilege( HANDLE hToken,          // access token handle
                            LPCTSTR lpszPrivilege,  // name of privilege to enable/disable

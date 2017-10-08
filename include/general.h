@@ -7,6 +7,7 @@
 #include <cctype>
 #include <regex>
 
+#ifdef _WIN32
 #include <windows.h>
 #include "Psapi.h"
 #include "Shlwapi.h"
@@ -14,6 +15,7 @@
 
 #pragma comment(lib, "psapi.lib") 
 #pragma comment(lib, "Shlwapi.lib")
+#endif
 
 /* changed for deprecation warnings */
 
@@ -74,19 +76,22 @@ struct proc_info
 	DWORD	procPID;
 	DWORD	parentPID;
 	ustring procName;
+	SIZE_T	usedMemory;
 
 	proc_info()
 		: procPID(0)
 		, parentPID(0)
 		, procName(_T(""))
+		, usedMemory(0)
 	{
 	}
 
 	proc_info(DWORD	_procPID, DWORD	_parentPID,
-		ustring _procName)
+		ustring _procName, SIZE_T _usedMemory)
 		: procPID(_procPID)
 		, parentPID(_parentPID)
 		, procName(_procName)
+		, usedMemory(_usedMemory)
 	{
 	}
 
@@ -94,6 +99,7 @@ struct proc_info
 		: procPID(rhs.procPID)
 		, parentPID(rhs.parentPID)
 		, procName(rhs.procName)
+		, usedMemory(rhs.usedMemory)
 	{
 	}
 
@@ -101,9 +107,10 @@ struct proc_info
 	{
 		if (this != &rhs)
 		{
-			procPID = rhs.procPID;
-			parentPID = rhs.parentPID;
-			procName = rhs.procName;
+			procPID		= rhs.procPID;
+			parentPID	= rhs.parentPID;
+			procName	= rhs.procName;
+			usedMemory	= rhs.usedMemory;
 		}
 
 		return *this;
@@ -111,26 +118,30 @@ struct proc_info
 
 	proc_info(proc_info&& rhs)
 	{
-		procPID = rhs.procPID;
-		parentPID = rhs.parentPID;
-		procName = rhs.procName;
+		procPID		= rhs.procPID;
+		parentPID	= rhs.parentPID;
+		procName	= rhs.procName;
+		usedMemory	= rhs.usedMemory;
 
 		rhs.procPID = 0;
 		rhs.parentPID = 0;
 		rhs.procName = _T("");
+		rhs.usedMemory = 0;
 	}
 
 	proc_info& operator = (proc_info&& rhs)
 	{
 		if (this != &rhs)
 		{
-			procPID = rhs.procPID;
-			parentPID = rhs.parentPID;
-			procName = rhs.procName;
+			procPID		= rhs.procPID;
+			parentPID	= rhs.parentPID;
+			procName	= rhs.procName;
+			usedMemory	= rhs.usedMemory;
 
 			rhs.procPID = 0;
 			rhs.parentPID = 0;
 			rhs.procName.clear();
+			rhs.usedMemory = 0;
 		}
 
 		return *this;
