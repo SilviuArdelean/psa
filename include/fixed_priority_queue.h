@@ -17,25 +17,27 @@ public:
 	{
 	}
 
+	typedef typename  std::priority_queue<_Ty, _Container, _Pr> _PQ_specialization;
+
 	void push(const _Ty& x)
 	{
-		if (fixed_size == std::priority_queue<_Ty, _Container, _Pr>::size())
+		if (fixed_size == _PQ_specialization::size())
 		{
-			auto min = std::min_element(std::priority_queue<_Ty, _Container, _Pr>::c.begin(), 
-											std::priority_queue<_Ty, _Container, _Pr>::c.end(), 
+			auto min = std::min_element(_PQ_specialization::c.begin(),
+										_PQ_specialization::c.end(),
 											_Pr());
 			if (x > *min)
 			{
 				*min = x;
 	
 				// Re-make the heap, since we may have just invalidated it.
-				std::make_heap(std::priority_queue<_Ty, _Container, _Pr>::c.begin(), 
-										std::priority_queue<_Ty, _Container, _Pr>::c.end());
+				std::make_heap(_PQ_specialization::c.begin(),
+									_PQ_specialization::c.end());
 			}
 		}
 		else
 		{
-			std::priority_queue<_Ty, _Container, _Pr>::emplace(x);
+			_PQ_specialization::emplace(x);
 		}
 	}
 	
