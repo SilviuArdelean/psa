@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "psa", "src\psa\psa.vcxproj", "{AD77D8E2-05FD-47BD-88AA-AD5A0DFA7616}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "psa-win", "src\psa-win\psa-win.vcxproj", "{AD77D8E2-05FD-47BD-88AA-AD5A0DFA7616}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "testing", "testing", "{B27D09A6-192B-4816-9204-A357DAD34E93}"
 EndProject

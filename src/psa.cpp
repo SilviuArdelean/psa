@@ -3,11 +3,13 @@
 */
 
 #include "general.h"
-#include "..\XGetopt.h"
+#include "XGetopt.h"
 #include "stdlib.h"
 #include "string_utils.h"
-#include "..\ProcessingOperations.h"
+#include "ProcessingOperations.h"
+#ifdef _WIN32
 #include "tchar.h"
+#endif
 
 void showAvailableInformation()
 {
