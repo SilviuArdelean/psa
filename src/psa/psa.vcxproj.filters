@@ -1,19 +1,19 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="ProcessingOperations.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="ProcsTreeBuilder.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="psa.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="XGetopt.cpp">
+    <ClCompile Include="..\XGetopt.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ProcessingOperations.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ProcsTreeBuilder.cpp">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
@@ -27,26 +27,26 @@
     <ClInclude Include="..\..\include\generic_tree_handler.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="ProcessingOperations.h">
-      <Filter>Header</Filter>
-    </ClInclude>
-    <ClInclude Include="ProcsTreeBuilder.h">
-      <Filter>Header</Filter>
-    </ClInclude>
     <ClInclude Include="stdafx.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="XGetopt.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\smart_handler.h" />
     <ClInclude Include="..\..\include\fixed_priority_queue.h">
       <Filter>Header</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\string_utils.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\XGetopt.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ProcessingOperations.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="..\ProcsTreeBuilder.h">
       <Filter>Header</Filter>
     </ClInclude>
   </ItemGroup>

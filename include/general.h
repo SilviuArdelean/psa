@@ -8,13 +8,13 @@
 #include <regex>
 
 #ifdef _WIN32
-#include <windows.h>
-#include "Psapi.h"
-#include "Shlwapi.h"
-#include "TlHelp32.h"
+	#include <windows.h>
+	#include "Psapi.h"
+	#include "Shlwapi.h"
+	#include "TlHelp32.h"
 
-#pragma comment(lib, "psapi.lib") 
-#pragma comment(lib, "Shlwapi.lib")
+	#pragma comment(lib, "psapi.lib") 
+	#pragma comment(lib, "Shlwapi.lib")
 #endif
 
 /* changed for deprecation warnings */
@@ -41,6 +41,10 @@
 #define utok			wcstok_s
 #define SEPARATOR		_T("]|["
 #define cout			std::wcout
+#define uprintf_s		wprintf
+#define __T(x)			L ## x
+#define _T(x)			__T(x)
+
 #else
 #define ustrcmp			strcmp
 #define ustring			std::string
@@ -63,91 +67,100 @@
 #define	utok			strtok_s
 #define SEPARATOR		"]|["
 #define cout			std::cout
+#define uprintf_s		printf
+#define _T(x)			x
 #endif
+
+#ifdef __linux__
+	typedef unsigned long		DWORD;
+	typedef int64_t			    ULONG64;	
+	#define SIZE_T				unsigned int64_t;
+#endif
+
+	struct proc_info
+	{
+		int		procPID;
+		int		parentPID;
+		ustring procName;
+		int64_t	usedMemory;
+
+		proc_info()
+			: procPID(0)
+			, parentPID(0)
+			, procName(_T(""))
+			, usedMemory(0)
+		{
+		}
+
+		proc_info(int	_procPID, int	_parentPID,
+			ustring _procName, int64_t _usedMemory)
+			: procPID(_procPID)
+			, parentPID(_parentPID)
+			, procName(_procName)
+			, usedMemory(_usedMemory)
+		{
+		}
+
+		proc_info(const proc_info& rhs)
+			: procPID(rhs.procPID)
+			, parentPID(rhs.parentPID)
+			, procName(rhs.procName)
+			, usedMemory(rhs.usedMemory)
+		{
+		}
+
+		proc_info& operator = (const proc_info& rhs)
+		{
+			if (this != &rhs)
+			{
+				procPID = rhs.procPID;
+				parentPID = rhs.parentPID;
+				procName = rhs.procName;
+				usedMemory = rhs.usedMemory;
+			}
+
+			return *this;
+		}
+
+		proc_info(proc_info&& rhs)
+		{
+			procPID = rhs.procPID;
+			parentPID = rhs.parentPID;
+			procName = rhs.procName;
+			usedMemory = rhs.usedMemory;
+
+			rhs.procPID = 0;
+			rhs.parentPID = 0;
+			rhs.procName = _T("");
+			rhs.usedMemory = 0;
+		}
+
+		proc_info& operator = (proc_info&& rhs)
+		{
+			if (this != &rhs)
+			{
+				procPID = rhs.procPID;
+				parentPID = rhs.parentPID;
+				procName = rhs.procName;
+				usedMemory = rhs.usedMemory;
+
+				rhs.procPID = 0;
+				rhs.parentPID = 0;
+				rhs.procName.clear();
+				rhs.usedMemory = 0;
+			}
+
+			return *this;
+		}
+
+	};
+
 
 #define MB_DIVIDER		(1024 * 1024)
 #define KB_DEVIDER		(1024 * 1024 * 1024)
 
 #define FAKE_ROOT_PID			999999
 #define FAKE_ROOT_PARENT_PID	1000000
-
-struct proc_info 
-{
-	DWORD	procPID;
-	DWORD	parentPID;
-	ustring procName;
-	SIZE_T	usedMemory;
-
-	proc_info()
-		: procPID(0)
-		, parentPID(0)
-		, procName(_T(""))
-		, usedMemory(0)
-	{
-	}
-
-	proc_info(DWORD	_procPID, DWORD	_parentPID,
-		ustring _procName, SIZE_T _usedMemory)
-		: procPID(_procPID)
-		, parentPID(_parentPID)
-		, procName(_procName)
-		, usedMemory(_usedMemory)
-	{
-	}
-
-	proc_info(const proc_info& rhs)
-		: procPID(rhs.procPID)
-		, parentPID(rhs.parentPID)
-		, procName(rhs.procName)
-		, usedMemory(rhs.usedMemory)
-	{
-	}
-
-	proc_info& operator = (const proc_info& rhs)
-	{
-		if (this != &rhs)
-		{
-			procPID		= rhs.procPID;
-			parentPID	= rhs.parentPID;
-			procName	= rhs.procName;
-			usedMemory	= rhs.usedMemory;
-		}
-
-		return *this;
-	}
-
-	proc_info(proc_info&& rhs)
-	{
-		procPID		= rhs.procPID;
-		parentPID	= rhs.parentPID;
-		procName	= rhs.procName;
-		usedMemory	= rhs.usedMemory;
-
-		rhs.procPID = 0;
-		rhs.parentPID = 0;
-		rhs.procName = _T("");
-		rhs.usedMemory = 0;
-	}
-
-	proc_info& operator = (proc_info&& rhs)
-	{
-		if (this != &rhs)
-		{
-			procPID		= rhs.procPID;
-			parentPID	= rhs.parentPID;
-			procName	= rhs.procName;
-			usedMemory	= rhs.usedMemory;
-
-			rhs.procPID = 0;
-			rhs.parentPID = 0;
-			rhs.procName.clear();
-			rhs.usedMemory = 0;
-		}
-
-		return *this;
-	}
-
-};
 
 enum PSA_INTERNAL_ERRORS {
 	invalid_processing_operations = 10001

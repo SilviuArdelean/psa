@@ -3,6 +3,7 @@
 #include <map>
 #include <stack>
 #include <vector>
+#include "general.h"
 
 
 typedef std::multimap<DWORD, proc_info>::iterator   proc_iter;
@@ -15,7 +16,7 @@ class ProcessingOperations
     ProcessingOperations(void);
     ~ProcessingOperations(void);
 
-    BOOL BuildProcessesMap();
+    bool BuildProcessesMap();
 
 	procs_map*  GetProcessesMap()   { 		return &m_mapProcesses; }
 
@@ -25,16 +26,18 @@ class ProcessingOperations
 
 	void generateProcessesTree(DWORD const proc_pid);
 	
-   protected:
-     void printError( TCHAR* msg );
-	 bool printProcessDetailedInfo(DWORD pid);
-	 bool get_filter_results(const ustring& process_name, const ustring& current_process);
+   protected:     
+	 bool	printProcessDetailedInfo(DWORD pid);
+	 bool	get_filter_results(const ustring& process_name, const ustring& current_process);
+	 
 
-	 SIZE_T getProcessUsedMemory(DWORD const processID) const;
-	
+#ifdef _WIN32
+	 void printError(TCHAR* msg);
+	 SIZE_T	getProcessUsedMemory(DWORD const processID) const;
      BOOL SetPrivilege( HANDLE hToken,          // access token handle
                            LPCTSTR lpszPrivilege,  // name of privilege to enable/disable
                            BOOL bEnablePrivilege);   // to enable or disable privilege
+#endif
 
    protected:
       procs_map m_mapProcesses;	

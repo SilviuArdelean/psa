@@ -1,7 +1,16 @@
 ﻿#pragma once
+
 #include "generic_tree.h"
 #include <fcntl.h>  
 #include <io.h>  
+#include <locale>
+
+#define USE_CODECVT 0
+#define USE_IMBUE   1
+
+#if USE_CODECVT
+#include <codecvt>
+#endif 
 
 template <typename T>
 class generic_tree_handler
@@ -13,8 +22,23 @@ class generic_tree_handler
 	{
 		if (!node)
 			return;
-
+#ifdef _WIN32
 		_setmode(_fileno(stdout), _O_U16TEXT);
+#else
+		#if USE_CODECVT
+				std::locale en("en_US.utf8",
+					new codecvt_utf8<wchar_t, 0x10ffff, consume_header>{});
+		#else
+				std::locale en("en_US.utf8");
+		#endif
+		#ifdef USE_IMBUE
+				std::wcout.imbue(en);
+		#else
+				std::locale::global(en);
+		#endif
+#endif
+		//std::wiostream output;
+		//output.imbue(std::locale("en_US.utf8"));
 
 		// list of Unicode characters 
 		// http://www.fileformat.info/info/unicode/category/So/list.htm
