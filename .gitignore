@@ -40,5 +40,11 @@
 bin/
 bin64/
 ipch/
-src/psa/x64/
+src/psa-win/x64/
+src/psa-win/Win32/
+src/psa-win/Release/
+src/psa-win/Debug/
 testing/testGenericTree/x64/
+testing/testGenericTree/Win32/
+testing/testGenericTree/Release/
+testing/testGenericTree/Debug/
