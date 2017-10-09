@@ -1,4 +1,6 @@
-#include "stdafx.h"
+#ifdef _WIN32
+//#include "psa\stdafx.h"
+#endif
 #include "ProcsTreeBuilder.h"
 #include "generic_tree.h"
 #include "generic_tree_handler.h"
