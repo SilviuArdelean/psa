@@ -6,7 +6,7 @@
 #include "string_utils.h"
 #include "ProcessingOperations.h"
 #ifdef _WIN32
-#include "XGetopt.h"
+#include "psa-win/XGetopt.h"
 #include "tchar.h"
 #endif
 
@@ -28,13 +28,16 @@ void showAvailableInformation()
 			// specify additional pid as root to build the tree
 
 
-	ucout << _T("  Processes Status Analysis - version 0.1\n");
-	ucout << _T("------------------------------------------- \n");
-	ucout << _T("-a	: list all processes information \n");
-	ucout << _T("-e [no]	: top [no] most expensive memory consuming processes | top 10 by default \n");
-	ucout << _T("-k	: kill specific process by PID \n");
-	ucout << _T("-o	: info only one process name criteria \n");
-	ucout << _T("-t	: tree snapshot of current processes\n");
+	ucout << _T("       Processes Status Analysis - version 0.2") << std::endl;
+	ucout << _T("-----------------------------------------------------------") << std::endl;
+	ucout << _T("	-a	: list all processes information") << std::endl;
+	ucout << _T("	-e [no]	: top [no] most expensive memory consuming processes | top 10 by default ") << std::endl;
+	ucout << _T("	-k	: kill specific process by PID") << std::endl;
+	ucout << _T("	-o	: info only one process name criteria ") << std::endl;
+	ucout << _T("	-t	: tree snapshot of current processes") << std::endl;
+	ucout << _T("-----------------------------------------------------------") << std::endl;
+	ucout << _T("  Author: Silviu-Marius Ardelean http://silviuardelean.ro ") << std::endl;
+	ucout << _T("-----------------------------------------------------------") << std::endl;
 }
 
 #ifdef _WIN32
