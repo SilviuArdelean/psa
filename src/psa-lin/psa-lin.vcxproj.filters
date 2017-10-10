@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\XGetopt.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\ProcessingOperations.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -13,6 +10,17 @@
     <ClCompile Include="..\psa.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{6a89c154-1c09-4399-84c3-b9e191d562cf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sources">
+      <UniqueIdentifier>{297ba426-2073-4f89-808e-7331d32e2b3d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\fixed_priority_queue.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\include\general.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -22,16 +30,7 @@
     <ClInclude Include="..\..\include\generic_tree_handler.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="targetver.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\include\fixed_priority_queue.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\string_utils.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\XGetopt.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\ProcessingOperations.h">
@@ -40,21 +39,5 @@
     <ClInclude Include="..\ProcsTreeBuilder.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\smart_handler.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Filter Include="Sources">
-      <UniqueIdentifier>{d8f3f43e-f059-4501-8aa8-ebc86401d62d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Headers">
-      <UniqueIdentifier>{f72fc6ba-152a-41e8-9981-83bc9deeab9a}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt">
-      <Filter>Sources</Filter>
-    </Text>
   </ItemGroup>
 </Project>

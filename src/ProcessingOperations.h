@@ -5,26 +5,21 @@
 #include <vector>
 #include "general.h"
 
-
-typedef std::multimap<DWORD, proc_info>::iterator   proc_iter;
-typedef std::multimap<DWORD, proc_info>				procs_map;
-
-
 class ProcessingOperations
 {
   public:
     ProcessingOperations(void);
-    ~ProcessingOperations(void);
+	~ProcessingOperations() {};
 
     bool BuildProcessesMap();
 
-	procs_map*  GetProcessesMap()   { 		return &m_mapProcesses; }
+	std::multimap<DWORD, proc_info>*  GetProcessesMap()   { 		return &m_mapProcesses; }
 
 	bool printAllProcessesInformation(bool const show_details = false);
 	bool printProcessInformation(const ustring& process_name, bool const show_details = false);
 	void printTopExpensiveProcesses(const int top);
 
-	void generateProcessesTree(DWORD const proc_pid);
+	void generateProcessesTree(int const proc_pid);
 	
    protected:     
 	 bool	printProcessDetailedInfo(DWORD pid);
@@ -40,6 +35,6 @@ class ProcessingOperations
 #endif
 
    protected:
-      procs_map m_mapProcesses;	
+	   std::multimap<DWORD, proc_info> m_mapProcesses;
 };
 

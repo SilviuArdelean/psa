@@ -40,11 +40,10 @@
 #define itou			_itow_s
 #define utok			wcstok_s
 #define SEPARATOR		_T("]|["
-#define cout			std::wcout
 #define uprintf_s		wprintf
 #define __T(x)			L ## x
 #define _T(x)			__T(x)
-
+#define TCHAR			wchar_t
 #else
 #define ustrcmp			strcmp
 #define ustring			std::string
@@ -66,15 +65,21 @@
 #define itou			_itoa_s
 #define	utok			strtok_s
 #define SEPARATOR		"]|["
-#define cout			std::cout
 #define uprintf_s		printf
 #define _T(x)			x
+#define TCHAR			char
+#define uatoi			atoi
 #endif
 
 #ifdef __linux__
 	typedef unsigned long		DWORD;
 	typedef int64_t			    ULONG64;	
 	#define SIZE_T				unsigned int64_t;
+	#define utoi				atoi
+	#define ucout				std::cout	
+#elif _WIN32
+	#define utoi				_ttoi
+	#define ucout				std::wcout
 #endif
 
 	struct proc_info

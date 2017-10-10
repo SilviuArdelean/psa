@@ -1,8 +1,3 @@
-#ifdef _WIN32
-//	#include "psa\stdafx.h"
-	#include "Winternl.h"
-	#include "smart_handler.h"
-#endif
 #include "general.h"
 #include "ProcessingOperations.h"
 #include <iostream>
@@ -12,19 +7,16 @@
 #include "ProcsTreeBuilder.h"
 #include "fixed_priority_queue.h"
 #include <mutex>
-
-#ifdef __linux__
+#ifdef _WIN32
+#include "Winternl.h"
+#include "smart_handler.h"
+#elif __linux__
 	#include <proc/readproc.h>
 #endif
-
 
 using namespace std;
 
 ProcessingOperations::ProcessingOperations(void)
-{
-}
-
-ProcessingOperations::~ProcessingOperations(void)
 {
 }
 
@@ -114,7 +106,7 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top)
 		BuildProcessesMap();
 
 	if (m_mapProcesses.empty())
-		cout << "Processes list is empty" << endl;
+		ucout << "Processes list is empty" << endl;
 
 	struct data4sort {
 		int		pid;
@@ -154,10 +146,10 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top)
 
 	ULONG64 processesAllSize = 0;
 
-	cout << " Top " << top << "consumming memory processes \n";
-	cout << "-------------------------------------------\n";
-	cout << " PID        Process Name \t RAM Usage\n";
-	cout << "-------------------------------------------\n";
+	ucout << " Top " << top << " consumming memory processes \n";
+	ucout << "-------------------------------------------\n";
+	ucout << " PID        Process Name \t RAM Usage\n";
+	ucout << "-------------------------------------------\n";
 
 	while (!top_queue.empty())
 	{
@@ -171,8 +163,8 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top)
 		top_queue.pop();
 	}
 
-	cout << "-------------------------------------------" << endl;
-	cout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER << " MB" << std::endl;
+	ucout << "-------------------------------------------" << endl;
+	ucout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER << " MB" << std::endl;
 }
 
 bool ProcessingOperations::get_filter_results(const ustring& process_name, const ustring& filter)
@@ -211,8 +203,8 @@ bool ProcessingOperations::printAllProcessesInformation(bool const show_details)
 	}
 
 	if (processesCount != 0) {
-		cout << "-----------------------------------" << std::endl;
-		cout << "   Total used memory: " << (double) processesAllSize / MB_DIVIDER << " MB" << std::endl;
+		ucout << "-----------------------------------" << std::endl;
+		ucout << "   Total used memory: " << (double) processesAllSize / MB_DIVIDER << " MB" << std::endl;
 	}
 
 	return true;
@@ -251,11 +243,11 @@ bool ProcessingOperations::printProcessInformation(const ustring& filter, bool c
 	}
 
 	if (processesCount != 0) {
-		cout << "-----------------------------------" << std::endl;
-		cout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER << " MB" << std::endl;
+		ucout << "-----------------------------------" << std::endl;
+		ucout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER << " MB" << std::endl;
 	}
 	else {
-		cout << "Undetected process with \'" << filter << "' name." << std::endl;
+		ucout << "Undetected process with \'" << filter << "' name." << std::endl;
 	}
 
 	return true;
@@ -272,7 +264,7 @@ bool ProcessingOperations::printProcessDetailedInfo(DWORD pid)
 	return true;
 }
 
-void ProcessingOperations::generateProcessesTree(DWORD const proc_pid)
+void ProcessingOperations::generateProcessesTree(int const proc_pid)
 {
 	if (m_mapProcesses.empty())
 		BuildProcessesMap();
@@ -290,7 +282,7 @@ void ProcessingOperations::generateProcessesTree(DWORD const proc_pid)
 	}
 	else
 	{
-		cout << "Invalid Process ID | PID " << proc_pid << " not detected in memory" << std::endl;
+		ucout << "Invalid Process ID | PID " << proc_pid << " not detected in memory" << std::endl;
 	}
 }
 
