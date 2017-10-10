@@ -95,7 +95,11 @@ bool processCommandLine(int argc, char *argv[], ProcessingOperations *pPO)
 
 			case _T('t'):
 				{
-					auto proc_pid = 0;
+#ifdef _WIN32
+					auto proc_pid = 0;  // Windows ROOT PID = 0
+#else	
+					auto proc_pid = 1;	// Linux   ROOT PID = 1
+#endif
 					if (3 == argc && isdigit(*argv[argc - 1]))
 						proc_pid = utoi(argv[argc - 1]);
 
