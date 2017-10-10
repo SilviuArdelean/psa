@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 #include "generic_tree.h"
-#ifdef WIN32
+#ifdef _WIN32
 	#include <fcntl.h>  
 	#include <io.h>  
 #endif
@@ -24,21 +24,21 @@ class generic_tree_handler
 	{
 		if (!node)
 			return;
-//#ifdef _WIN32 
-//		_setmode(_fileno(stdout), _O_U16TEXT);
-//#else
-//		#if USE_CODECVT
-//				std::locale en("en_US.utf8",
-//					new codecvt_utf8<wchar_t, 0x10ffff, consume_header>{});
-//		#else
-//				std::locale en("en_US.utf8");
-//		#endif
-//		#ifdef USE_IMBUE
-//				std::wcout.imbue(en);
-//		#else
-//				std::locale::global(en);
-//		#endif
-//#endif
+#ifdef _WIN32 
+		_setmode(_fileno(stdout), _O_U16TEXT);
+#elif __linux__
+		#if USE_CODECVT
+				std::locale en("en_US.utf8",
+					new codecvt_utf8<wchar_t, 0x10ffff, consume_header>{});
+		#else
+				std::locale en("en_US.utf8");
+		#endif
+		#ifdef USE_IMBUE
+				std::wcout.imbue(en);
+		#else
+				std::locale::global(en);
+		#endif
+#endif
 		//std::wiostream output;
 		//output.imbue(std::locale("en_US.utf8"));
 
