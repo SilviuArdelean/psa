@@ -11,8 +11,7 @@ class string_utils
 	{
 		#ifdef __linux__
 			return (0 == strFirst.compare(strSecond));
-		#else
-			
+		#else	
 			// Convert both strings to upper case by transfrom() before compare.
 			std::transform(strFirst.begin(), strFirst.end(), strFirst.begin(), toupper);
 			std::transform(strSecond.begin(), strSecond.end(), strSecond.begin(), toupper);		
@@ -23,7 +22,6 @@ class string_utils
 
 	static bool is_filename(const ustring& filename)
 	{
-		// define a regular expression
 		#ifdef UNICODE
 			const std::wregex pattern(_T("^([a-zA-Z0-9s._-]+)$"));
 		#else

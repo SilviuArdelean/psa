@@ -1,6 +1,4 @@
-#ifdef _WIN32
-//#include "psa\stdafx.h"
-#endif
+
 #include "ProcsTreeBuilder.h"
 #include "generic_tree.h"
 #include "generic_tree_handler.h"
@@ -11,10 +9,6 @@ ProcsTreeBuilder::ProcsTreeBuilder(std::multimap<DWORD, proc_info>* ptrMap)
 {
 	m_ptrRoot = std::unique_ptr<proc_info>(new proc_info(FAKE_ROOT_PID, FAKE_ROOT_PARENT_PID, _T("o"), 0));
 	m_ptrTree = std::unique_ptr<generic_tree<proc_info>>(new generic_tree<proc_info>(nullptr, *m_ptrRoot));
-}
-
-ProcsTreeBuilder::~ProcsTreeBuilder()
-{
 }
 
 std::wostream& operator << (std::wostream& stream, const proc_info& info)
@@ -45,7 +39,7 @@ void ProcsTreeBuilder::mapBuilder()
 	}
 }
 
-DWORD ProcsTreeBuilder::_parentProcExists(DWORD nParentID) const
+DWORD ProcsTreeBuilder::_parentProcExists(int nParentID) const
 {
 	auto itParent = m_mapProc4Tree.find(nParentID);
 
@@ -101,7 +95,7 @@ void ProcsTreeBuilder::_BuildTree(generic_node<proc_info>* node)
 	}
 }
 
-void ProcsTreeBuilder::printTree(DWORD const procPID)
+void ProcsTreeBuilder::printTree(int const procPID)
 {
 	generic_node<proc_info>* pNode = nullptr;
 
@@ -117,7 +111,7 @@ void ProcsTreeBuilder::printTree(DWORD const procPID)
 	generic_tree_handler<proc_info>::dfs_traverse(pNode);
 }
 
-void ProcsTreeBuilder::_findSpecificProcess(generic_node<proc_info>* pNode, DWORD const procPID)
+void ProcsTreeBuilder::_findSpecificProcess(generic_node<proc_info>* pNode, int const procPID)
 {
 	if (pNode->data.procPID == procPID)
 	{
@@ -137,7 +131,7 @@ bool ProcsTreeBuilder::_isSystemProcess(const proc_info& proc_data)
 	return (proc_data.procPID == 4 && proc_data.parentPID == 0);
 }
 
-generic_node<proc_info>* ProcsTreeBuilder::_getMapParentPtr(DWORD parentPID)
+generic_node<proc_info>* ProcsTreeBuilder::_getMapParentPtr(int parentPID)
 {
 	auto it_parent = m_mapProc4Tree.find(parentPID);
 	return ((it_parent != m_mapProc4Tree.end())
