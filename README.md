@@ -1,8 +1,8 @@
 ### psa
 Processes Status Analysis  
-version 0.1  
+version 0.2  
 ------------------------------------------
-Processes Status Analysis (psa) application allows different analyses over the operating system processes snapshot.
+Processes Status Analysis (psa) cross-platform application that allows different analyses over the operating system's processes.
 
 Parameters
 ------------------------------------------
@@ -26,7 +26,9 @@ psa -e 20 > top_expensive_processes.txt   // top most 'expensive' processes and 
 
 Compatibility
 ------------------------------------------
-Currently the application is Windows OS complient, only. Ongoing plans for Linux OS support. 
+The currently supported operating systems:
+* Windows
+* Linux    - (Debian tested) requiers libprocps-dev library
 
 Contributing
 ------------
