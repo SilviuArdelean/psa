@@ -17,6 +17,8 @@ public:
 
 	friend std::wostream& operator << (std::wostream& stream, const proc_info& info);
 
+	void  print_it(generic_node<proc_info> * info);
+
 protected:
 	DWORD	_parentProcExists(int nParentID) const;
 	bool	_isSystemProcess(const proc_info& proc_data);
