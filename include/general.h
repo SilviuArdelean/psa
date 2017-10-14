@@ -35,6 +35,7 @@
 #define ustrchr			wcschr
 #define ustrrchr		wcsrchr
 #define ustricmp		_wcsicmp
+#define uostream		std::wostream
 #define ufscanf_s		fwscanf_s
 #define ustringstream	std::wstringstream
 #define itou			_itow_s
@@ -44,6 +45,7 @@
 #define __T(x)			L ## x
 #define _T(x)			__T(x)
 #define TCHAR			wchar_t
+#define ucout			std::wcout
 #else
 #define ustrcmp			strcmp
 #define ustring			std::string
@@ -60,6 +62,7 @@
 #define ustrchr			strchr
 #define ustrrchr		strrchr
 #define ustricmp		stricmp
+#define uostream		std::ostream
 #define ufscanf_s		fscanf_s
 #define ustringstream	std::stringstream
 #define itou			_itoa_s
@@ -69,6 +72,7 @@
 #define _T(x)			x
 #define TCHAR			char
 #define uatoi			atoi
+#define ucout			std::cout	
 #endif
 
 #ifdef __linux__
@@ -76,10 +80,8 @@
 	typedef int64_t			    ULONG64;	
 	#define SIZE_T				unsigned int64_t;
 	#define utoi				atoi
-	#define ucout				std::cout	
 #elif _WIN32
 	#define utoi				_ttoi
-	#define ucout				std::wcout
 #endif
 
 	struct proc_info

@@ -11,10 +11,15 @@ ProcsTreeBuilder::ProcsTreeBuilder(std::multimap<DWORD, proc_info>* ptrMap)
 	m_ptrTree = std::unique_ptr<generic_tree<proc_info>>(new generic_tree<proc_info>(nullptr, *m_ptrRoot));
 }
 
+void  ProcsTreeBuilder::print_it(generic_node<proc_info> * info)
+{
+	std::wcout << info->data.procName.c_str() << _T(" [" << info->data.procPID << "] ") << std::endl;
+}
+
 std::wostream& operator << (std::wostream& stream, const proc_info& info)
 {
 	if (info.procPID != FAKE_ROOT_PID)
-		stream << info.procName.c_str() << " [" << info.procPID << "] ";
+		stream << info.procName.c_str() << _T(" [" << info.procPID << "] ") << std::endl;
 	else
 		stream << info.procName.c_str();
 
@@ -108,7 +113,21 @@ void ProcsTreeBuilder::printTree(int const procPID)
 		pNode = m_ptrSearchTreeNode;
 	}
 
+	if (!pNode)
+	{
+		ucout << _T("Invalid process") << std::endl;
+		return;
+	}
+
+#ifdef __linux__
+	generic_tree_handler<proc_info> gt;
+	gt.set_parent(this);
+    gt.dfs_traverse_nonstatic(pNode);
+	//generic_tree_handler<proc_info>::dfs_traverse_nonunicode(pNode);	// don't want ASCII only
+#else
 	generic_tree_handler<proc_info>::dfs_traverse(pNode);
+#endif
+
 }
 
 void ProcsTreeBuilder::_findSpecificProcess(generic_node<proc_info>* pNode, int const procPID)
