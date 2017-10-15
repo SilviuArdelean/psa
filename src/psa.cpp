@@ -27,7 +27,7 @@ void showAvailableInformation()
 			// chose stream (iostream / fstream) 
 			// specify additional pid as root to build the tree
 
-
+	ucout << _T("-----------------------------------------------------------") << std::endl;
 	ucout << _T("       Processes Status Analysis - version 0.2") << std::endl;
 	ucout << _T("-----------------------------------------------------------") << std::endl;
 	ucout << _T("	-a	: list all processes information") << std::endl;
@@ -40,11 +40,7 @@ void showAvailableInformation()
 	ucout << _T("-----------------------------------------------------------") << std::endl;
 }
 
-#ifdef _WIN32
 bool processCommandLine(int argc, TCHAR *argv[], ProcessingOperations *pPO)
-#else
-bool processCommandLine(int argc, char *argv[], ProcessingOperations *pPO)
-#endif
 {	
 	if (!pPO) 
 	{
