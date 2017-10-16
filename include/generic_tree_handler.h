@@ -53,7 +53,7 @@ class generic_tree_handler
 			}
 		}
 
-		std::wcout << node->data;
+		std::wcout << node->data << std::endl;
 
 		for (auto it = node->listChildren.begin(); it != node->listChildren.end(); ++it)
 		{
