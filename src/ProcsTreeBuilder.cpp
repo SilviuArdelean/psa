@@ -19,7 +19,7 @@ void  ProcsTreeBuilder::print_it(generic_node<proc_info> * info)
 std::wostream& operator << (std::wostream& stream, const proc_info& info)
 {
 	if (info.procPID != FAKE_ROOT_PID)
-		stream << info.procName.c_str() << _T(" [" << info.procPID << "] ") << std::endl;
+		stream << info.procName.c_str() << _T(" [" << info.procPID << "] ");
 	else
 		stream << info.procName.c_str();
 

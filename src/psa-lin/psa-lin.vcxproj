@@ -89,11 +89,13 @@
     <IncludePath>..\..\include\;%appdata%\..\Local\lxss\rootfs\usr\include\;%appdata%\..\Local\lxss\rootfs\usr\include\x86_64-linux-gnu\;$(IncludePath)</IncludePath>
     <LibraryPath>%appdata%\..\Local\lxss\rootfs\usr\lib\x86_64-linux-gnu\;$(LibraryPath)</LibraryPath>
     <TargetName>psa</TargetName>
+    <TargetExt />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <IncludePath>..\..\include\;%appdata%\..\Local\lxss\rootfs\usr\include\;%appdata%\..\Local\lxss\rootfs\usr\include\x86_64-linux-gnu\;$(IncludePath)</IncludePath>
     <LibraryPath>%appdata%\..\Local\lxss\rootfs\usr\lib\x86_64-linux-gnu\;$(LibraryPath)</LibraryPath>
     <TargetName>psa</TargetName>
+    <TargetExt />
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\ProcessingOperations.cpp" />
