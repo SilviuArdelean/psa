@@ -146,7 +146,7 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top)
 
 	ULONG64 processesAllSize = 0;
 
-	ucout << " Top " << top << " consuming memory processes \n";
+	ucout << " Top " << top << " most consuming memory processes \n";
 	ucout << "-------------------------------------------\n";
 	ucout << " PID        Process Name \t RAM Usage\n";
 	ucout << "-------------------------------------------\n";

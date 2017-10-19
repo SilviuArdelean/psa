@@ -16,6 +16,15 @@
 #include <unistd.h>
 #endif
 
+void showParameters()
+{
+	ucout << _T("	-a	: list all processes information") << std::endl;
+	ucout << _T("	-e [no]	: top [no] most expensive memory consuming processes | top 10 by default ") << std::endl;
+	ucout << _T("	-k	: kill specific process by PID") << std::endl;
+	ucout << _T("	-o	: info only one process name criteria ") << std::endl;
+	ucout << _T("	-t	: tree snapshot of current processes") << std::endl;
+}
+
 void showAvailableInformation()
 {
 	// a = list all processes information 
@@ -30,11 +39,9 @@ void showAvailableInformation()
 	ucout << _T("-----------------------------------------------------------") << std::endl;
 	ucout << _T("       Processes Status Analysis - version 0.2") << std::endl;
 	ucout << _T("-----------------------------------------------------------") << std::endl;
-	ucout << _T("	-a	: list all processes information") << std::endl;
-	ucout << _T("	-e [no]	: top [no] most expensive memory consuming processes | top 10 by default ") << std::endl;
-	ucout << _T("	-k	: kill specific process by PID") << std::endl;
-	ucout << _T("	-o	: info only one process name criteria ") << std::endl;
-	ucout << _T("	-t	: tree snapshot of current processes") << std::endl;
+	
+	showParameters();
+
 	ucout << _T("-----------------------------------------------------------") << std::endl;
 	ucout << _T("  Author: Silviu-Marius Ardelean http://silviuardelean.ro ") << std::endl;
 	ucout << _T("-----------------------------------------------------------") << std::endl;
@@ -51,13 +58,16 @@ bool processCommandLine(int argc, TCHAR *argv[], ProcessingOperations *pPO)
 	int opt = 0;
 	bool good_params = false;
 	short loop_params = 0;
-#ifdef _WIN32
+
 	while ((opt = getopt(argc, argv, _T("aekotAEKOT"))) != EOF)
-#elif __linux__
-	while ((opt = getopt(argc, argv, _T("aekotAEKOT"))) != EOF)
-#endif
 	{
-		switch (tolower(opt))
+#ifdef _WIN32
+		auto option = tolower(opt);
+#else
+		auto option = opt;
+#endif
+
+		switch (option)
 		{
 			case _T('a'):
 				{
@@ -104,8 +114,13 @@ bool processCommandLine(int argc, TCHAR *argv[], ProcessingOperations *pPO)
 			break;
 			
 			case _T('?'):
-			default:
 				showAvailableInformation();
+				return true;
+				break;
+			default:
+				ucout << _T(" psa: invalid option ...") << std::endl;
+				ucout << _T(" Please check the available list of parameters : ") << std::endl;
+				showParameters();
 				return false;
 				break;
 		}
