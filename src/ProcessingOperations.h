@@ -18,7 +18,7 @@ class ProcessingOperations
 	bool printAllProcessesInformation(bool const show_details = false);
 	bool printProcessInformation(const ustring& process_name, bool const show_details = false);
 	void printTopExpensiveProcesses(const int top);
-
+	void killProcesses(TCHAR const *argvProcessParam);
 	void generateProcessesTree(int const proc_pid);
 	
    protected:     

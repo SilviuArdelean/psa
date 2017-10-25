@@ -7,9 +7,11 @@
 #include "ProcsTreeBuilder.h"
 #include "fixed_priority_queue.h"
 #include <mutex>
+#include "process_operations.h"
+
 #ifdef _WIN32
-#include "Winternl.h"
-#include "smart_handler.h"
+	#include "Winternl.h"
+	#include "smart_handler.h"
 #elif __linux__
 	#include <proc/readproc.h>
 #endif
@@ -22,6 +24,9 @@ ProcessingOperations::ProcessingOperations(void)
 
 bool ProcessingOperations::BuildProcessesMap()
 {
+	std::mutex g_i_mutex;
+	std::lock_guard<std::mutex> lock(g_i_mutex);
+
 	#ifdef _WIN32
 
 	   PROCESSENTRY32 pe32;
@@ -67,9 +72,6 @@ bool ProcessingOperations::BuildProcessesMap()
 	   } while( Process32Next( hProcessSnap, &pe32 ) );
 
 	#else
-
-		std::mutex g_i_mutex;
-		std::lock_guard<std::mutex> lock(g_i_mutex);
 		
 		PROCTAB* proc = openproc(PROC_FILLARG			// fillarg used for cmdline
 								| PROC_FILLSTAT);		// fillstat used for cmd
@@ -283,6 +285,18 @@ void ProcessingOperations::generateProcessesTree(int const proc_pid)
 	else
 	{
 		ucout << "Invalid Process ID | PID " << proc_pid << " not detected in memory" << std::endl;
+	}
+}
+
+void ProcessingOperations::killProcesses(TCHAR const *argvProcessParam)
+{
+	if (string_utils::is_number(argvProcessParam))
+	{
+		process_operations::kill_process_by_pid(utoi(argvProcessParam));
+	}
+	else
+	{
+		process_operations::kill_process_by_name(argvProcessParam);
 	}
 }
 

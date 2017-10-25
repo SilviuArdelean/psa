@@ -107,6 +107,7 @@
     <ClInclude Include="..\..\include\general.h" />
     <ClInclude Include="..\..\include\generic_tree.h" />
     <ClInclude Include="..\..\include\generic_tree_handler.h" />
+    <ClInclude Include="..\..\include\process_operations.h" />
     <ClInclude Include="..\..\include\string_utils.h" />
     <ClInclude Include="..\ProcessingOperations.h" />
     <ClInclude Include="..\ProcsTreeBuilder.h" />

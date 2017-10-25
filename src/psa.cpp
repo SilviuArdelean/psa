@@ -5,22 +5,23 @@
 #include "general.h"
 #include "string_utils.h"
 #include "ProcessingOperations.h"
+
 #ifdef _WIN32
-#include "psa-win/XGetopt.h"
-#include "tchar.h"
+	#include "psa-win/XGetopt.h"
+	#include "tchar.h"
 #endif
 
 #ifdef __linux__
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
+	#include <stdio.h>
+	#include <stdlib.h>
+	#include <unistd.h>
 #endif
 
 void showParameters()
 {
 	ucout << _T("	-a	: list all processes information") << std::endl;
 	ucout << _T("	-e [no]	: top [no] most expensive memory consuming processes | top 10 by default ") << std::endl;
-	ucout << _T("	-k	: kill specific process by PID") << std::endl;
+	ucout << _T("	-k / -K	: kill specific process by PID or name") << std::endl;
 	ucout << _T("	-o	: info only one process name criteria ") << std::endl;
 	ucout << _T("	-t	: tree snapshot of current processes") << std::endl;
 }
@@ -84,10 +85,17 @@ bool processCommandLine(int argc, TCHAR *argv[], ProcessingOperations *pPO)
 				}
 			break;
 
+			case _T('K'):
 			case _T('k'):
 				{
-					ucout << _T("-k: kill specific process by PID \n");
-					ucout << _T("	(feature not implemented yet) \n");
+					if (argc < 3)
+					{
+						ucout << _T(" Invalid set of parameters. Please specify the PID or the name of the process to be killed. \n");
+						return false;
+					}
+
+					TCHAR *secondParam = argv[argc - 1];
+					pPO->killProcesses(secondParam);
 				}
 			break;
 
@@ -116,10 +124,10 @@ bool processCommandLine(int argc, TCHAR *argv[], ProcessingOperations *pPO)
 			case _T('?'):
 				showAvailableInformation();
 				return true;
-				break;
+				break;	
 			default:
 				ucout << _T(" psa: invalid option ...") << std::endl;
-				ucout << _T(" Please check the available list of parameters : ") << std::endl;
+				ucout << _T(" Please check the available list of parameters : \n");
 				showParameters();
 				return false;
 				break;
