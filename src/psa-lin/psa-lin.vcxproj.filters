@@ -39,5 +39,8 @@
     <ClInclude Include="..\ProcsTreeBuilder.h">
       <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\process_operations.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -54,4 +54,14 @@ class string_utils
 
 		return (pos != std::string::npos);
 	}
+
+	static bool is_number(const ustring& s)
+	{
+		return (!s.empty() && 
+					std::find_if(s.begin(), s.end(), 
+								[](TCHAR c) 
+								{ 
+									return !std::isdigit(c); 
+								}) == s.end());
+	}
 };

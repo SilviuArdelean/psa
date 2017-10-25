@@ -12,7 +12,8 @@
 	#include "Psapi.h"
 	#include "Shlwapi.h"
 	#include "TlHelp32.h"
-
+	#include "tchar.h"
+	
 	#pragma comment(lib, "psapi.lib") 
 	#pragma comment(lib, "Shlwapi.lib")
 #endif
@@ -35,6 +36,7 @@
 #define ustrchr			wcschr
 #define ustrrchr		wcsrchr
 #define ustricmp		_wcsicmp
+#define ustrtol			wcstol
 #define uostream		std::wostream
 #define ufscanf_s		fwscanf_s
 #define ustringstream	std::wstringstream
@@ -61,6 +63,7 @@
 #define uvsnprintf		_vsntprintf
 #define ustrchr			strchr
 #define ustrrchr		strrchr
+#define ustrtol			strtol
 #define ustricmp		stricmp
 #define uostream		std::ostream
 #define ufscanf_s		fscanf_s

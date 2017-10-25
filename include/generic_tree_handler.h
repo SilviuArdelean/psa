@@ -97,7 +97,7 @@ class generic_tree_handler
 			}
 			else
 			{
-				bool first = true;
+				//bool first = true;
 				for (auto i = 1; i < node->level; i++)
 				{
 					// needs checking if there are other nodes on the same level and if yes then add 0x2502
@@ -111,7 +111,7 @@ class generic_tree_handler
 						std::wcout << _T("    ");
 				}
 
-				wchar_t ch1 = 0x2514, ch2 = 0x2500, ch3 = 0x251C;
+				wchar_t ch1 = 0x2514, ch2 = 0x2500;// , ch3 = 0x251C;
 
 				std::wcout << ch1 << ch2 << ch2 << ch2 << _T(" ");			//std::wcout << "└───";	├───
 			}
