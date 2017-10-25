@@ -35,6 +35,6 @@ class ProcessingOperations
 #endif
 
    protected:
-	   std::multimap<DWORD, proc_info> m_mapProcesses;
+	   procs_map	m_mapProcesses;
 };
 

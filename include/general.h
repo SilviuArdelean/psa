@@ -165,6 +165,7 @@
 
 	};
 
+typedef std::multimap<DWORD, proc_info>		procs_map;
 
 #define MB_DIVIDER		(1024 * 1024)
 #define KB_DEVIDER		(1024 * 1024 * 1024)

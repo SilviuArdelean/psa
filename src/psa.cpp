@@ -85,7 +85,6 @@ bool processCommandLine(int argc, TCHAR *argv[], ProcessingOperations *pPO)
 				}
 			break;
 
-			case _T('K'):
 			case _T('k'):
 				{
 					if (argc < 3)
