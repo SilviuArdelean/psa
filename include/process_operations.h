@@ -7,6 +7,8 @@
 #include<signal.h>
 #endif
 
+#define process_fake_name	_T("_|_")
+
 class process_operations
 {
 public:
@@ -17,7 +19,17 @@ public:
 
 	static void kill_process_by_pid(const int process_pid)
 	{
-		execute_kill_process(process_pid, _T("_|_"));
+		execute_kill_process(process_pid, process_fake_name);
+	}
+
+	static void kill_process_by_name_optimized(const TCHAR *process_name, const procs_map& map_processes)
+	{
+		execute_kill_process_optimized(0, process_name, map_processes);
+	}
+
+	static void kill_process_by_pid_optimized(const int process_pid, const procs_map& map_processes)
+	{
+		execute_kill_process_optimized(process_pid, process_fake_name, map_processes);
 	}
 
 private:
@@ -27,7 +39,7 @@ private:
 		return (process_pid == 0 || process_pid == 1);
 	}
 
-	static void execute_kill_process(/*bool kill_by_pid,*/ const int process_pid, const TCHAR *process_name)
+	static void execute_kill_process(const int process_pid, const TCHAR *process_name)
 	{
 #ifdef _WIN32
 		PROCESSENTRY32 pEntry;
@@ -78,6 +90,47 @@ private:
 
 		closeproc(proc);
 #endif
+	}
+
+	static void execute_kill_process_optimized(const int process_pid, const TCHAR *process_name, const procs_map& map_processes)
+	{
+		if (string_utils::search_substring(process_fake_name, process_name))
+		{
+			// Try to kill the process based by PID
+			auto it_process = map_processes.find(process_pid);
+			if (it_process != map_processes.end())
+			{
+				#ifdef _WIN32
+					HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0, (DWORD)process_pid);
+					if (NULL != hProcess)
+					{
+						TerminateProcess(hProcess, 9);
+						CloseHandle(hProcess);
+					}
+				#else	// Linux stuff
+					kill(process_pid, SIGKILL);
+				#endif
+			}
+		}
+		else 
+		{
+			for (auto &proc : map_processes)
+			{
+				if (string_utils::search_substring(proc.second.procName, process_name))
+				{
+#ifdef _WIN32
+					HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0, (DWORD)proc.second.procPID);
+					if (NULL != hProcess)
+					{
+						TerminateProcess(hProcess, 9);
+						CloseHandle(hProcess);
+					}
+#else
+					kill(proc.second.procPID, SIGKILL);
+#endif
+				}
+			}
+		}
 	}
 
 };

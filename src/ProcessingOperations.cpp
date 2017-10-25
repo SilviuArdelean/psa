@@ -290,13 +290,16 @@ void ProcessingOperations::generateProcessesTree(int const proc_pid)
 
 void ProcessingOperations::killProcesses(TCHAR const *argvProcessParam)
 {
+	if (m_mapProcesses.empty())
+		BuildProcessesMap();
+
 	if (string_utils::is_number(argvProcessParam))
 	{
-		process_operations::kill_process_by_pid(utoi(argvProcessParam));
+		process_operations::kill_process_by_pid_optimized(utoi(argvProcessParam), m_mapProcesses);
 	}
 	else
 	{
-		process_operations::kill_process_by_name(argvProcessParam);
+		process_operations::kill_process_by_name_optimized(argvProcessParam, m_mapProcesses);
 	}
 }
 
