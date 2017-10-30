@@ -94,30 +94,45 @@ private:
 
 	static void execute_kill_process_optimized(const int process_pid, const TCHAR *process_name, const procs_map& map_processes)
 	{
+		bool process_not_found = true;
+
 		if (string_utils::search_substring(process_fake_name, process_name))
 		{
 			// Try to kill the process based by PID
 			auto it_process = map_processes.find(process_pid);
 			if (it_process != map_processes.end())
 			{
-				#ifdef _WIN32
-					HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0, (DWORD)process_pid);
-					if (NULL != hProcess)
-					{
-						TerminateProcess(hProcess, 9);
-						CloseHandle(hProcess);
-					}
-				#else	// Linux stuff
-					kill(process_pid, SIGKILL);
-				#endif
+
+				process_not_found = false;
+
+#ifdef _WIN32
+				HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0, (DWORD)process_pid);
+				if (NULL != hProcess)
+				{
+					TerminateProcess(hProcess, 9);
+					CloseHandle(hProcess);
+				}
+#else	// Linux stuff
+				kill(process_pid, SIGKILL);
+#endif
+
+				ucout << _T("Process '") << it_process->second.procName << _T("' PID [") << process_pid << _T("] was terminated.") << std::endl;
+			}
+
+			if (process_not_found)
+			{
+				ucout << _T("No process PID ") << process_pid << _T(" was found.") << std::endl;
 			}
 		}
-		else 
+		else
 		{
+			// Try to kill the process based by process name
+
 			for (auto &proc : map_processes)
 			{
 				if (string_utils::search_substring(proc.second.procName, process_name))
 				{
+					process_not_found = false;
 #ifdef _WIN32
 					HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0, (DWORD)proc.second.procPID);
 					if (NULL != hProcess)
@@ -128,9 +143,16 @@ private:
 #else
 					kill(proc.second.procPID, SIGKILL);
 #endif
+					ucout << _T("Process '") << proc.second.procName << _T("' PID [") << proc.second.procPID << _T("] was terminated.") << std::endl;
 				}
 			}
+
+			if (process_not_found)
+			{
+				ucout << _T("No '") << process_name << _T("' name or including this name pattern was found.") << std::endl;
+			}
 		}
+	
 	}
 
 };
