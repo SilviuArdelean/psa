@@ -21,7 +21,7 @@ void showParameters()
 {
 	ucout << _T("	-a	: list all processes information") << std::endl;
 	ucout << _T("	-e [no]	: top [no] most expensive memory consuming processes | top 10 by default ") << std::endl;
-	ucout << _T("	-k / -K	: kill specific process by PID or name") << std::endl;
+	ucout << _T("	-k  : kill specific process by PID or name") << std::endl;
 	ucout << _T("	-o	: info only one process name criteria ") << std::endl;
 	ucout << _T("	-t	: tree snapshot of current processes") << std::endl;
 }
@@ -38,7 +38,7 @@ void showAvailableInformation()
 			// specify additional pid as root to build the tree
 
 	ucout << _T("-----------------------------------------------------------") << std::endl;
-	ucout << _T("       Processes Status Analysis - version 0.2") << std::endl;
+	ucout << _T("       Processes Status Analysis - version 0.3") << std::endl;
 	ucout << _T("-----------------------------------------------------------") << std::endl;
 	
 	showParameters();
