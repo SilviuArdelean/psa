@@ -1,6 +1,6 @@
 ### psa
 Processes Status Analysis  
-version 0.2  
+version 0.3  
 ------------------------------------------
 Processes Status Analysis (psa) cross-platform application that allows different analyses over the operating system's processes.
 
