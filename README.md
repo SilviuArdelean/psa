@@ -22,6 +22,8 @@ psa -t 768                                // tree with the children processes of
 psa -o chrome                             // find how much memory uses your Chrome!   o_O
 psa -t > processes_tree.txt               // full snapshot tree redirection to a file
 psa -e 20 > top_expensive_processes.txt   // top most 'expensive' processes and save information in a file 
+psa -k notep                              // kill all the processs containing 'notep' within the process name
+psa -k 7891                               // kill the process having PID = 7891 
 ```
 
 Compatibility
