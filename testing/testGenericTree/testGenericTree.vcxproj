@@ -22,7 +22,7 @@
     <ProjectGuid>{54079939-8F51-44B9-8E16-A6251E693F88}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>testGenericTree</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
