@@ -22,7 +22,7 @@
     <ProjectGuid>{AD77D8E2-05FD-47BD-88AA-AD5A0DFA7616}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>pas</RootNamespace>
-    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
     <ProjectName>psa-win</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -164,7 +164,7 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(SolutionDir)bin64\$(Configuration)\psa.exe d:\Tools</Command>
+      <Command>copy $(SolutionDir)bin64\$(Configuration)\psa.exe c:\Tools</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
