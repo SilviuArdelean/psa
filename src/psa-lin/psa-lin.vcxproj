@@ -103,7 +103,7 @@
     <ClCompile Include="..\psa.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\fixed_priority_queue.h" />
+    <ClInclude Include="..\..\include\fixed_queue.h" />
     <ClInclude Include="..\..\include\general.h" />
     <ClInclude Include="..\..\include\generic_tree.h" />
     <ClInclude Include="..\..\include\generic_tree_handler.h" />

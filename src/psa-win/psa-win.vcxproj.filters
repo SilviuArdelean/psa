@@ -25,9 +25,6 @@
     <ClInclude Include="targetver.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\fixed_priority_queue.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\string_utils.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -44,6 +41,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\process_operations.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\fixed_queue.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

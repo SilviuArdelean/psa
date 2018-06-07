@@ -5,7 +5,7 @@
 #include <algorithm>
 #include "string_utils.h"
 #include "ProcsTreeBuilder.h"
-#include "fixed_priority_queue.h"
+#include "fixed_queue.h"
 #include <mutex>
 #include "process_operations.h"
 
@@ -134,7 +134,7 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top)
 		}
 	};
 
-	fixed_priority_queue<data4sort, vector<data4sort>, LessThanByFileSize> top_queue(top);
+	fixed_queue<data4sort, vector<data4sort>, LessThanByFileSize> top_queue(top);
 
 	for (auto &ob : m_mapProcesses)
 	{
