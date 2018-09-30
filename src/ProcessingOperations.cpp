@@ -205,8 +205,11 @@ bool ProcessingOperations::printAllProcessesInformation(bool const show_details)
 	}
 
 	if (processesCount != 0) {
-		ucout << "-----------------------------------" << std::endl;
-		ucout << "   Total used memory: " << (double) processesAllSize / MB_DIVIDER << " MB" << std::endl;
+		ucout << "--------------------------------------------------------" << std::endl;
+		ucout << "   Total used memory: " 
+               << (double) processesAllSize / MB_DIVIDER << " MB " 
+               << "  [ " << m_mapProcesses.size() - 1          // skip PID 0
+               << " processes ]" << std::endl;
 	}
 
 	return true;
