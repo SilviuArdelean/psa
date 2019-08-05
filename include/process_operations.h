@@ -109,14 +109,25 @@ private:
 				HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0, (DWORD)process_pid);
 				if (NULL != hProcess)
 				{
-					TerminateProcess(hProcess, 9);
-					CloseHandle(hProcess);
+					auto res = TerminateProcess(hProcess, 9);
+          if (res == 0) {
+            ucout << _T("Process '") << it_process->second.procName << _T("' PID [") << it_process->second.procPID 
+                                      << _T("] cannot be terminated.") << std::endl;
+          }
+
+          CloseHandle(hProcess);
+          if (res == 0) return;
 				}
 #else	// Linux stuff
-				kill(process_pid, SIGKILL);
+        if (0 != kill(process_pid, SIGKILL)) {
+          ucout << _T("Process '") << it_process->second.procName << _T("' PID [") << it_process->second.procPID 
+                << _T("] cannot be terminated.") << std::endl;
+          return;
+        }
 #endif
 
-				ucout << _T("Process '") << it_process->second.procName << _T("' PID [") << process_pid << _T("] was terminated.") << std::endl;
+				ucout << _T("Process '") << it_process->second.procName 
+              << _T("' PID [") << process_pid << _T("] was terminated.") << std::endl;
 			}
 
 			if (process_not_found)
@@ -137,13 +148,24 @@ private:
 					HANDLE hProcess = OpenProcess(PROCESS_TERMINATE, 0, (DWORD)proc.second.procPID);
 					if (NULL != hProcess)
 					{
-						TerminateProcess(hProcess, 9);
+						auto res = TerminateProcess(hProcess, 9);
+            if (res == 0) {
+              ucout << _T("Process '") << proc.second.procName << _T("' PID [") << proc.second.procPID 
+                    << _T("] cannot be terminated.") << std::endl;
+            }
+             
 						CloseHandle(hProcess);
+            if (res == 0) continue;
 					}
 #else
-					kill(proc.second.procPID, SIGKILL);
+          if (0 != kill(proc.second.procPID, SIGKILL)) {
+            ucout << _T("Process '") << proc.second.procName << _T("' PID [") << proc.second.procPID 
+                  << _T("] cannot be terminated.") << std::endl;
+            continue;
+          }
 #endif
-					ucout << _T("Process '") << proc.second.procName << _T("' PID [") << proc.second.procPID << _T("] was terminated.") << std::endl;
+					ucout << _T("Process '") << proc.second.procName << _T("' PID [") << proc.second.procPID 
+                << _T("] was terminated.") << std::endl;
 				}
 			}
 
