@@ -1,43 +1,28 @@
 #pragma once
 #include "general.h"
 
-class smart_handle
-{
-	HANDLE handle;
-public:
-	smart_handle(const HANDLE& h) : handle(h) {}
+class smart_handle {
+  HANDLE handle;
 
-	~smart_handle()
-	{
-		if (INVALID_HANDLE_VALUE != handle)
-			CloseHandle(handle);
-	}
+ public:
+  smart_handle(const HANDLE& h) : handle(h) {}
 
-	smart_handle(const smart_handle& rhs)
-		: handle(rhs.handle)
-	{
-	}
+  ~smart_handle() {
+    if (INVALID_HANDLE_VALUE != handle)
+      CloseHandle(handle);
+  }
 
-	smart_handle& operator = (const HANDLE& h)
-	{
-		if (handle != &h)
-		{
-			handle = h;
-		}
-		return *this;
-	}
+  smart_handle(const smart_handle& rhs) : handle(rhs.handle) {}
 
-	operator HANDLE () const
-	{
-		return handle;
-	}
+  smart_handle& operator=(const HANDLE& h) {
+    if (handle != &h) {
+      handle = h;
+    }
+    return *this;
+  }
 
-	operator bool() const
-	{
-		return handle != nullptr;
-	}
-	bool operator! () const
-	{
-		return handle == nullptr;
-	}
+  operator HANDLE() const { return handle; }
+
+  operator bool() const { return handle != nullptr; }
+  bool operator!() const { return handle == nullptr; }
 };
