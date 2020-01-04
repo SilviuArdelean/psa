@@ -2,9 +2,13 @@
 #include "general.h"
 #include "string_utils.h"
 
-#ifdef __linux__
+#ifdef _WIN32
+#include "smart_handler.h"
+#else
 #include <proc/readproc.h>
+#include <sched.h>
 #include <signal.h>
+#include <unistd.h>
 #endif
 
 #define process_fake_name _T("_|_")
@@ -28,6 +32,29 @@ class process_operations {
                                             const procs_map& map_processes) {
     execute_kill_process_optimized(process_pid, process_fake_name,
                                    map_processes);
+  }
+
+  static ustring GetProcessPath(int process_pid) {
+    ustring process_path;
+#ifdef _WIN32
+    smart_handle hnd(
+        OpenProcess(SYNCHRONIZE | PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+                    FALSE, process_pid));
+    if (hnd.get_handle()) {
+      DWORD dwSize = MAX_PATH;
+      WCHAR szFileName[MAX_PATH] = {0};
+
+      QueryFullProcessImageName(hnd.get_handle(), 0, szFileName, &dwSize);
+      if (dwSize != 0) {
+        process_path = szFileName;
+      }
+    }
+#else
+    char path_buff[PATH_MAX] = {0};
+    get_exe_for_pid(process_pid, path_buff, PATH_MAX);
+    process_path = path_buff;
+#endif
+    return process_path;
   }
 
  private:
@@ -174,4 +201,13 @@ class process_operations {
       }
     }
   }
+
+#ifdef __linux__
+  static size_t get_exe_for_pid(int pid, char* buf, size_t bufsize) {
+    char path[32] = {0};
+    sprintf(path, "/proc/%d/exe", pid);
+    return readlink(path, buf, bufsize);
+  }
+#endif
+
 };

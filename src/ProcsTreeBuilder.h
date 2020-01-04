@@ -31,7 +31,7 @@ class ProcsTreeBuilder {
   std::unique_ptr<proc_info> ptr_root_;
   std::unique_ptr<generic_tree<proc_info>> ptr_tree_;
 
-  generic_node<proc_info>* ptr_search_tree_node_;
-  std::multimap<DWORD, proc_info>* ptr_map_processes_;
+  generic_node<proc_info>* ptr_search_tree_node_ = nullptr;
+  std::multimap<DWORD, proc_info>* ptr_map_processes_ = nullptr;
   std::multimap<int, generic_node<proc_info>> map_proc4tree_;
 };
