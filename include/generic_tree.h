@@ -58,10 +58,9 @@ struct generic_node {
   }
 
   S data;
-  short level;
-  generic_node<S>* parent;
-
   std::list<generic_node<S>*> listChildren;
+  generic_node<S>* parent = nullptr;
+  int level;
 };
 
 template <typename T>

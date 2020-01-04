@@ -4,7 +4,7 @@
 #include "generic_tree_handler.h"
 
 ProcsTreeBuilder::ProcsTreeBuilder(std::multimap<DWORD, proc_info>* ptrMap)
-    : ptr_map_processes_(ptrMap), ptr_search_tree_node_(nullptr) {
+    : ptr_search_tree_node_(nullptr), ptr_map_processes_(ptrMap) {
   ptr_root_ = std::unique_ptr<proc_info>(
       new proc_info(FAKE_ROOT_PID, FAKE_ROOT_PARENT_PID, _T("o"), 0));
   ptr_tree_ = std::unique_ptr<generic_tree<proc_info>>(
@@ -33,8 +33,8 @@ void ProcsTreeBuilder::mapBuilder() {
 
   for (auto it = ptr_map_processes_->begin(); it != ptr_map_processes_->end();
        ++it) {
-    proc_info pi(it->second.procPID, it->second.parentPID, it->second.procName,
-                 it->second.usedMemory);
+    proc_info pi(it->second.procPID, it->second.parentPID,
+                 it->second.procName, it->second.usedMemory);
 
     generic_node<proc_info> node_data(pi);
     map_proc4tree_.insert(

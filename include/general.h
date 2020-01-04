@@ -124,12 +124,12 @@ struct proc_info {
   proc_info(proc_info&& rhs) {
     procPID = rhs.procPID;
     parentPID = rhs.parentPID;
-    procName = rhs.procName;
+    procName = std::move(rhs.procName);
     usedMemory = rhs.usedMemory;
 
     rhs.procPID = 0;
     rhs.parentPID = 0;
-    rhs.procName = _T("");
+    rhs.procName.clear();
     rhs.usedMemory = 0;
   }
 
@@ -137,7 +137,7 @@ struct proc_info {
     if (this != &rhs) {
       procPID = rhs.procPID;
       parentPID = rhs.parentPID;
-      procName = rhs.procName;
+      procName = std::move(rhs.procName);
       usedMemory = rhs.usedMemory;
 
       rhs.procPID = 0;
