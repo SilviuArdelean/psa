@@ -73,28 +73,30 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\include\;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
     <TargetName>psad</TargetName>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>..\..\include\;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)bin64\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
     <TargetName>psad</TargetName>
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\..\include\;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)bin\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
     <TargetName>psa</TargetName>
-    <IntDir>$(Platform)\$(Configuration)\</IntDir>
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>..\..\include\;$(IncludePath)</IncludePath>
-    <OutDir>$(SolutionDir)bin64\$(Configuration)\</OutDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
     <TargetName>psa</TargetName>
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -164,7 +166,8 @@
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
     </Link>
     <PostBuildEvent>
-      <Command>copy $(SolutionDir)bin64\$(Configuration)\psa.exe c:\Tools</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

@@ -65,17 +65,21 @@
     <IncludePath>..\..\include\;%appdata%\..\Local\lxss\rootfs\usr\include\;C:\Users\Silviu\AppData\Local\lxss\rootfs\usr\include\;C:\Users\Silviu\AppData\Local\lxss\rootfs\usr\include\x86_64-linux-gnu\bits\;$(IncludePath)</IncludePath>
     <TargetName>psa</TargetName>
     <TargetExt />
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <IncludePath>..\..\include\;%appdata%\..\Local\lxss\rootfs\usr\include\;C:\Users\Silviu\AppData\Local\lxss\rootfs\usr\include\;C:\Users\Silviu\AppData\Local\lxss\rootfs\usr\include\x86_64-linux-gnu\bits\;$(IncludePath)</IncludePath>
     <TargetName>psa</TargetName>
     <TargetExt />
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>..\..\include\;%appdata%\..\Local\lxss\rootfs\usr\include\;%appdata%\..\Local\lxss\rootfs\usr\include\x86_64-linux-gnu\;%appdata%\..\Local\lxss\rootfs\usr\include\x86_64-linux-gnu\sys\;$(IncludePath)</IncludePath>
     <LibraryPath>%appdata%\..\Local\lxss\rootfs\usr\lib\x86_64-linux-gnu\;$(LibraryPath)</LibraryPath>
-    <OutDir>$(ProjectDir)bin\$(Platform)\$(Configuration)\</OutDir>
-    <IntDir>$(ProjectDir)obj\$(Platform)\$(Configuration)\</IntDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
     <TargetName>psa</TargetName>
     <TargetExt />
   </PropertyGroup>
@@ -84,18 +88,24 @@
     <LibraryPath>%appdata%\..\Local\lxss\rootfs\usr\lib\x86_64-linux-gnu\;$(LibraryPath)</LibraryPath>
     <TargetName>psa</TargetName>
     <TargetExt />
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <IncludePath>..\..\include\;%appdata%\..\Local\lxss\rootfs\usr\include\;%appdata%\..\Local\lxss\rootfs\usr\include\x86_64-linux-gnu\;$(IncludePath)</IncludePath>
     <LibraryPath>%appdata%\..\Local\lxss\rootfs\usr\lib\x86_64-linux-gnu\;$(LibraryPath)</LibraryPath>
     <TargetName>psa</TargetName>
     <TargetExt />
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <IncludePath>..\..\include\;%appdata%\..\Local\lxss\rootfs\usr\include\;%appdata%\..\Local\lxss\rootfs\usr\include\x86_64-linux-gnu\;$(IncludePath)</IncludePath>
     <LibraryPath>%appdata%\..\Local\lxss\rootfs\usr\lib\x86_64-linux-gnu\;$(LibraryPath)</LibraryPath>
     <TargetName>psa</TargetName>
     <TargetExt />
+    <IntDir>Pre-Build\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
   </PropertyGroup>
   <ItemGroup>
     <ClCompile Include="..\ProcessingOperations.cpp" />
