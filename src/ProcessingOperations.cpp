@@ -1,4 +1,5 @@
 #include "ProcessingOperations.h"
+
 #include <algorithm>
 #include <iostream>
 #include <mutex>
@@ -15,8 +16,6 @@
 #elif __linux__
 #include <proc/readproc.h>
 #endif
-
-using namespace std;
 
 ProcessingOperations::ProcessingOperations(void) {}
 
@@ -52,20 +51,12 @@ bool ProcessingOperations::BuildProcessesMap() {
   map_processes_.clear();
 
   do {
-    FILETIME crtProcCreationTime, crtProcExitTime, crtProcKernelTime,
-        crtProcUserTime;
-
-    smart_handle hCrtProcess(
-        OpenProcess(PROCESS_ALL_ACCESS, FALSE, pe32.th32ProcessID));
-    if (nullptr != hCrtProcess) {
-      ::GetProcessTimes(hCrtProcess, &crtProcCreationTime, &crtProcExitTime,
-                        &crtProcKernelTime, &crtProcUserTime);
-    }
-
-    proc_info pi(pe32.th32ProcessID, pe32.th32ParentProcessID, pe32.szExeFile,
+    proc_info pi(pe32.th32ProcessID,
+                 pe32.th32ParentProcessID,
+                 pe32.szExeFile,
                  getProcessUsedMemory(pe32.th32ProcessID));
 
-    map_processes_.insert(pair<DWORD, proc_info>(pe32.th32ProcessID, pi));
+    map_processes_.insert(std::pair<DWORD, proc_info>(pe32.th32ProcessID, pi));
 
   } while (Process32Next(hProcessSnap, &pe32));
 
@@ -80,14 +71,14 @@ bool ProcessingOperations::BuildProcessesMap() {
 
   // zero out the allocated proc_info memory
   memset(&_process, 0, sizeof(_process));
-  m_mapProcesses.clear();
+  map_processes_.clear();
 
   while (readproc(proc, &_process) != NULL) {
     proc_info pi(_process.tid, _process.ppid,
                  (_process.cmdline != NULL) ? *_process.cmdline : _process.cmd,
                  _process.vsize);  // !!! ??? make sure is the right attribute
 
-    m_mapProcesses.insert(pair<DWORD, proc_info>(_process.tid, pi));
+    map_processes_.insert(std::pair<DWORD, proc_info>(_process.tid, pi));
   }
 
   closeproc(proc);
@@ -98,11 +89,12 @@ bool ProcessingOperations::BuildProcessesMap() {
 }
 
 void ProcessingOperations::printTopExpensiveProcesses(const int top) {
-  if (map_processes_.empty())
+  if (map_processes_.empty()) {
     BuildProcessesMap();
+  }
 
   if (map_processes_.empty())
-    ucout << "Processes list is empty" << endl;
+    ucout << "Processes list is empty" << std::endl;
 
   struct data4sort {
     int pid;
@@ -124,7 +116,7 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top) {
     }
   };
 
-  fixed_queue<data4sort, vector<data4sort>, LessThanByFileSize> top_queue(top);
+  fixed_queue<data4sort, std::vector<data4sort>, LessThanByFileSize> top_queue(top);
 
   for (auto& ob : map_processes_) {
     data4sort data;
@@ -153,7 +145,7 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top) {
     top_queue.pop();
   }
 
-  ucout << "-------------------------------------------" << endl;
+  ucout << "-------------------------------------------" << std::endl;
   ucout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER
         << " MB" << std::endl;
 }
@@ -217,20 +209,23 @@ bool ProcessingOperations::printProcessInformation(const ustring& filter,
     ustring current_process(proc_obj.second.procName);
 
     if (string_utils::search_substring(current_process, filter)) {
-      auto procPID = proc_obj.second.procPID;
+      auto proc_pid = proc_obj.second.procPID;
+      auto process_path = process_operations::GetProcessPath(proc_pid);
 
-      {
-        uprintf_s(_T("PID [%d] \t %-15s %.4lf MB\n"), procPID,
-                  proc_obj.second.procName.c_str(),
-                  (double)proc_obj.second.usedMemory / MB_DIVIDER);
+      uprintf_s(_T("[PID: %d]   %-15s %.4lf MB\n"), proc_pid,
+                proc_obj.second.procName.c_str(),
+                (double)proc_obj.second.usedMemory / MB_DIVIDER);
 
-        if (show_details) {
-          printProcessDetailedInfo(procPID);
-        }
-
-        processesAllSize += proc_obj.second.usedMemory;
-        processesCount++;
+      if (!process_path.empty()) {
+        uprintf_s(_T("   [ %s ]\n"), process_path.c_str());
       }
+
+      if (show_details) {
+        printProcessDetailedInfo(proc_pid);
+      }
+
+      processesAllSize += proc_obj.second.usedMemory;
+      processesCount++;
     }
   }
 
@@ -244,7 +239,7 @@ bool ProcessingOperations::printProcessInformation(const ustring& filter,
       ucout << "Seems psa.exe application runs under not enough privileges. "
                "Please launch it with administrator privileges."
             << std::endl;
-#elif
+#else
       ucout << "Seems psa application runs under not enough privileges. Please "
                "run it by root privileges."
             << std::endl;
