@@ -42,14 +42,5 @@
 bin/
 bin64/
 ipch/
-src/psa-win/x64/
-src/psa-win/Win32/
-src/psa-win/Release/
-src/psa-win/Debug/
-src/psa-lin/obj/ARM/
-src/psa-lin/obj/x86/
-src/psa-lin/obj/x64/
-testing/testGenericTree/x64/
-testing/testGenericTree/Win32/
-testing/testGenericTree/Release/
-testing/testGenericTree/Debug/
+Build/
+*Pre-Build/
