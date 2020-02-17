@@ -1,13 +1,14 @@
-#include "ProcessingOperations.h"
+#include "operations.h"
 
 #include <algorithm>
 #include <iostream>
 #include <mutex>
 #include <vector>
-#include "ProcsTreeBuilder.h"
+
 #include "fixed_queue.h"
 #include "general.h"
 #include "process_operations.h"
+#include "processes_tree_builder.h"
 #include "string_utils.h"
 
 #ifdef _WIN32

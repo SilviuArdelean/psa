@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\ProcessingOperations.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
-    <ClCompile Include="..\ProcsTreeBuilder.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\psa.cpp" />
     <ClCompile Include="XGetopt.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\processes_tree_builder.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\operations.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
   </ItemGroup>
@@ -28,12 +28,6 @@
     <ClInclude Include="..\..\include\string_utils.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="..\ProcessingOperations.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="..\ProcsTreeBuilder.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\smart_handler.h">
       <Filter>Headers</Filter>
     </ClInclude>
@@ -44,6 +38,12 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\fixed_queue.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\processes_tree_builder.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\operations.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
