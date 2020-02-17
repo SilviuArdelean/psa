@@ -52,9 +52,7 @@ bool ProcessingOperations::BuildProcessesMap() {
   map_processes_.clear();
 
   do {
-    proc_info pi(pe32.th32ProcessID,
-                 pe32.th32ParentProcessID,
-                 pe32.szExeFile,
+    proc_info pi(pe32.th32ProcessID, pe32.th32ParentProcessID, pe32.szExeFile,
                  getProcessUsedMemory(pe32.th32ProcessID));
 
     map_processes_.insert(std::pair<DWORD, proc_info>(pe32.th32ProcessID, pi));
@@ -117,7 +115,8 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top) {
     }
   };
 
-  fixed_queue<data4sort, std::vector<data4sort>, LessThanByFileSize> top_queue(top);
+  fixed_queue<data4sort, std::vector<data4sort>,
+                  LessThanByFileSize> top_queue(top);
 
   for (auto& ob : map_processes_) {
     data4sort data;
@@ -134,6 +133,11 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top) {
   ucout << "-------------------------------------------\n";
   ucout << " PID        Process Name \t RAM Usage\n";
   ucout << "-------------------------------------------\n";
+
+  std::sort(top_queue.begin(), top_queue.end(),
+            [](const auto& l, const auto& r) {
+                 return l.mem_usage > r.mem_usage;
+            });
 
   while (!top_queue.empty()) {
     auto ob = top_queue.top();
