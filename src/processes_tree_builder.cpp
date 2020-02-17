@@ -1,5 +1,8 @@
 
-#include "ProcsTreeBuilder.h"
+#include "processes_tree_builder.h"
+
+#include <map>
+
 #include "generic_tree.h"
 #include "generic_tree_handler.h"
 

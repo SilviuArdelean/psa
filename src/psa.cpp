@@ -2,8 +2,8 @@
  *    Processes Status Analysis - psa
  */
 
-#include "ProcessingOperations.h"
 #include "general.h"
+#include "operations.h"
 #include "string_utils.h"
 
 #ifdef _WIN32
@@ -19,7 +19,8 @@
 
 void showParameters() {
   ucout << _T("    -a    : list all processes information") << std::endl;
-  ucout << _T("    -e [no]    : top [no] most expensive memory consuming processes ")
+  ucout << _T("    -e [no]    : top [no] most expensive memory consuming ")
+           _T("processes ")
            _T("| top 10 by default ")
         << std::endl;
   ucout << _T("    -k  : kill specific process by PID or name") << std::endl;
