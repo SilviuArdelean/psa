@@ -87,6 +87,12 @@ bool ProcessingOperations::BuildProcessesMap() {
   return true;
 }
 
+void ShowHeader() {
+  ucout << "------------------------------------------------\n";
+  ucout << "  PID \t\t RAM Usage \t Process Name \n";
+  ucout << "------------------------------------------------\n";
+}
+
 void ProcessingOperations::printTopExpensiveProcesses(const int top) {
   if (map_processes_.empty()) {
     BuildProcessesMap();
@@ -130,9 +136,7 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top) {
   ULONG64 processesAllSize = 0;
 
   ucout << " Top " << top << " most consuming memory processes \n";
-  ucout << "-------------------------------------------\n";
-  ucout << " PID        Process Name \t RAM Usage\n";
-  ucout << "-------------------------------------------\n";
+  ShowHeader();
 
   std::sort(top_queue.begin(), top_queue.end(),
             [](const auto& l, const auto& r) {
@@ -142,8 +146,9 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top) {
   while (!top_queue.empty()) {
     auto ob = top_queue.top();
 
-    uprintf_s(_T(" [%d]    %-15s \t %.2lf MB\n"), ob.pid, ob.proc_name.c_str(),
-              (double)ob.mem_usage / MB_DIVIDER);
+    uprintf_s(_T(" [%d] \t %.2lf MB \t %-15s \n"), ob.pid,
+              (double)ob.mem_usage / MB_DIVIDER,
+              ob.proc_name.c_str());
 
     processesAllSize += ob.mem_usage;
 
@@ -170,15 +175,17 @@ bool ProcessingOperations::printAllProcessesInformation(
   if (map_processes_.empty())
     BuildProcessesMap();
 
+  ShowHeader();
+
   for (auto& proc_obj : map_processes_) {
     ustring current_process(proc_obj.second.procName);
 
     auto procPID = proc_obj.second.procPID;
 
     {
-      uprintf_s(_T("PID [%d] \t %-15s %.4lf MB\n"), procPID,
-                proc_obj.second.procName.c_str(),
-                (double)proc_obj.second.usedMemory / MB_DIVIDER);
+      uprintf_s(_T("PID [%d] \t %.4lf MB \t %-15s \n"), procPID,
+                (double)proc_obj.second.usedMemory / MB_DIVIDER,
+                proc_obj.second.procName.c_str());
 
       if (show_details) {
         printProcessDetailedInfo(procPID);
@@ -209,6 +216,8 @@ bool ProcessingOperations::printProcessInformation(const ustring& filter,
   if (map_processes_.empty())
     BuildProcessesMap();
 
+  ShowHeader();
+
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ms682050(v=vs.85).aspx
   for (auto& proc_obj : map_processes_) {
     ustring current_process(proc_obj.second.procName);
@@ -217,13 +226,13 @@ bool ProcessingOperations::printProcessInformation(const ustring& filter,
       auto proc_pid = proc_obj.second.procPID;
       auto process_path = process_operations::GetProcessPath(proc_pid);
 
-      uprintf_s(_T("[PID: %d]   %-15s %.4lf MB\n"), proc_pid,
-                proc_obj.second.procName.c_str(),
-                (double)proc_obj.second.usedMemory / MB_DIVIDER);
+      uprintf_s(_T("[PID: %d] \t %.4lf MB \t %-15s \n"), proc_pid,
+                (double)proc_obj.second.usedMemory / MB_DIVIDER,
+                proc_obj.second.procName.c_str());
 
-      if (!process_path.empty()) {
-        uprintf_s(_T("   [ %s ]\n"), process_path.c_str());
-      }
+      // if (!process_path.empty()) {
+      //   uprintf_s(_T("   [ %s ]\n"), process_path.c_str());
+      // }
 
       if (show_details) {
         printProcessDetailedInfo(proc_pid);
