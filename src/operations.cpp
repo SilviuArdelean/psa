@@ -247,7 +247,7 @@ bool ProcessingOperations::printProcessInformation(const ustring& filter,
     if (0 != processesAllSize) {
       ucout << "-----------------------------------" << std::endl;
       ucout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER
-            << " MB" << std::endl;
+            << " MB  [ " << processesCount << " processes ]" << std::endl;
     } else {
 #ifdef _WIN32
       ucout << "Seems psa.exe application runs under not enough privileges. "
