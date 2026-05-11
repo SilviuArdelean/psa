@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM">
@@ -39,22 +39,45 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
+    <CppLanguageStandard>c++20</CppLanguageStandard>
+    <UseOfStl>libstdc++_static</UseOfStl>
+    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+    <CppLanguageStandard>c++20</CppLanguageStandard>
+    <UseOfStl>libstdc++_static</UseOfStl>
+    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
+    <CppLanguageStandard>c++20</CppLanguageStandard>
+    <UseOfStl>libstdc++_static</UseOfStl>
+    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+    <CppLanguageStandard>c++20</CppLanguageStandard>
+    <UseOfStl>libstdc++_static</UseOfStl>
+    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
-    <UseOfStl>libstdc++_shared</UseOfStl>
+    <UseOfStl>libstdc++_static</UseOfStl>
+    <CppLanguageStandard>c++20</CppLanguageStandard>
+    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
+    <CppLanguageStandard>c++20</CppLanguageStandard>
+    <UseOfStl>libstdc++_static</UseOfStl>
+    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
@@ -108,8 +131,8 @@
     <OutDir>$(SolutionDir)Build\$(Configuration)\$(Platform)\</OutDir>
   </PropertyGroup>
   <ItemGroup>
-    <ClCompile Include="..\ProcessingOperations.cpp" />
-    <ClCompile Include="..\ProcsTreeBuilder.cpp" />
+    <ClCompile Include="..\operations.cpp" />
+    <ClCompile Include="..\processes_tree_builder.cpp" />
     <ClCompile Include="..\psa.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -119,8 +142,8 @@
     <ClInclude Include="..\..\include\generic_tree_handler.h" />
     <ClInclude Include="..\..\include\process_operations.h" />
     <ClInclude Include="..\..\include\string_utils.h" />
-    <ClInclude Include="..\ProcessingOperations.h" />
-    <ClInclude Include="..\ProcsTreeBuilder.h" />
+    <ClInclude Include="..\operations.h" />
+    <ClInclude Include="..\processes_tree_builder.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Link>
@@ -136,6 +159,7 @@
     </CustomBuildStep>
     <ClCompile>
       <CppAdditionalWarning>switch;no-deprecated-declarations;empty-body;conversion;return-type;parentheses;no-format;uninitialized;unreachable-code;unused-function;unused-value;unused-variable;%(CppAdditionalWarning)</CppAdditionalWarning>
+      <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -144,26 +168,41 @@
       <AdditionalOptions>
       </AdditionalOptions>
     </Link>
+    <ClCompile>
+      <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
     <Link>
       <LibraryDependencies>procps;%(LibraryDependencies)</LibraryDependencies>
     </Link>
+    <ClCompile>
+      <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
     <Link>
       <LibraryDependencies>procps;%(LibraryDependencies)</LibraryDependencies>
     </Link>
+    <ClCompile>
+      <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <Link>
       <LibraryDependencies>procps;%(LibraryDependencies)</LibraryDependencies>
     </Link>
+    <ClCompile>
+      <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <Link>
       <LibraryDependencies>procps;%(LibraryDependencies)</LibraryDependencies>
     </Link>
+    <ClCompile>
+      <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets" />
