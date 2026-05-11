@@ -152,9 +152,13 @@ struct proc_info {
 
 typedef std::multimap<DWORD, proc_info> procs_map;
 
-#define KB_DIVIDER (1024)
-#define MB_DIVIDER (1024 * 1024)
-#define GB_DIVIDER (1024 * 1024 * 1024)
+constexpr ULONG64 KB_DIVIDER = 1024;
+constexpr ULONG64 MB_DIVIDER = 1024 * 1024;
+constexpr ULONG64 GB_DIVIDER = 1024 * 1024 * 1024;
+
+constexpr double ToMb(ULONG64 bytes) noexcept {
+  return static_cast<double>(bytes) / MB_DIVIDER;
+}
 
 #define FAKE_ROOT_PID 999999
 #define FAKE_ROOT_PARENT_PID 1000000

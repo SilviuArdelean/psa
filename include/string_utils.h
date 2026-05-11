@@ -6,7 +6,8 @@
 
 class string_utils {
  public:
-  static bool compare_case_sensitive(const ustring& strFirst, const ustring& strSecond) {
+  static bool compare_case_sensitive(const ustring& strFirst,
+                                     const ustring& strSecond) {
     return (0 == strFirst.compare(strSecond));
   }
 
@@ -32,8 +33,10 @@ class string_utils {
     ustring path2seach(str);
     ustring str4seach(sub_str);
 
-    std::transform(path2seach.begin(), path2seach.end(), path2seach.begin(), toupper);
-    std::transform(str4seach.begin(), str4seach.end(), str4seach.begin(), toupper);
+    std::transform(path2seach.begin(), path2seach.end(), path2seach.begin(),
+                   toupper);
+    std::transform(str4seach.begin(), str4seach.end(), str4seach.begin(),
+                   toupper);
 
     return (path2seach.find(str4seach) != ustring::npos);
   }

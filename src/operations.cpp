@@ -96,7 +96,8 @@ void ShowHeader() {
 
 void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   if (map_processes_.empty()) {
-    BuildProcessesMap();
+    if (!BuildProcessesMap())
+      return;
   }
 
   if (map_processes_.empty())
@@ -146,8 +147,7 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
     auto ob = top_queue.top();
 
     ucout << std::format(_T(" [{:d}] \t {:.2f} MB \t {:<15} \n"), ob.pid,
-                         static_cast<double>(ob.mem_usage) / MB_DIVIDER,
-                         ob.proc_name);
+                         ToMb(ob.mem_usage), ob.proc_name);
 
     processesAllSize += ob.mem_usage;
 
@@ -155,12 +155,12 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   }
 
   ucout << "-------------------------------------------" << std::endl;
-  ucout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER
-        << " MB" << std::endl;
+  ucout << "   Total used memory: " << ToMb(processesAllSize) << " MB"
+        << std::endl;
 }
 
-bool ProcessingOperations::get_filter_results(const ustring& process_name,
-                                              const ustring& filter) {
+bool ProcessingOperations::GetFilterResults(const ustring& process_name,
+                                            const ustring& filter) {
   return ((filter.empty() || std::string::npos != filter.find(_T("*"))
                ? true
                : string_utils::search_substring(filter, process_name)));
@@ -171,8 +171,10 @@ bool ProcessingOperations::PrintAllProcessesInformation(
   int processesCount = 0;
   ULONG64 processesAllSize = 0;
 
-  if (map_processes_.empty())
-    BuildProcessesMap();
+  if (map_processes_.empty()) {
+    if (!BuildProcessesMap())
+      return false;
+  }
 
   ShowHeader();
 
@@ -180,8 +182,7 @@ bool ProcessingOperations::PrintAllProcessesInformation(
     auto procPID = proc.procPID;
 
     ucout << std::format(_T("PID [{:d}] \t {:.4f} MB \t {:<15} \n"), procPID,
-                         static_cast<double>(proc.usedMemory) / MB_DIVIDER,
-                         proc.procName);
+                         ToMb(proc.usedMemory), proc.procName);
 
     if (show_details) {
       PrintProcessDetailedInfo(procPID);
@@ -194,8 +195,7 @@ bool ProcessingOperations::PrintAllProcessesInformation(
   if (processesCount != 0) {
     ucout << "--------------------------------------------------------"
           << std::endl;
-    ucout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER
-          << " MB "
+    ucout << "   Total used memory: " << ToMb(processesAllSize) << " MB "
           << "  [ " << map_processes_.size() - 1  // skip PID 0
           << " processes ]" << std::endl;
   }
@@ -208,8 +208,10 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
   int processesCount = 0;
   ULONG64 processesAllSize = 0;
 
-  if (map_processes_.empty())
-    BuildProcessesMap();
+  if (map_processes_.empty()) {
+    if (!BuildProcessesMap())
+      return false;
+  }
 
   ShowHeader();
 
@@ -224,11 +226,11 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
     auto process_path = process_operations::GetProcessPath(proc_pid);
 
     ucout << std::format(_T("[PID: {:d}] \t {:.4f} MB \t {:<15} \n"), proc_pid,
-                         static_cast<double>(proc.usedMemory) / MB_DIVIDER,
-                         proc.procName);
+                         ToMb(proc.usedMemory), proc.procName);
 
     if (show_details) {
-      PrintProcessDetailedInfo(proc_pid);
+      static_cast<void>(
+          PrintProcessDetailedInfo(proc_pid));  // stub, always true
     }
 
     processesAllSize += proc.usedMemory;
@@ -238,8 +240,8 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
   if (processesCount != 0) {
     if (0 != processesAllSize) {
       ucout << "-----------------------------------" << std::endl;
-      ucout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER
-            << " MB  [ " << processesCount << " processes ]" << std::endl;
+      ucout << "   Total used memory: " << ToMb(processesAllSize) << " MB  [ "
+            << processesCount << " processes ]" << std::endl;
     } else {
 #ifdef _WIN32
       ucout << "Seems psa.exe application runs under not enough privileges. "
@@ -269,8 +271,10 @@ bool ProcessingOperations::PrintProcessDetailedInfo(DWORD pid) {
 }
 
 void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
-  if (map_processes_.empty())
-    BuildProcessesMap();
+  if (map_processes_.empty()) {
+    if (!BuildProcessesMap())
+      return;
+  }
 
   ProcsTreeBuilder tree_builder(&map_processes_);
 
@@ -288,8 +292,10 @@ void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
 }
 
 void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
-  if (map_processes_.empty())
-    BuildProcessesMap();
+  if (map_processes_.empty()) {
+    if (!BuildProcessesMap())
+      return;
+  }
 
   if (string_utils::is_number(argvProcessParam)) {
     process_operations::kill_process_by_pid_optimized(utoi(argvProcessParam),
