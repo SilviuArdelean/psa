@@ -28,7 +28,7 @@ class ProcessingOperations {
                           const ustring& current_process);
 
 #ifdef _WIN32
-  void PrintError(TCHAR* msg);
+  void PrintError(const TCHAR* msg);
   SIZE_T GetProcessUsedMemory(DWORD const processID) const;
   BOOL SetPrivilege(
       HANDLE hToken,           // access token handle
