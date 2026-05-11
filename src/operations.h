@@ -1,6 +1,7 @@
 
 #pragma once
 #include <map>
+#include <mutex>
 #include <stack>
 #include <vector>
 #include "general.h"
@@ -37,4 +38,5 @@ class ProcessingOperations {
 
  protected:
   procs_map map_processes_;
+  std::mutex map_mutex_;
 };

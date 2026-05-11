@@ -45,7 +45,7 @@ void ProcsTreeBuilder::mapBuilder() {
   }
 }
 
-DWORD ProcsTreeBuilder::_parentProcExists(int nParentID) const {
+bool ProcsTreeBuilder::_parentProcExists(int nParentID) const {
   auto itParent = map_proc4tree_.find(nParentID);
 
   return (itParent != map_proc4tree_.end());
@@ -132,6 +132,7 @@ void ProcsTreeBuilder::_findSpecificProcess(generic_node<proc_info>* pNode,
 
   for (auto itNode = pNode->listChildren.begin();
        itNode != pNode->listChildren.end(); ++itNode) {
+    if (ptr_search_tree_node_) return;  // early exit once node is found
     generic_node<proc_info>* pItem = *itNode;
     _findSpecificProcess(pItem, procPID);
   }

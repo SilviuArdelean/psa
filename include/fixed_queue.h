@@ -10,13 +10,13 @@ template <class _Ty,
           class _Pr = std::less<typename _Container::value_type> >
 class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
  public:
-  fixed_queue() {}
-  fixed_queue(size_t size) : fixed_size(size) {}
+  fixed_queue() : fixed_size_(0) {}
+  fixed_queue(size_t size) : fixed_size_(size) {}
 
   typedef typename std::priority_queue<_Ty, _Container, _Pr> _PQ_specialization;
 
   void push(const _Ty& x) {
-    if (fixed_size == _PQ_specialization::size()) {
+    if (fixed_size_ == _PQ_specialization::size()) {
       auto min = std::min_element(_PQ_specialization::c.begin(),
                                   _PQ_specialization::c.end(), _Pr());
       if (x > *min) {
@@ -32,10 +32,12 @@ class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
   }
 
   void pop() {
-    auto itFirst = _PQ_specialization::c.begin();
-
-    if (itFirst != _PQ_specialization::c.end())
-      _PQ_specialization::c.erase(itFirst);
+    if (!_PQ_specialization::c.empty()) {
+      // Move the top element to the end and restore heap, then remove it
+      std::pop_heap(_PQ_specialization::c.begin(),
+                    _PQ_specialization::c.end(), _Pr());
+      _PQ_specialization::c.pop_back();
+    }
   }
 
   void clear() { _PQ_specialization::c.clear(); }
@@ -66,7 +68,7 @@ class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
   }
 
   size_t size() const { return _PQ_specialization::c.size(); }
-  bool is_full() const { return fixed_size == _PQ_specialization::c.size(); }
+  bool is_full() const { return fixed_size_ == _PQ_specialization::c.size(); }
 
   auto begin() -> decltype(_PQ_specialization::c.begin()) {
     return _PQ_specialization::c.begin();
@@ -83,5 +85,5 @@ class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
   }
 
  private:
-  const size_t fixed_size;
+  const size_t fixed_size_;   // ← no default value
 };

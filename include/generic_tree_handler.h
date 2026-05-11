@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "generic_tree.h"
 #ifdef _WIN32
@@ -16,13 +16,7 @@ class generic_tree_handler {
     if (!node)
       return;
 
-#ifdef _WIN32
-    _setmode(_fileno(stdout), _O_U16TEXT);
-#else
-    //        setlocale(LC_ALL, "en_US.UTF-8");
-    std::wcout.sync_with_stdio(false);
-    std::wcout.imbue(std::locale("en_US.utf8"));
-#endif
+    _setup_output();
 
     // list of Unicode characters
     // http://www.fileformat.info/info/unicode/category/So/list.htm
@@ -66,13 +60,7 @@ class generic_tree_handler {
     if (!node)
       return;
 
-#ifdef _WIN32
-    _setmode(_fileno(stdout), _O_U16TEXT);
-#else
-    //        setlocale(LC_ALL, "en_US.UTF-8");
-    std::wcout.sync_with_stdio(false);
-    std::wcout.imbue(std::locale("en_US.utf8"));
-#endif
+    _setup_output();
 
     if (node->level > 0) {
       if (node->level == 1) {
@@ -87,21 +75,13 @@ class generic_tree_handler {
       } else {
         // bool first = true;
         for (auto i = 1; i < node->level; i++) {
-          // needs checking if there are other nodes on the same level and if
-          // yes then add 0x2502 temporary comment to have a cleaner tree
-          // if (!lastRN && first) {
-          //    first = false;
-          // wchar_t ch2 = 0x2502;
-          //    std::wcout << ch2 << _T("    ");  //std::wcout << "|";
-          //}
-          // else
           std::wcout << _T("    ");
         }
 
         wchar_t ch1 = 0x2514, ch2 = 0x2500;  // , ch3 = 0x251C;
 
         std::wcout << ch1 << ch2 << ch2 << ch2
-                   << _T(" ");  // std::wcout << "└───";    ├───
+                   << _T(" ");  // std::wcout << "└───";
       }
     }
 
@@ -153,4 +133,14 @@ class generic_tree_handler {
 
  private:
   ProcsTreeBuilder* parent = nullptr;
+
+  // Sets up stdout/wcout for Unicode output — called once per traversal
+  static void _setup_output() {
+#ifdef _WIN32
+    _setmode(_fileno(stdout), _O_U16TEXT);
+#else
+    std::wcout.sync_with_stdio(false);
+    std::wcout.imbue(std::locale("en_US.utf8"));
+#endif
+  }
 };
