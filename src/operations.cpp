@@ -4,6 +4,7 @@
 #include <format>
 #include <iostream>
 #include <mutex>
+#include <ranges>
 #include <vector>
 
 #include "fixed_queue.h"
@@ -124,12 +125,11 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   fixed_queue<data4sort, std::vector<data4sort>, LessThanByFileSize> top_queue(
       top);
 
-  for (auto& ob : map_processes_) {
+  for (const auto& proc : map_processes_ | std::views::values) {
     data4sort data;
-    data.pid = ob.second.procPID;
-    data.proc_name = ob.second.procName;
-    data.mem_usage = ob.second.usedMemory;
-
+    data.pid = proc.procPID;
+    data.proc_name = proc.procName;
+    data.mem_usage = proc.usedMemory;
     top_queue.push(data);
   }
 
@@ -145,10 +145,9 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   while (!top_queue.empty()) {
     auto ob = top_queue.top();
 
-    ucout << std::format(_T(" [{:d}] \t {:.2f} MB \t {:<15} \n"),
-                        ob.pid,
-                        static_cast<double>(ob.mem_usage) / MB_DIVIDER,
-                        ob.proc_name);
+    ucout << std::format(_T(" [{:d}] \t {:.2f} MB \t {:<15} \n"), ob.pid,
+                         static_cast<double>(ob.mem_usage) / MB_DIVIDER,
+                         ob.proc_name);
 
     processesAllSize += ob.mem_usage;
 
@@ -177,24 +176,19 @@ bool ProcessingOperations::PrintAllProcessesInformation(
 
   ShowHeader();
 
-  for (auto& proc_obj : map_processes_) {
-    ustring current_process(proc_obj.second.procName);
+  for (const auto& proc : map_processes_ | std::views::values) {
+    auto procPID = proc.procPID;
 
-    auto procPID = proc_obj.second.procPID;
+    ucout << std::format(_T("PID [{:d}] \t {:.4f} MB \t {:<15} \n"), procPID,
+                         static_cast<double>(proc.usedMemory) / MB_DIVIDER,
+                         proc.procName);
 
-    {
-      ucout << std::format(_T("PID [{:d}] \t {:.4f} MB \t {:<15} \n"),
-                         procPID,
-                         static_cast<double>(proc_obj.second.usedMemory) / MB_DIVIDER,
-                         proc_obj.second.procName);
-
-      if (show_details) {
-        PrintProcessDetailedInfo(procPID);
-      }
-
-      processesAllSize += proc_obj.second.usedMemory;
-      processesCount++;
+    if (show_details) {
+      PrintProcessDetailedInfo(procPID);
     }
+
+    processesAllSize += proc.usedMemory;
+    processesCount++;
   }
 
   if (processesCount != 0) {
@@ -220,29 +214,25 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
   ShowHeader();
 
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ms682050(v=vs.85).aspx
-  for (auto& proc_obj : map_processes_) {
-    ustring current_process(proc_obj.second.procName);
+  auto matching = map_processes_ | std::views::values |
+                  std::views::filter([&](const proc_info& p) {
+                    return string_utils::search_substring(p.procName, filter);
+                  });
 
-    if (string_utils::search_substring(current_process, filter)) {
-      auto proc_pid = proc_obj.second.procPID;
-      auto process_path = process_operations::GetProcessPath(proc_pid);
+  for (const auto& proc : matching) {
+    auto proc_pid = proc.procPID;
+    auto process_path = process_operations::GetProcessPath(proc_pid);
 
-      ucout << std::format(_T("[PID: {:d}] \t {:.4f} MB \t {:<15} \n"),
-                         proc_pid,
-                         static_cast<double>(proc_obj.second.usedMemory) / MB_DIVIDER,
-                         proc_obj.second.procName);
+    ucout << std::format(_T("[PID: {:d}] \t {:.4f} MB \t {:<15} \n"), proc_pid,
+                         static_cast<double>(proc.usedMemory) / MB_DIVIDER,
+                         proc.procName);
 
-      // if (!process_path.empty()) {
-      //   uprintf_s(_T("   [ %s ]\n"), process_path.c_str());
-      // }
-
-      if (show_details) {
-        PrintProcessDetailedInfo(proc_pid);
-      }
-
-      processesAllSize += proc_obj.second.usedMemory;
-      processesCount++;
+    if (show_details) {
+      PrintProcessDetailedInfo(proc_pid);
     }
+
+    processesAllSize += proc.usedMemory;
+    processesCount++;
   }
 
   if (processesCount != 0) {
@@ -356,7 +346,8 @@ BOOL ProcessingOperations::SetPrivilege(
                             lpszPrivilege,  // privilege to lookup
                             &luid))         // receives LUID of privilege
   {
-    std::cerr << std::format("LookupPrivilegeValue error: {}\n", GetLastError());
+    std::cerr << std::format("LookupPrivilegeValue error: {}\n",
+                             GetLastError());
     return FALSE;
   }
 
@@ -368,7 +359,8 @@ BOOL ProcessingOperations::SetPrivilege(
 
   if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES),
                              (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL)) {
-    std::cerr << std::format("AdjustTokenPrivileges error: {}\n", GetLastError());
+    std::cerr << std::format("AdjustTokenPrivileges error: {}\n",
+                             GetLastError());
     return FALSE;
   }
 
@@ -402,6 +394,7 @@ void ProcessingOperations::PrintError(const TCHAR* msg) {
   } while ((p >= sysMsg) && ((*p == '.') || (*p < 33)));
 
   // Display the message
-  ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg, eNum, sysMsg);
+  ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg,
+                       eNum, sysMsg);
 }
 #endif
