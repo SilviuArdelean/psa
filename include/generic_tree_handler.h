@@ -16,7 +16,7 @@ class generic_tree_handler {
     if (!node)
       return;
 
-    _setup_output();
+    SetupOutput();
 
     // list of Unicode characters
     // http://www.fileformat.info/info/unicode/category/So/list.htm
@@ -60,7 +60,7 @@ class generic_tree_handler {
     if (!node)
       return;
 
-    _setup_output();
+    SetupOutput();
 
     if (node->level > 0) {
       if (node->level == 1) {
@@ -86,7 +86,7 @@ class generic_tree_handler {
     }
 
     if (parent)
-      parent->print_it(node);
+      parent->PrintIt(node);
     else
       std::wcout << node->data;
 
@@ -135,7 +135,7 @@ class generic_tree_handler {
   ProcsTreeBuilder* parent = nullptr;
 
   // Sets up stdout/wcout for Unicode output — called once per traversal
-  static void _setup_output() {
+  static void SetupOutput() {
 #ifdef _WIN32
     _setmode(_fileno(stdout), _O_U16TEXT);
 #else
