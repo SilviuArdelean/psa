@@ -1,6 +1,7 @@
 #include "operations.h"
 
 #include <algorithm>
+#include <format>
 #include <iostream>
 #include <mutex>
 #include <vector>
@@ -144,8 +145,10 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   while (!top_queue.empty()) {
     auto ob = top_queue.top();
 
-    uprintf_s(_T(" [%d] \t %.2lf MB \t %-15s \n"), ob.pid,
-              (double)ob.mem_usage / MB_DIVIDER, ob.proc_name.c_str());
+    ucout << std::format(_T(" [{:d}] \t {:.2f} MB \t {:<15} \n"),
+                        ob.pid,
+                        static_cast<double>(ob.mem_usage) / MB_DIVIDER,
+                        ob.proc_name);
 
     processesAllSize += ob.mem_usage;
 
@@ -180,9 +183,10 @@ bool ProcessingOperations::PrintAllProcessesInformation(
     auto procPID = proc_obj.second.procPID;
 
     {
-      uprintf_s(_T("PID [%d] \t %.4lf MB \t %-15s \n"), procPID,
-                (double)proc_obj.second.usedMemory / MB_DIVIDER,
-                proc_obj.second.procName.c_str());
+      ucout << std::format(_T("PID [{:d}] \t {:.4f} MB \t {:<15} \n"),
+                         procPID,
+                         static_cast<double>(proc_obj.second.usedMemory) / MB_DIVIDER,
+                         proc_obj.second.procName);
 
       if (show_details) {
         PrintProcessDetailedInfo(procPID);
@@ -223,9 +227,10 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
       auto proc_pid = proc_obj.second.procPID;
       auto process_path = process_operations::GetProcessPath(proc_pid);
 
-      uprintf_s(_T("[PID: %d] \t %.4lf MB \t %-15s \n"), proc_pid,
-                (double)proc_obj.second.usedMemory / MB_DIVIDER,
-                proc_obj.second.procName.c_str());
+      ucout << std::format(_T("[PID: {:d}] \t {:.4f} MB \t {:<15} \n"),
+                         proc_pid,
+                         static_cast<double>(proc_obj.second.usedMemory) / MB_DIVIDER,
+                         proc_obj.second.procName);
 
       // if (!process_path.empty()) {
       //   uprintf_s(_T("   [ %s ]\n"), process_path.c_str());
@@ -351,7 +356,7 @@ BOOL ProcessingOperations::SetPrivilege(
                             lpszPrivilege,  // privilege to lookup
                             &luid))         // receives LUID of privilege
   {
-    printf("LookupPrivilegeValue error: %u\n", GetLastError());
+    std::cerr << std::format("LookupPrivilegeValue error: {}\n", GetLastError());
     return FALSE;
   }
 
@@ -363,12 +368,12 @@ BOOL ProcessingOperations::SetPrivilege(
 
   if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES),
                              (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL)) {
-    printf("AdjustTokenPrivileges error: %u\n", GetLastError());
+    std::cerr << std::format("AdjustTokenPrivileges error: {}\n", GetLastError());
     return FALSE;
   }
 
   if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
-    printf("The token does not have the specified privilege. \n");
+    std::cerr << "The token does not have the specified privilege.\n";
     return FALSE;
   }
 
@@ -377,7 +382,7 @@ BOOL ProcessingOperations::SetPrivilege(
   return TRUE;
 }
 
-void ProcessingOperations::PrintError(TCHAR* msg) {
+void ProcessingOperations::PrintError(const TCHAR* msg) {
   DWORD eNum;
   TCHAR sysMsg[256];
   TCHAR* p;
@@ -397,6 +402,6 @@ void ProcessingOperations::PrintError(TCHAR* msg) {
   } while ((p >= sysMsg) && ((*p == '.') || (*p < 33)));
 
   // Display the message
-  uprintf(TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg);
+  ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg, eNum, sysMsg);
 }
 #endif

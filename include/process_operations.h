@@ -1,4 +1,6 @@
 #pragma once
+#include <cstring>
+#include <format>
 #include "general.h"
 #include "string_utils.h"
 
@@ -204,9 +206,8 @@ class process_operations {
 
 #ifdef __linux__
   static size_t get_exe_for_pid(int pid, char* buf, size_t bufsize) {
-    char path[32] = {0};
-    sprintf(path, "/proc/%d/exe", pid);
-    return readlink(path, buf, bufsize);
+    const auto path = std::format("/proc/{}/exe", pid);
+    return readlink(path.c_str(), buf, bufsize);
   }
 #endif
 
