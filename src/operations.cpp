@@ -145,10 +145,9 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   while (!top_queue.empty()) {
     auto ob = top_queue.top();
 
-    ucout << std::format(_T(" [{:d}] \t {:.2f} MB \t {:<15} \n"),
-                        ob.pid,
-                        static_cast<double>(ob.mem_usage) / MB_DIVIDER,
-                        ob.proc_name);
+    ucout << std::format(_T(" [{:d}] \t {:.2f} MB \t {:<15} \n"), ob.pid,
+                         static_cast<double>(ob.mem_usage) / MB_DIVIDER,
+                         ob.proc_name);
 
     processesAllSize += ob.mem_usage;
 
@@ -180,10 +179,9 @@ bool ProcessingOperations::PrintAllProcessesInformation(
   for (const auto& proc : map_processes_ | std::views::values) {
     auto procPID = proc.procPID;
 
-    ucout << std::format(_T("PID [{:d}] \t {:.4f} MB \t {:<15} \n"),
-                       procPID,
-                       static_cast<double>(proc.usedMemory) / MB_DIVIDER,
-                       proc.procName);
+    ucout << std::format(_T("PID [{:d}] \t {:.4f} MB \t {:<15} \n"), procPID,
+                         static_cast<double>(proc.usedMemory) / MB_DIVIDER,
+                         proc.procName);
 
     if (show_details) {
       PrintProcessDetailedInfo(procPID);
@@ -216,21 +214,18 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
   ShowHeader();
 
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ms682050(v=vs.85).aspx
-  auto matching = map_processes_
-      | std::views::values
-      | std::views::filter([&](const proc_info& p) {
-          return string_utils::search_substring(p.procName, filter);
-        });
+  auto matching = map_processes_ | std::views::values |
+                  std::views::filter([&](const proc_info& p) {
+                    return string_utils::search_substring(p.procName, filter);
+                  });
 
   for (const auto& proc : matching) {
     auto proc_pid = proc.procPID;
     auto process_path = process_operations::GetProcessPath(proc_pid);
 
-    ucout << std::format(_T("[PID: {:d}] \t {:.4f} MB \t {:<15} \n"),
-                       proc_pid,
-                       static_cast<double>(proc.usedMemory) / MB_DIVIDER,
-                       proc.procName);
-
+    ucout << std::format(_T("[PID: {:d}] \t {:.4f} MB \t {:<15} \n"), proc_pid,
+                         static_cast<double>(proc.usedMemory) / MB_DIVIDER,
+                         proc.procName);
 
     if (show_details) {
       PrintProcessDetailedInfo(proc_pid);
@@ -351,7 +346,8 @@ BOOL ProcessingOperations::SetPrivilege(
                             lpszPrivilege,  // privilege to lookup
                             &luid))         // receives LUID of privilege
   {
-    std::cerr << std::format("LookupPrivilegeValue error: {}\n", GetLastError());
+    std::cerr << std::format("LookupPrivilegeValue error: {}\n",
+                             GetLastError());
     return FALSE;
   }
 
@@ -363,7 +359,8 @@ BOOL ProcessingOperations::SetPrivilege(
 
   if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES),
                              (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL)) {
-    std::cerr << std::format("AdjustTokenPrivileges error: {}\n", GetLastError());
+    std::cerr << std::format("AdjustTokenPrivileges error: {}\n",
+                             GetLastError());
     return FALSE;
   }
 
@@ -397,6 +394,7 @@ void ProcessingOperations::PrintError(const TCHAR* msg) {
   } while ((p >= sysMsg) && ((*p == '.') || (*p < 33)));
 
   // Display the message
-  ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg, eNum, sysMsg);
+  ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg,
+                       eNum, sysMsg);
 }
 #endif
