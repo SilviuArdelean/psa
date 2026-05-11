@@ -42,7 +42,7 @@
 #define ustringstream std::wstringstream
 #define itou _itow_s
 #define utok wcstok_s
-#define SEPARATOR        _T("]|[")
+#define SEPARATOR _T("]|[")
 #define uprintf_s wprintf
 #define __T(x) L##x
 #define _T(x) __T(x)

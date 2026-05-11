@@ -7,7 +7,7 @@
 
 template <class _Ty,
           class _Container = std::vector<_Ty>,
-          class _Pr = std::less<typename _Container::value_type> >
+          class _Pr = std::less<typename _Container::value_type>>
 class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
  public:
   fixed_queue() : fixed_size_(0) {}
@@ -34,8 +34,8 @@ class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
   void pop() {
     if (!_PQ_specialization::c.empty()) {
       // Move the top element to the end and restore heap, then remove it
-      std::pop_heap(_PQ_specialization::c.begin(),
-                    _PQ_specialization::c.end(), _Pr());
+      std::pop_heap(_PQ_specialization::c.begin(), _PQ_specialization::c.end(),
+                    _Pr());
       _PQ_specialization::c.pop_back();
     }
   }
@@ -85,5 +85,5 @@ class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
   }
 
  private:
-  const size_t fixed_size_;   // ← no default value
+  const size_t fixed_size_;  // ← no default value
 };

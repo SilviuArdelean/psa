@@ -17,7 +17,7 @@
 #include <unistd.h>
 #endif
 
-void showParameters() {
+void ShowParameters() {
   ucout << _T("    -a    : list all processes information") << std::endl;
   ucout << _T("    -e [no]    : top [no] most expensive memory consuming ")
            _T("processes ")
@@ -28,7 +28,7 @@ void showParameters() {
   ucout << _T("    -t    : tree snapshot of current processes") << std::endl;
 }
 
-void showAvailableInformation() {
+void ShowAvailableInformation() {
   // a = list all processes information
   // e = top [no] most expensive memory consuming processes | top 10 by default
   // k = kill by process PID
@@ -44,7 +44,7 @@ void showAvailableInformation() {
   ucout << _T("-----------------------------------------------------------")
         << std::endl;
 
-  showParameters();
+  ShowParameters();
 
   ucout << _T("-----------------------------------------------------------")
         << std::endl;
@@ -54,7 +54,7 @@ void showAvailableInformation() {
         << std::endl;
 }
 
-bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
+bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
   if (!pPO) {
     ucout << _T("Internal error: ")
           << PSA_INTERNAL_ERRORS::invalid_processing_operations;
@@ -74,7 +74,7 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
     switch (option) {
       case _T('a'): {
-        pPO->printAllProcessesInformation();
+        pPO->PrintAllProcessesInformation();
       } break;
 
       case _T('e'): {
@@ -82,7 +82,7 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
         if (top == 0)
           top = 10;
 
-        pPO->printTopExpensiveProcesses(top);
+        pPO->PrintTopExpensiveProcesses(top);
       } break;
 
       case _T('k'): {
@@ -93,13 +93,13 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
         }
 
         TCHAR* secondParam = argv[argc - 1];
-        pPO->killProcesses(secondParam);
+        pPO->KillProcesses(secondParam);
       } break;
 
       case _T('o'): {
         ustring searchfor =
             (loop_params + 2 < argc) ? argv[loop_params + 2] : argv[argc - 1];
-        pPO->printProcessInformation(searchfor);
+        pPO->PrintProcessInformation(searchfor);
       } break;
 
       case _T('t'): {
@@ -111,17 +111,17 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
         if (3 == argc && isdigit(*argv[argc - 1]))
           proc_pid = utoi(argv[argc - 1]);
 
-        pPO->generateProcessesTree(proc_pid);
+        pPO->GenerateProcessesTree(proc_pid);
       } break;
 
       case _T('?'):
-        showAvailableInformation();
+        ShowAvailableInformation();
         return true;
         break;
       default:
         ucout << _T(" psa: invalid option ...") << std::endl;
         ucout << _T(" Please check the available list of parameters : \n");
-        showParameters();
+        ShowParameters();
         return false;
         break;
     }
@@ -131,7 +131,7 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
   }
 
   if (!good_params) {
-    showAvailableInformation();
+    ShowAvailableInformation();
     return false;
   }
 
@@ -145,5 +145,5 @@ int main(int argc, char** argv)
 #endif
 {
   ProcessingOperations po;
-  return processCommandLine(argc, argv, &po) ? 0 : 1;
+  return ProcessCommandLine(argc, argv, &po) ? 0 : 1;
 }

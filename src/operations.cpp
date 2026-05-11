@@ -30,7 +30,7 @@ bool ProcessingOperations::BuildProcessesMap() {
   // Take a snapshot of all processes in the system.
   smart_handle hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
   if (hProcessSnap == INVALID_HANDLE_VALUE) {
-    printError(TEXT("CreateToolhelp32Snapshot (of processes)"));
+    PrintError(TEXT("CreateToolhelp32Snapshot (of processes)"));
     return FALSE;
   }
 
@@ -40,7 +40,7 @@ bool ProcessingOperations::BuildProcessesMap() {
   // Retrieve information about the first process,
   // and exit if unsuccessful
   if (!Process32First(hProcessSnap, &pe32)) {
-    printError(TEXT(
+    PrintError(TEXT(
         "Retrieve information about the first process has failed"));  // show
                                                                       // cause
                                                                       // of
@@ -52,7 +52,7 @@ bool ProcessingOperations::BuildProcessesMap() {
 
   do {
     proc_info pi(pe32.th32ProcessID, pe32.th32ParentProcessID, pe32.szExeFile,
-                 getProcessUsedMemory(pe32.th32ProcessID));
+                 GetProcessUsedMemory(pe32.th32ProcessID));
 
     map_processes_.insert(std::pair<DWORD, proc_info>(pe32.th32ProcessID, pi));
 
@@ -92,7 +92,7 @@ void ShowHeader() {
   ucout << "------------------------------------------------\n";
 }
 
-void ProcessingOperations::printTopExpensiveProcesses(const int top) {
+void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   if (map_processes_.empty()) {
     BuildProcessesMap();
   }
@@ -120,8 +120,8 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top) {
     }
   };
 
-  fixed_queue<data4sort, std::vector<data4sort>,
-                  LessThanByFileSize> top_queue(top);
+  fixed_queue<data4sort, std::vector<data4sort>, LessThanByFileSize> top_queue(
+      top);
 
   for (auto& ob : map_processes_) {
     data4sort data;
@@ -137,17 +137,15 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top) {
   ucout << " Top " << top << " most consuming memory processes \n";
   ShowHeader();
 
-  std::sort(top_queue.begin(), top_queue.end(),
-            [](const auto& l, const auto& r) {
-                 return l.mem_usage > r.mem_usage;
-            });
+  std::sort(
+      top_queue.begin(), top_queue.end(),
+      [](const auto& l, const auto& r) { return l.mem_usage > r.mem_usage; });
 
   while (!top_queue.empty()) {
     auto ob = top_queue.top();
 
     uprintf_s(_T(" [%d] \t %.2lf MB \t %-15s \n"), ob.pid,
-              (double)ob.mem_usage / MB_DIVIDER,
-              ob.proc_name.c_str());
+              (double)ob.mem_usage / MB_DIVIDER, ob.proc_name.c_str());
 
     processesAllSize += ob.mem_usage;
 
@@ -166,7 +164,7 @@ bool ProcessingOperations::get_filter_results(const ustring& process_name,
                : string_utils::search_substring(filter, process_name)));
 }
 
-bool ProcessingOperations::printAllProcessesInformation(
+bool ProcessingOperations::PrintAllProcessesInformation(
     bool const show_details) {
   int processesCount = 0;
   ULONG64 processesAllSize = 0;
@@ -187,7 +185,7 @@ bool ProcessingOperations::printAllProcessesInformation(
                 proc_obj.second.procName.c_str());
 
       if (show_details) {
-        printProcessDetailedInfo(procPID);
+        PrintProcessDetailedInfo(procPID);
       }
 
       processesAllSize += proc_obj.second.usedMemory;
@@ -207,7 +205,7 @@ bool ProcessingOperations::printAllProcessesInformation(
   return true;
 }
 
-bool ProcessingOperations::printProcessInformation(const ustring& filter,
+bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
                                                    bool const show_details) {
   int processesCount = 0;
   ULONG64 processesAllSize = 0;
@@ -234,7 +232,7 @@ bool ProcessingOperations::printProcessInformation(const ustring& filter,
       // }
 
       if (show_details) {
-        printProcessDetailedInfo(proc_pid);
+        PrintProcessDetailedInfo(proc_pid);
       }
 
       processesAllSize += proc_obj.second.usedMemory;
@@ -265,7 +263,7 @@ bool ProcessingOperations::printProcessInformation(const ustring& filter,
   return true;
 }
 
-bool ProcessingOperations::printProcessDetailedInfo(DWORD pid) {
+bool ProcessingOperations::PrintProcessDetailedInfo(DWORD pid) {
   // TO DO
   // command line
   // started from
@@ -275,26 +273,26 @@ bool ProcessingOperations::printProcessDetailedInfo(DWORD pid) {
   return true;
 }
 
-void ProcessingOperations::generateProcessesTree(int const proc_pid) {
+void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
   if (map_processes_.empty())
     BuildProcessesMap();
 
   ProcsTreeBuilder tree_builder(&map_processes_);
 
-  tree_builder.mapBuilder();
-  tree_builder.mapHandshake();
-  tree_builder.buildTree();
+  tree_builder.MapBuilder();
+  tree_builder.MapHandshake();
+  tree_builder.BuildTree();
 
   auto it = map_processes_.find(proc_pid);
   if (it != map_processes_.end()) {
-    tree_builder.printTree(proc_pid);
+    tree_builder.PrintTree(proc_pid);
   } else {
     ucout << "Invalid Process ID | PID " << proc_pid
           << " not detected in memory" << std::endl;
   }
 }
 
-void ProcessingOperations::killProcesses(TCHAR const* argvProcessParam) {
+void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
   if (map_processes_.empty())
     BuildProcessesMap();
 
@@ -308,7 +306,7 @@ void ProcessingOperations::killProcesses(TCHAR const* argvProcessParam) {
 }
 
 #ifdef _WIN32
-SIZE_T ProcessingOperations::getProcessUsedMemory(DWORD const processID) const {
+SIZE_T ProcessingOperations::GetProcessUsedMemory(DWORD const processID) const {
   smart_handle hProcess = OpenProcess(
       PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, processID);
   if (NULL == hProcess)
@@ -379,7 +377,7 @@ BOOL ProcessingOperations::SetPrivilege(
   return TRUE;
 }
 
-void ProcessingOperations::printError(TCHAR* msg) {
+void ProcessingOperations::PrintError(TCHAR* msg) {
   DWORD eNum;
   TCHAR sysMsg[256];
   TCHAR* p;
