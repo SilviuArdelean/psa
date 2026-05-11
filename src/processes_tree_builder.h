@@ -20,7 +20,7 @@ class ProcsTreeBuilder {
   void print_it(generic_node<proc_info>* info);
 
  protected:
-  DWORD _parentProcExists(int nParentID) const;
+  bool _parentProcExists(int nParentID) const;
   bool _isSystemProcess(const proc_info& proc_data);
   void _BuildTree(generic_node<proc_info>* node);
 

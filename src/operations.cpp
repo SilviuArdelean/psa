@@ -21,8 +21,7 @@
 ProcessingOperations::ProcessingOperations(void) {}
 
 bool ProcessingOperations::BuildProcessesMap() {
-  std::mutex g_i_mutex;
-  std::lock_guard<std::mutex> lock(g_i_mutex);
+  std::lock_guard<std::mutex> lock(map_mutex_);
 
 #ifdef _WIN32
 
@@ -102,9 +101,9 @@ void ProcessingOperations::printTopExpensiveProcesses(const int top) {
     ucout << "Processes list is empty" << std::endl;
 
   struct data4sort {
-    int pid;
+    int pid = 0;
     ustring proc_name;
-    ULONG64 mem_usage;
+    ULONG64 mem_usage = 0;
 
     bool operator>(const data4sort& rhs) const {
       return mem_usage > rhs.mem_usage;

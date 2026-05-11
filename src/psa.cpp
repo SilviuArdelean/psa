@@ -65,7 +65,7 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
   bool good_params = false;
   short loop_params = 0;
 
-  while ((opt = getopt(argc, argv, _T("aekotAEKOT"))) != EOF) {
+  while ((opt = getopt(argc, argv, _T("ae:kotAE:KOT"))) != EOF) {
 #ifdef _WIN32
     auto option = tolower(opt);
 #else
@@ -78,7 +78,7 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
       } break;
 
       case _T('e'): {
-        auto top = utoi(argv[argc - 1]);
+        auto top = (optarg != nullptr) ? utoi(optarg) : 10;
         if (top == 0)
           top = 10;
 
@@ -145,7 +145,5 @@ int main(int argc, char** argv)
 #endif
 {
   ProcessingOperations po;
-  processCommandLine(argc, argv, &po);
-
-  return 0;
+  return processCommandLine(argc, argv, &po) ? 0 : 1;
 }

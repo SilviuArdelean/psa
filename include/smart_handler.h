@@ -16,11 +16,22 @@ class smart_handle {
 
   HANDLE get_handle() const { return handle_; }
 
-  smart_handle(const smart_handle& rhs) : handle_(rhs.handle_) {}
+  // Non-copyable: copying a HANDLE would cause double-close in destructors
+  smart_handle(const smart_handle&) = delete;
+  smart_handle& operator=(const smart_handle&) = delete;
 
-  smart_handle& operator= (const HANDLE& h) {
-    if (handle_ != &h) {
-      handle_ = h;
+  // Move constructor: transfers ownership, nulls out the source
+  smart_handle(smart_handle&& rhs) noexcept : handle_(rhs.handle_) {
+    rhs.handle_ = nullptr;
+  }
+
+  // Move assignment: closes existing handle before taking ownership
+  smart_handle& operator=(smart_handle&& rhs) noexcept {
+    if (this != &rhs) {
+      if (nullptr != handle_)
+        CloseHandle(handle_);
+      handle_ = rhs.handle_;
+      rhs.handle_ = nullptr;
     }
     return *this;
   }
