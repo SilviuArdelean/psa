@@ -74,7 +74,8 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
     switch (option) {
       case _T('a'): {
-        pPO->PrintAllProcessesInformation();
+        if (!pPO->PrintAllProcessesInformation())
+          return false;
       } break;
 
       case _T('e'): {
@@ -99,7 +100,8 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
       case _T('o'): {
         ustring searchfor =
             (loop_params + 2 < argc) ? argv[loop_params + 2] : argv[argc - 1];
-        pPO->PrintProcessInformation(searchfor);
+        if (!pPO->PrintProcessInformation(searchfor))
+          return false;
       } break;
 
       case _T('t'): {
