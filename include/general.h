@@ -42,7 +42,7 @@
 #define ustringstream std::wstringstream
 #define itou _itow_s
 #define utok wcstok_s
-#define SEPARATOR        _T("]|["
+#define SEPARATOR _T("]|[")
 #define uprintf_s wprintf
 #define __T(x) L##x
 #define _T(x) __T(x)
@@ -81,7 +81,7 @@
 #ifdef __linux__
 typedef unsigned long DWORD;
 typedef int64_t ULONG64;
-#define SIZE_T unsigned int64_t;
+#define SIZE_T unsigned int64_t
 #define utoi atoi
 #elif _WIN32
 #define utoi _ttoi
@@ -152,8 +152,13 @@ struct proc_info {
 
 typedef std::multimap<DWORD, proc_info> procs_map;
 
+#define KB_DIVIDER (1024)
 #define MB_DIVIDER (1024 * 1024)
-#define KB_DEVIDER (1024 * 1024 * 1024)
+#define GB_DIVIDER (1024 * 1024 * 1024)
+
+constexpr double ToMb(ULONG64 bytes) noexcept {
+  return static_cast<double>(bytes) / MB_DIVIDER;
+}
 
 #define FAKE_ROOT_PID 999999
 #define FAKE_ROOT_PARENT_PID 1000000

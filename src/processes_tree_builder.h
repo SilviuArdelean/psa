@@ -9,24 +9,24 @@ class ProcsTreeBuilder {
 
   ~ProcsTreeBuilder(){};
 
-  void mapBuilder();
-  void mapHandshake();
-  void buildTree();
-  void printTree(int const procPID = 0);
+  void MapBuilder();
+  void MapHandshake();
+  void BuildTree();
+  void PrintTree(int const procPID = 0);
 
-  friend std::wostream& operator<<(std::wostream& stream,
-                                   const proc_info& info);
+  friend uostream& operator<<(uostream& stream,
+                               const proc_info& info);
 
-  void print_it(generic_node<proc_info>* info);
+  void PrintIt(generic_node<proc_info>* info);
 
  protected:
-  DWORD _parentProcExists(int nParentID) const;
-  bool _isSystemProcess(const proc_info& proc_data);
-  void _BuildTree(generic_node<proc_info>* node);
+  bool ParentProcExists(int nParentID) const;
+  bool IsSystemProcess(const proc_info& proc_data);
+  void BuildTreeRecursive(generic_node<proc_info>* node);
 
-  void _findSpecificProcess(generic_node<proc_info>* pNode, int const procPID);
+  void FindSpecificProcess(generic_node<proc_info>* pNode, int const procPID);
 
-  generic_node<proc_info>* _getMapParentPtr(int parentPID);
+  generic_node<proc_info>* GetMapParentPtr(int parentPID);
 
   std::unique_ptr<proc_info> ptr_root_;
   std::unique_ptr<generic_tree<proc_info>> ptr_tree_;
