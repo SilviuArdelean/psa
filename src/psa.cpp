@@ -17,7 +17,7 @@
 #include <unistd.h>
 #endif
 
-void showParameters() {
+void ShowParameters() {
   ucout << _T("    -a    : list all processes information") << std::endl;
   ucout << _T("    -e [no]    : top [no] most expensive memory consuming ")
            _T("processes ")
@@ -28,7 +28,7 @@ void showParameters() {
   ucout << _T("    -t    : tree snapshot of current processes") << std::endl;
 }
 
-void showAvailableInformation() {
+void ShowAvailableInformation() {
   // a = list all processes information
   // e = top [no] most expensive memory consuming processes | top 10 by default
   // k = kill by process PID
@@ -44,7 +44,7 @@ void showAvailableInformation() {
   ucout << _T("-----------------------------------------------------------")
         << std::endl;
 
-  showParameters();
+  ShowParameters();
 
   ucout << _T("-----------------------------------------------------------")
         << std::endl;
@@ -54,7 +54,7 @@ void showAvailableInformation() {
         << std::endl;
 }
 
-bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
+bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
   if (!pPO) {
     ucout << _T("Internal error: ")
           << PSA_INTERNAL_ERRORS::invalid_processing_operations;
@@ -63,9 +63,10 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
   int opt = 0;
   bool good_params = false;
-  short loop_params = 0;
 
-  while ((opt = getopt(argc, argv, _T("aekotAEKOT"))) != EOF) {
+  // optstring: 'k' and 'o' require arguments (k:, o:).
+  // 'e' has an optional number — handled manually by peeking at argv[optind].
+  while ((opt = getopt(argc, argv, const_cast<TCHAR*>(_T("aek:o:tAEK:O:T")))) != EOF) {
 #ifdef _WIN32
     auto option = tolower(opt);
 #else
@@ -74,32 +75,35 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
     switch (option) {
       case _T('a'): {
-        pPO->printAllProcessesInformation();
+        pPO->PrintAllProcessesInformation();
       } break;
 
       case _T('e'): {
-        auto top = utoi(argv[argc - 1]);
+        // -e is optional: peek at argv[optind] — consume it only if it's a number.
+        int top = 10;
+        if (optind < argc && string_utils::is_number(argv[optind]))
+          top = utoi(argv[optind++]);
         if (top == 0)
           top = 10;
 
-        pPO->printTopExpensiveProcesses(top);
+        pPO->PrintTopExpensiveProcesses(top);
       } break;
 
       case _T('k'): {
-        if (argc < 3) {
+        if (optarg == nullptr || *optarg == _T('\0')) {
           ucout << _T(" Invalid set of parameters. Please specify the PID or ")
                    _T("the name of the process to be killed. \n");
           return false;
         }
 
-        TCHAR* secondParam = argv[argc - 1];
-        pPO->killProcesses(secondParam);
+        pPO->KillProcesses(optarg);
       } break;
 
       case _T('o'): {
-        ustring searchfor =
-            (loop_params + 2 < argc) ? argv[loop_params + 2] : argv[argc - 1];
-        pPO->printProcessInformation(searchfor);
+        // optarg is guaranteed non-null (o: in optstring).
+        ustring searchfor = (optarg != nullptr) ? optarg : _T("");
+        if (!pPO->PrintProcessInformation(searchfor))
+          return false;
       } break;
 
       case _T('t'): {
@@ -111,27 +115,26 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
         if (3 == argc && isdigit(*argv[argc - 1]))
           proc_pid = utoi(argv[argc - 1]);
 
-        pPO->generateProcessesTree(proc_pid);
+        pPO->GenerateProcessesTree(proc_pid);
       } break;
 
       case _T('?'):
-        showAvailableInformation();
+        ShowAvailableInformation();
         return true;
         break;
       default:
         ucout << _T(" psa: invalid option ...") << std::endl;
         ucout << _T(" Please check the available list of parameters : \n");
-        showParameters();
+        ShowParameters();
         return false;
         break;
     }
 
-    loop_params++;
     good_params = true;
   }
 
   if (!good_params) {
-    showAvailableInformation();
+    ShowAvailableInformation();
     return false;
   }
 
@@ -145,7 +148,5 @@ int main(int argc, char** argv)
 #endif
 {
   ProcessingOperations po;
-  processCommandLine(argc, argv, &po);
-
-  return 0;
+  return ProcessCommandLine(argc, argv, &po) ? 0 : 1;
 }
