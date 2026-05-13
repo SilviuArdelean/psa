@@ -28,7 +28,7 @@ std::wostream& operator<<(std::wostream& stream, const proc_info& info) {
   return stream;
 }
 
-void ProcsTreeBuilder::mapBuilder() {
+void ProcsTreeBuilder::MapBuilder() {
   map_proc4tree_.clear();
 
   map_proc4tree_.insert(std::pair<DWORD, generic_node<proc_info>>(
@@ -45,41 +45,41 @@ void ProcsTreeBuilder::mapBuilder() {
   }
 }
 
-DWORD ProcsTreeBuilder::_parentProcExists(int nParentID) const {
+DWORD ProcsTreeBuilder::ParentProcExists(int nParentID) const {
   auto itParent = map_proc4tree_.find(nParentID);
 
   return (itParent != map_proc4tree_.end());
 }
 
-void ProcsTreeBuilder::mapHandshake() {
+void ProcsTreeBuilder::MapHandshake() {
   for (auto& ob : map_proc4tree_) {
     if (ob.second.data.procPID == FAKE_ROOT_PID)
       continue;
 
     if ((ob.second.data.parentPID != 0) &&
-        !_parentProcExists(ob.second.data.parentPID)) {
+        !ParentProcExists(ob.second.data.parentPID)) {
       ob.second.data.parentPID =
           FAKE_ROOT_PID;  // parent process does not exists anymore
     }
 
     if (ob.second.data.parentPID == 0 &&
-        (!_isSystemProcess(
+        (!IsSystemProcess(
             ob.second.data)))  // Special case should follow the other path
     {
       ob.second.data.parentPID = ptr_root_->procPID;
     }
 
     // this info is not used and it may remains as it is
-    if (auto ptrParent = _getMapParentPtr(ob.second.data.parentPID))
+    if (auto ptrParent = GetMapParentPtr(ob.second.data.parentPID))
       ob.second.parent = ptrParent;
   }
 }
 
-void ProcsTreeBuilder::buildTree() {
-  _BuildTree(ptr_tree_->get_root());
+void ProcsTreeBuilder::BuildTree() {
+  BuildTree(ptr_tree_->get_root());
 }
 
-void ProcsTreeBuilder::_BuildTree(generic_node<proc_info>* node) {
+void ProcsTreeBuilder::BuildTree(generic_node<proc_info>* node) {
   // nice to have: find a better optimal solution to build the tree
   for (auto itrev = map_proc4tree_.begin(); itrev != map_proc4tree_.end();
        ++itrev) {
@@ -91,19 +91,19 @@ void ProcsTreeBuilder::_BuildTree(generic_node<proc_info>* node) {
       if (!crt_node_parent)
         continue;
 
-      _BuildTree(crt_node_parent);
+      BuildTree(crt_node_parent);
     }
   }
 }
 
-void ProcsTreeBuilder::printTree(int const procPID) {
+void ProcsTreeBuilder::PrintTree(int const procPID) {
   generic_node<proc_info>* pNode = nullptr;
 
   if (0 == procPID || FAKE_ROOT_PID == procPID) {
     pNode = ptr_tree_->get_root();
   } else {
     ptr_search_tree_node_ = nullptr;
-    _findSpecificProcess(ptr_tree_->get_root(), procPID);
+    FindSpecificProcess(ptr_tree_->get_root(), procPID);
     pNode = ptr_search_tree_node_;
   }
 
@@ -123,7 +123,7 @@ void ProcsTreeBuilder::printTree(int const procPID) {
 #endif
 }
 
-void ProcsTreeBuilder::_findSpecificProcess(generic_node<proc_info>* pNode,
+void ProcsTreeBuilder::FindSpecificProcess(generic_node<proc_info>* pNode,
                                             int const procPID) {
   if (pNode->data.procPID == procPID) {
     ptr_search_tree_node_ = pNode;
@@ -133,15 +133,15 @@ void ProcsTreeBuilder::_findSpecificProcess(generic_node<proc_info>* pNode,
   for (auto itNode = pNode->listChildren.begin();
        itNode != pNode->listChildren.end(); ++itNode) {
     generic_node<proc_info>* pItem = *itNode;
-    _findSpecificProcess(pItem, procPID);
+    FindSpecificProcess(pItem, procPID);
   }
 }
 
-bool ProcsTreeBuilder::_isSystemProcess(const proc_info& proc_data) {
+bool ProcsTreeBuilder::IsSystemProcess(const proc_info& proc_data) {
   return (proc_data.procPID == 4 && proc_data.parentPID == 0);
 }
 
-generic_node<proc_info>* ProcsTreeBuilder::_getMapParentPtr(int parentPID) {
+generic_node<proc_info>* ProcsTreeBuilder::GetMapParentPtr(int parentPID) {
   auto it_parent = map_proc4tree_.find(parentPID);
   return ((it_parent != map_proc4tree_.end()) ? &(it_parent->second) : nullptr);
 }

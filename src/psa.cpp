@@ -74,7 +74,7 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
     switch (option) {
       case _T('a'): {
-        pPO->printAllProcessesInformation();
+        pPO->PrintAllProcessesInformation();
       } break;
 
       case _T('e'): {
@@ -82,7 +82,7 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
         if (top == 0)
           top = 10;
 
-        pPO->printTopExpensiveProcesses(top);
+        pPO->PrintTopExpensiveProcesses(top);
       } break;
 
       case _T('k'): {
@@ -93,13 +93,13 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
         }
 
         TCHAR* secondParam = argv[argc - 1];
-        pPO->killProcesses(secondParam);
+        pPO->KillProcesses(secondParam);
       } break;
 
       case _T('o'): {
         ustring searchfor =
             (loop_params + 2 < argc) ? argv[loop_params + 2] : argv[argc - 1];
-        pPO->printProcessInformation(searchfor);
+        pPO->PrintProcessInformation(searchfor);
       } break;
 
       case _T('t'): {
@@ -111,7 +111,7 @@ bool processCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
         if (3 == argc && isdigit(*argv[argc - 1]))
           proc_pid = utoi(argv[argc - 1]);
 
-        pPO->generateProcessesTree(proc_pid);
+        pPO->GenerateProcessesTree(proc_pid);
       } break;
 
       case _T('?'):

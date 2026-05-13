@@ -67,35 +67,35 @@ template <typename T>
 class generic_tree {
  public:
   generic_tree(generic_node<T>* _parent, T& root_value) {
-    ptrRoot = _new_node(_parent, root_value);
+    root_ = new_node(_parent, root_value);
   }
 
-  ~generic_tree() { _tree_cleaner(ptrRoot); }
+  ~generic_tree() { tree_cleaner(root_); }
 
   generic_node<T>* add(generic_node<T>* _parent, T& _data) {
-    generic_node<T>* pnew = _new_node(_parent, _data);
+    generic_node<T>* pnew = new_node(_parent, _data);
     _parent->listChildren.push_back(pnew);
 
     return pnew;
   }
 
-  generic_node<T>* get_root() const { return ptrRoot; }
+  generic_node<T>* get_root() const { return root_; }
 
  protected:
-  generic_node<T>* _new_node(generic_node<T>* _parent, T& _data) {
+  generic_node<T>* new_node(generic_node<T>* _parent, T& _data) {
     return new generic_node<T>(_parent, _data);
   }
 
-  void _tree_cleaner(generic_node<T>* node) {
+  void tree_cleaner(generic_node<T>* node) {
     if (!node)
       return;
 
     for (auto& ob : node->listChildren)
-      _tree_cleaner(ob);
+      tree_cleaner(ob);
 
     delete node;
   }
 
  protected:
-  generic_node<T>* ptrRoot;
+  generic_node<T>* root_;
 };
