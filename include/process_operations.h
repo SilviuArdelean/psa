@@ -55,8 +55,11 @@ class process_operations {
     }
 #else
     std::array<char, PATH_MAX> path_buff{};
-    get_exe_for_pid(process_pid, path_buff);
-    process_path = path_buff.data();
+    const auto len = get_exe_for_pid(process_pid, path_buff);
+    if (len > 0) {
+      path_buff[len] = '\0';
+      process_path = path_buff.data();
+    }
 #endif
     return process_path;
   }
@@ -207,9 +210,9 @@ class process_operations {
   }
 
 #ifdef __linux__
-  static size_t get_exe_for_pid(int pid, std::span<char> buf) {
+  static ssize_t get_exe_for_pid(int pid, std::span<char> buf) {
     const auto path = std::format("/proc/{}/exe", pid);
-    return readlink(path.c_str(), buf.data(), buf.size());
+    return readlink(path.c_str(), buf.data(), buf.size() - 1);
   }
 #endif
 };
