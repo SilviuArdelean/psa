@@ -75,11 +75,13 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
     switch (option) {
       case _T('a'): {
-        pPO->PrintAllProcessesInformation();
+        if (!pPO->PrintAllProcessesInformation())
+          return false;
       } break;
 
       case _T('e'): {
-        // -e is optional: peek at argv[optind] — consume it only if it's a number.
+        // -e is optional: peek at argv[optind] — consume it only if it's a
+        // number.
         int top = 10;
         if (optind < argc && string_utils::is_number(argv[optind]))
           top = utoi(argv[optind++]);
