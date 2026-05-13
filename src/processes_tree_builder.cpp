@@ -80,7 +80,7 @@ void ProcsTreeBuilder::BuildTreeRecursive(generic_node<proc_info>* node) {
     return kv.first != FAKE_ROOT_PID &&
            kv.second.data.parentPID == node->data.procPID;
   });
-  for (auto& child_node : children | std::views::values) {
+  for (const auto& child_node : children | std::views::values) {
     if (auto* added = ptr_tree_->add(node, child_node.data))
       BuildTreeRecursive(added);
   }
