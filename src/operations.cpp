@@ -59,10 +59,9 @@ bool ProcessingOperations::BuildProcessesMap() {
   map_processes_.clear();
 
   do {
-    proc_info pi(pe32.th32ProcessID, pe32.th32ParentProcessID, pe32.szExeFile,
-                 GetProcessUsedMemory(pe32.th32ProcessID));
-
-    map_processes_.insert(std::pair<DWORD, proc_info>(pe32.th32ProcessID, pi));
+    map_processes_.emplace(pe32.th32ProcessID,
+        proc_info(pe32.th32ProcessID, pe32.th32ParentProcessID,
+                  pe32.szExeFile, GetProcessUsedMemory(pe32.th32ProcessID)));
 
   } while (Process32Next(hProcessSnap, &pe32));
 
@@ -80,11 +79,10 @@ bool ProcessingOperations::BuildProcessesMap() {
   map_processes_.clear();
 
   while (readproc(proc, &_process) != NULL) {
-    proc_info pi(_process.tid, _process.ppid,
-                 (_process.cmdline != NULL) ? *_process.cmdline : _process.cmd,
-                 _process.vsize);  // !!! ??? make sure is the right attribute
-
-    map_processes_.insert(std::pair<DWORD, proc_info>(_process.tid, pi));
+    map_processes_.emplace(_process.tid, proc_info(
+        _process.tid, _process.ppid,
+        (_process.cmdline != NULL) ? *_process.cmdline : _process.cmd,
+        _process.vsize));
   }
 
   closeproc(proc);
@@ -129,13 +127,10 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   fixed_queue<data4sort, std::vector<data4sort>, LessThanByFileSize> top_queue(
       top);
 
-  for (auto& ob : map_processes_) {
-    data4sort data;
-    data.pid = ob.second.procPID;
-    data.proc_name = ob.second.procName;
-    data.mem_usage = ob.second.usedMemory;
-
-    top_queue.push(data);
+  for (const auto& proc : map_processes_ | std::views::values) {
+    top_queue.push({.pid       = proc.procPID,
+                    .proc_name = proc.procName,
+                    .mem_usage = static_cast<ULONG64>(proc.usedMemory)});
   }
 
   ULONG64 processesAllSize = 0;
