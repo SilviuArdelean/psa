@@ -2,6 +2,7 @@
 #include "processes_tree_builder.h"
 
 #include <map>
+#include <ranges>
 
 #include "generic_tree.h"
 #include "generic_tree_handler.h"
@@ -15,8 +16,8 @@ ProcsTreeBuilder::ProcsTreeBuilder(std::multimap<DWORD, proc_info>* ptrMap)
 }
 
 void ProcsTreeBuilder::PrintIt(generic_node<proc_info>* info) {
-  ucout << info->data.procName.c_str()
-        << _T(" [") << info->data.procPID << _T("] ") << std::endl;
+  ucout << info->data.procName.c_str() << _T(" [") << info->data.procPID
+        << _T("] ") << std::endl;
 }
 
 uostream& operator<<(uostream& stream, const proc_info& info) {
@@ -34,14 +35,9 @@ void ProcsTreeBuilder::MapBuilder() {
   map_proc4tree_.insert(std::pair<DWORD, generic_node<proc_info>>(
       ptr_root_->procPID, *ptr_root_));
 
-  for (auto it = ptr_map_processes_->begin(); it != ptr_map_processes_->end();
-       ++it) {
-    proc_info pi(it->second.procPID, it->second.parentPID, it->second.procName,
-                 it->second.usedMemory);
-
-    generic_node<proc_info> node_data(pi);
-    map_proc4tree_.insert(
-        std::pair<DWORD, generic_node<proc_info>>(pi.procPID, node_data));
+  for (const auto& proc : *ptr_map_processes_ | std::views::values) {
+    proc_info pi(proc.procPID, proc.parentPID, proc.procName, proc.usedMemory);
+    map_proc4tree_.emplace(pi.procPID, pi);
   }
 }
 
@@ -80,19 +76,13 @@ void ProcsTreeBuilder::BuildTree() {
 }
 
 void ProcsTreeBuilder::BuildTreeRecursive(generic_node<proc_info>* node) {
-  // nice to have: find a better optimal solution to build the tree
-  for (auto itrev = map_proc4tree_.begin(); itrev != map_proc4tree_.end();
-       ++itrev) {
-    if (itrev->first == FAKE_ROOT_PID)
-      continue;
-
-    if (itrev->second.data.parentPID == node->data.procPID) {
-      auto crt_node_parent = ptr_tree_->add(node, itrev->second.data);
-      if (!crt_node_parent)
-        continue;
-
-      BuildTreeRecursive(crt_node_parent);
-    }
+  auto children = map_proc4tree_ | std::views::filter([&](const auto& kv) {
+                    return kv.first != FAKE_ROOT_PID &&
+                           kv.second.data.parentPID == node->data.procPID;
+                  });
+  for (const auto& child_node : children | std::views::values) {
+    if (auto* added = ptr_tree_->add(node, child_node.data))
+      BuildTreeRecursive(added);
   }
 }
 
@@ -130,12 +120,10 @@ void ProcsTreeBuilder::FindSpecificProcess(generic_node<proc_info>* pNode,
     return;
   }
 
-  for (auto itNode = pNode->listChildren.begin();
-       itNode != pNode->listChildren.end(); ++itNode) {
+  for (auto* child : pNode->listChildren) {
     if (ptr_search_tree_node_)
       return;  // early exit once node is found
-    generic_node<proc_info>* pItem = *itNode;
-    FindSpecificProcess(pItem, procPID);
+    FindSpecificProcess(child, procPID);
   }
 }
 

@@ -46,7 +46,7 @@ class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
   void clear() { _PQ_specialization::c.clear(); }
 
   template <typename Comparator>
-  bool erase(std::string const& str_id, Comparator&& comp) {
+  [[nodiscard]] bool erase(std::string const& str_id, Comparator&& comp) {
     for (auto it = _PQ_specialization::c.begin();
          it != _PQ_specialization::c.end(); ++it) {
       if (comp(str_id, it)) {
@@ -59,7 +59,7 @@ class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
   }
 
   template <typename Comparator>
-  _Ty* find(std::string str_id, Comparator&& comp) {
+  [[nodiscard]] _Ty* find(std::string str_id, Comparator&& comp) {
     for (auto it = _PQ_specialization::c.begin();
          it != _PQ_specialization::c.end(); ++it) {
       if (comp(str_id, it)) {
@@ -71,7 +71,7 @@ class fixed_queue : public std::priority_queue<_Ty, _Container, _Pr> {
   }
 
   size_t size() const { return _PQ_specialization::c.size(); }
-  bool is_full() const {
+  [[nodiscard]] bool is_full() const {
     return fixed_size_ > 0 && fixed_size_ == _PQ_specialization::c.size();
   }
 

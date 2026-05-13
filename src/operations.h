@@ -11,19 +11,20 @@ class ProcessingOperations {
   ProcessingOperations(void);
   ~ProcessingOperations() {};
 
-  bool BuildProcessesMap();
+  [[nodiscard]] bool BuildProcessesMap();
 
   std::multimap<DWORD, proc_info>* GetProcessesMap() { return &map_processes_; }
 
-  bool PrintAllProcessesInformation(bool const show_details = false);
-  bool PrintProcessInformation(const ustring& process_name,
-                               bool const show_details = false);
+  [[nodiscard]] bool PrintAllProcessesInformation(
+      bool const show_details = false);
+  [[nodiscard]] bool PrintProcessInformation(const ustring& process_name,
+                                             bool const show_details = false);
   void PrintTopExpensiveProcesses(const int top);
   void KillProcesses(TCHAR const* argvProcessParam);
   void GenerateProcessesTree(int const proc_pid);
 
  protected:
-  bool PrintProcessDetailedInfo(DWORD pid);
+  [[nodiscard]] bool PrintProcessDetailedInfo(DWORD pid);
   bool get_filter_results(const ustring& process_name,
                           const ustring& current_process);
 
