@@ -16,8 +16,8 @@ ProcsTreeBuilder::ProcsTreeBuilder(std::multimap<DWORD, proc_info>* ptrMap)
 }
 
 void ProcsTreeBuilder::PrintIt(generic_node<proc_info>* info) {
-  ucout << info->data.procName.c_str()
-        << _T(" [") << info->data.procPID << _T("] ") << std::endl;
+  ucout << info->data.procName.c_str() << _T(" [") << info->data.procPID
+        << _T("] ") << std::endl;
 }
 
 uostream& operator<<(uostream& stream, const proc_info& info) {
@@ -77,9 +77,9 @@ void ProcsTreeBuilder::BuildTree() {
 
 void ProcsTreeBuilder::BuildTreeRecursive(generic_node<proc_info>* node) {
   auto children = map_proc4tree_ | std::views::filter([&](const auto& kv) {
-    return kv.first != FAKE_ROOT_PID &&
-           kv.second.data.parentPID == node->data.procPID;
-  });
+                    return kv.first != FAKE_ROOT_PID &&
+                           kv.second.data.parentPID == node->data.procPID;
+                  });
   for (const auto& child_node : children | std::views::values) {
     if (auto* added = ptr_tree_->add(node, child_node.data))
       BuildTreeRecursive(added);

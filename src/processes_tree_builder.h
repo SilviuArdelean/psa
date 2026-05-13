@@ -7,15 +7,14 @@ class ProcsTreeBuilder {
   ProcsTreeBuilder(std::multimap<DWORD, proc_info>* ptrMap);
   ProcsTreeBuilder() = delete;
 
-  ~ProcsTreeBuilder(){};
+  ~ProcsTreeBuilder() {};
 
   void MapBuilder();
   void MapHandshake();
   void BuildTree();
   void PrintTree(int const procPID = 0);
 
-  friend uostream& operator<<(uostream& stream,
-                               const proc_info& info);
+  friend uostream& operator<<(uostream& stream, const proc_info& info);
 
   void PrintIt(generic_node<proc_info>* info);
 

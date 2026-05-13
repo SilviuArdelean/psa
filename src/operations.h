@@ -15,9 +15,10 @@ class ProcessingOperations {
 
   std::multimap<DWORD, proc_info>* GetProcessesMap() { return &map_processes_; }
 
-  [[nodiscard]] bool PrintAllProcessesInformation(bool const show_details = false);
+  [[nodiscard]] bool PrintAllProcessesInformation(
+      bool const show_details = false);
   [[nodiscard]] bool PrintProcessInformation(const ustring& process_name,
-                               bool const show_details = false);
+                                             bool const show_details = false);
   void PrintTopExpensiveProcesses(const int top);
   void KillProcesses(TCHAR const* argvProcessParam);
   void GenerateProcessesTree(int const proc_pid);
