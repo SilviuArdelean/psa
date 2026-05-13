@@ -36,6 +36,9 @@ class ProcessingOperations {
       BOOL bEnablePrivilege);  // to enable or disable privilege
 #endif
 
+ private:
+  [[nodiscard]] bool EnsureProcessesMap();
+
  protected:
   procs_map map_processes_;
   std::mutex map_mutex_;

@@ -14,15 +14,15 @@ class ProcsTreeBuilder {
   void BuildTree();
   void PrintTree(int const procPID = 0);
 
-  friend std::wostream& operator<<(std::wostream& stream,
-                                   const proc_info& info);
+  friend uostream& operator<<(uostream& stream,
+                               const proc_info& info);
 
-  void print_it(generic_node<proc_info>* info);
+  void PrintIt(generic_node<proc_info>* info);
 
  protected:
-  DWORD ParentProcExists(int nParentID) const;
+  bool ParentProcExists(int nParentID) const;
   bool IsSystemProcess(const proc_info& proc_data);
-  void BuildTree(generic_node<proc_info>* node);
+  void BuildTreeRecursive(generic_node<proc_info>* node);
 
   void FindSpecificProcess(generic_node<proc_info>* pNode, int const procPID);
 
