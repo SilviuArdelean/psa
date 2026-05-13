@@ -66,7 +66,7 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
   // optstring: 'k' and 'o' require arguments (k:, o:).
   // 'e' has an optional number — handled manually by peeking at argv[optind].
-  while ((opt = getopt(argc, argv, const_cast<TCHAR*>(_T("aek:o:tAEK:O:T")))) != EOF) {
+  while ((opt = getopt(argc, argv, _T("aek:o:tAEK:O:T"))) != EOF) {
 #ifdef _WIN32
     auto option = tolower(opt);
 #else
