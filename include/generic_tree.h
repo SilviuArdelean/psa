@@ -72,14 +72,14 @@ class generic_tree {
 
   ~generic_tree() { tree_cleaner(root_); }
 
-  generic_node<T>* add(generic_node<T>* _parent, const T& _data) {
+  [[nodiscard]] generic_node<T>* add(generic_node<T>* _parent, const T& _data) {
     generic_node<T>* pnew = new_node(_parent, _data);
     _parent->listChildren.push_back(pnew);
 
     return pnew;
   }
 
-  generic_node<T>* get_root() const { return root_; }
+  [[nodiscard]] generic_node<T>* get_root() const { return root_; }
 
  protected:
   generic_node<T>* new_node(generic_node<T>* _parent, const T& _data) {
