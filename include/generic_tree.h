@@ -16,7 +16,7 @@ struct generic_node {
 
   generic_node(const generic_node& other)
       : data(other.data),
-        listChildren(std::move(other.listChildren)),
+        listChildren(other.listChildren),
         parent(other.parent),
         level(other.level) {}
 

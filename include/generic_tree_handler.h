@@ -1,11 +1,12 @@
-﻿#pragma once
+#pragma once
 
+#include <mutex>
+#include "general.h"
 #include "generic_tree.h"
 #ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
 #endif
-#include <locale>
 
 class ProcsTreeBuilder;
 
@@ -16,13 +17,7 @@ class generic_tree_handler {
     if (!node)
       return;
 
-#ifdef _WIN32
-    _setmode(_fileno(stdout), _O_U16TEXT);
-#else
-    //        setlocale(LC_ALL, "en_US.UTF-8");
-    std::wcout.sync_with_stdio(false);
-    std::wcout.imbue(std::locale("en_US.utf8"));
-#endif
+    SetupOutput();
 
     // list of Unicode characters
     // http://www.fileformat.info/info/unicode/category/So/list.htm
@@ -30,24 +25,24 @@ class generic_tree_handler {
     if (node->level > 0) {
       if (node->level == 1) {
         if (!lastRN)
-          std::wcout
-              << _T("\u251C\u2500\u2500\u2500 ");  // std::wcout << "├───";
+          ucout
+              << _T("\u251C\u2500\u2500\u2500 ");  // ucout << "├───";
         else
-          std::wcout
-              << _T("\u2514\u2500\u2500\u2500 ");  // std::wcout << "└───";
+          ucout
+              << _T("\u2514\u2500\u2500\u2500 ");  // ucout << "└───";
       } else {
         for (auto i = 1; i < node->level; i++) {
           if (!lastRN)
-            std::wcout << _T("\u2502   ");  // std::wcout << "|";
+            ucout << _T("\u2502   ");  // ucout << "|";
           else
-            std::wcout << _T("    ");
+            ucout << _T("    ");
         }
 
-        std::wcout << _T("\u2514\u2500\u2500\u2500 ");  // std::wcout << "└───";
+        ucout << _T("\u2514\u2500\u2500\u2500 ");  // ucout << "└───";
       }
     }
 
-    std::wcout << node->data << std::endl;
+    ucout << node->data << std::endl;
 
     for (auto it = node->listChildren.begin(); it != node->listChildren.end();
          ++it) {
@@ -66,49 +61,27 @@ class generic_tree_handler {
     if (!node)
       return;
 
-#ifdef _WIN32
-    _setmode(_fileno(stdout), _O_U16TEXT);
-#else
-    //        setlocale(LC_ALL, "en_US.UTF-8");
-    std::wcout.sync_with_stdio(false);
-    std::wcout.imbue(std::locale("en_US.utf8"));
-#endif
+    SetupOutput();
 
     if (node->level > 0) {
       if (node->level == 1) {
-        wchar_t ch1 = 0x2514, ch2 = 0x2500, ch3 = 0x251C;
-
         if (!lastRN)
-          std::wcout << ch3 << ch2 << ch2 << ch2
-                     << _T(" ");  // std::wcout << "├───";
+          ucout << _T("\u251C\u2500\u2500\u2500 ");  // "├───"
         else
-          std::wcout << ch1 << ch2 << ch2 << ch2
-                     << _T(" ");  // std::wcout << "└───";
+          ucout << _T("\u2514\u2500\u2500\u2500 ");  // "└───"
       } else {
-        // bool first = true;
         for (auto i = 1; i < node->level; i++) {
-          // needs checking if there are other nodes on the same level and if
-          // yes then add 0x2502 temporary comment to have a cleaner tree
-          // if (!lastRN && first) {
-          //    first = false;
-          // wchar_t ch2 = 0x2502;
-          //    std::wcout << ch2 << _T("    ");  //std::wcout << "|";
-          //}
-          // else
-          std::wcout << _T("    ");
+          ucout << _T("    ");
         }
 
-        wchar_t ch1 = 0x2514, ch2 = 0x2500;  // , ch3 = 0x251C;
-
-        std::wcout << ch1 << ch2 << ch2 << ch2
-                   << _T(" ");  // std::wcout << "└───";    ├───
+        ucout << _T("\u2514\u2500\u2500\u2500 ");  // "└───"
       }
     }
 
     if (parent)
-      parent->print_it(node);
+      parent->PrintIt(node);
     else
-      std::wcout << node->data;
+      ucout << node->data;
 
     for (auto it = node->listChildren.begin(); it != node->listChildren.end();
          ++it) {
@@ -129,19 +102,19 @@ class generic_tree_handler {
 
     if (node->level > 0) {
       if (node->level == 1) {
-        std::wcout << _T("|---");
+        ucout << _T("|---");
       } else {
-        std::wcout << _T("|");
+        ucout << _T("|");
 
         for (auto i = 0; i < node->level - 1; i++) {
-          std::wcout << "     ";
+          ucout << "     ";
         }
 
-        std::wcout << _T("+--- ");
+        ucout << _T("+--- ");
       }
     }
 
-    std::wcout << node->data;
+    ucout << node->data;
 
     for (auto it = node->listChildren.begin(); it != node->listChildren.end();
          ++it) {
@@ -153,4 +126,13 @@ class generic_tree_handler {
 
  private:
   ProcsTreeBuilder* parent = nullptr;
+
+  // Configures stdout for Unicode output — executed exactly once per process.
+  static void SetupOutput() {
+#ifdef _WIN32
+    static std::once_flag flag;
+    std::call_once(flag, [] { _setmode(_fileno(stdout), _O_U16TEXT); });
+#endif
+    // On Linux, stdout is UTF-8 by default — no setup needed.
+  }
 };
