@@ -6,12 +6,12 @@
 
 class string_utils {
  public:
-  static bool compare_case_sensitive(const ustring& strFirst,
+  [[nodiscard]] static bool compare_case_sensitive(const ustring& strFirst,
                                      const ustring& strSecond) {
     return (0 == strFirst.compare(strSecond));
   }
 
-  static bool is_filename(const ustring& filename) {
+  [[nodiscard]] static bool is_filename(const ustring& filename) {
 #ifdef UNICODE
     const std::wregex pattern(_T("^([a-zA-Z0-9s._-]+)$"));
 #else
@@ -21,7 +21,7 @@ class string_utils {
     return std::regex_match(filename.cbegin(), filename.cend(), pattern);
   }
 
-  static bool search_substring(const ustring& str,
+  [[nodiscard]] static bool search_substring(const ustring& str,
                                const ustring& sub_str,
                                bool case_insensitive = true) {
     if (case_insensitive) {
@@ -42,7 +42,7 @@ class string_utils {
     return (str.find(sub_str) != ustring::npos);
   }
 
-  static bool is_number(const ustring& s) {
+  [[nodiscard]] static bool is_number(const ustring& s) {
     return (!s.empty() && std::find_if(s.begin(), s.end(), [](TCHAR c) {
                             return !std::isdigit(c);
                           }) == s.end());

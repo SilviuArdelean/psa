@@ -75,7 +75,8 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
     switch (option) {
       case _T('a'): {
-        pPO->PrintAllProcessesInformation();
+        if (!pPO->PrintAllProcessesInformation())
+          return false;
       } break;
 
       case _T('e'): {

@@ -152,7 +152,7 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   }
 
   ucout << "-------------------------------------------" << std::endl;
-  ucout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER
+  ucout << "   Total used memory: " << ToMb(processesAllSize) << " MB"
         << " MB" << std::endl;
 }
 
@@ -274,8 +274,7 @@ bool ProcessingOperations::PrintProcessDetailedInfo(DWORD pid) {
 }
 
 void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
-  if (map_processes_.empty())
-    BuildProcessesMap();
+  if (!EnsureProcessesMap()) return;
 
   ProcsTreeBuilder tree_builder(&map_processes_);
 
@@ -293,8 +292,7 @@ void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
 }
 
 void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
-  if (map_processes_.empty())
-    BuildProcessesMap();
+  if (!EnsureProcessesMap()) return;
 
   if (string_utils::is_number(argvProcessParam)) {
     process_operations::kill_process_by_pid_optimized(utoi(argvProcessParam),
