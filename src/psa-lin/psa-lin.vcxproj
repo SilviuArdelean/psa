@@ -37,47 +37,51 @@
     <LinuxProjectType>{D51BCBC9-82E9-4017-911E-C93873C4EA2B}</LinuxProjectType>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <!-- GCC >= 13 required for std::format. Override: /p:RemoteGppExe=g++-14 -->
+  <PropertyGroup>
+    <RemoteGppExe Condition="'$(RemoteGppExe)'==''">g++-13</RemoteGppExe>
+  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <CppLanguageStandard>c++20</CppLanguageStandard>
     <UseOfStl>libstdc++_static</UseOfStl>
-    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
-    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
+    <RemoteCppCompileToolExe>$(RemoteGppExe)</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>$(RemoteGppExe)</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <CppLanguageStandard>c++20</CppLanguageStandard>
     <UseOfStl>libstdc++_static</UseOfStl>
-    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
-    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
+    <RemoteCppCompileToolExe>$(RemoteGppExe)</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>$(RemoteGppExe)</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <CppLanguageStandard>c++20</CppLanguageStandard>
     <UseOfStl>libstdc++_static</UseOfStl>
-    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
-    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
+    <RemoteCppCompileToolExe>$(RemoteGppExe)</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>$(RemoteGppExe)</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <CppLanguageStandard>c++20</CppLanguageStandard>
     <UseOfStl>libstdc++_static</UseOfStl>
-    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
-    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
+    <RemoteCppCompileToolExe>$(RemoteGppExe)</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>$(RemoteGppExe)</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <UseDebugLibraries>true</UseDebugLibraries>
     <UseOfStl>libstdc++_static</UseOfStl>
     <CppLanguageStandard>c++20</CppLanguageStandard>
-    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
-    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
+    <RemoteCppCompileToolExe>$(RemoteGppExe)</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>$(RemoteGppExe)</RemoteLdToolExe>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <UseDebugLibraries>false</UseDebugLibraries>
     <CppLanguageStandard>c++20</CppLanguageStandard>
     <UseOfStl>libstdc++_static</UseOfStl>
-    <RemoteCppCompileToolExe>g++-13</RemoteCppCompileToolExe>
-    <RemoteLdToolExe>g++-13</RemoteLdToolExe>
+    <RemoteCppCompileToolExe>$(RemoteGppExe)</RemoteCppCompileToolExe>
+    <RemoteLdToolExe>$(RemoteGppExe)</RemoteLdToolExe>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings" />
