@@ -215,8 +215,11 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
   ShowHeader();
 
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ms682050(v=vs.85).aspx
+  const bool filter_is_pid = string_utils::is_number(filter);
   auto matching = map_processes_ | std::views::values |
                   std::views::filter([&](const proc_info& p) {
+                    if (filter_is_pid)
+                      return p.procPID == utoi(filter.c_str());
                     return string_utils::search_substring(p.procName, filter);
                   });
 
