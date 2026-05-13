@@ -157,7 +157,7 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
 
   ucout << "-------------------------------------------" << std::endl;
   ucout << "   Total used memory: " << ToMb(processesAllSize) << " MB"
-        << " MB" << std::endl;
+        << std::endl;
 }
 
 bool ProcessingOperations::get_filter_results(const ustring& process_name,
