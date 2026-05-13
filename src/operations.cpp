@@ -2,6 +2,7 @@
 #include "operations.h"
 
 #include <algorithm>
+#include <format>
 #include <iostream>
 #include <mutex>
 #include <ranges>
@@ -214,8 +215,11 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
   ShowHeader();
 
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ms682050(v=vs.85).aspx
+  const bool filter_is_pid = string_utils::is_number(filter);
   auto matching = map_processes_ | std::views::values |
                   std::views::filter([&](const proc_info& p) {
+                    if (filter_is_pid)
+                      return p.procPID == utoi(filter.c_str());
                     return string_utils::search_substring(p.procName, filter);
                   });
 
@@ -352,7 +356,7 @@ BOOL ProcessingOperations::SetPrivilege(
                             lpszPrivilege,  // privilege to lookup
                             &luid))         // receives LUID of privilege
   {
-    printf("LookupPrivilegeValue error: %u\n", GetLastError());
+    std::cerr << std::format("LookupPrivilegeValue error: {}\n", GetLastError());
     return FALSE;
   }
 
@@ -364,12 +368,12 @@ BOOL ProcessingOperations::SetPrivilege(
 
   if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES),
                              (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL)) {
-    printf("AdjustTokenPrivileges error: %u\n", GetLastError());
+    std::cerr << std::format("AdjustTokenPrivileges error: {}\n", GetLastError());
     return FALSE;
   }
 
   if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
-    printf("The token does not have the specified privilege. \n");
+    std::cerr << "The token does not have the specified privilege.\n";
     return FALSE;
   }
 
@@ -398,6 +402,6 @@ void ProcessingOperations::PrintError(const TCHAR* msg) {
   } while ((p >= sysMsg) && ((*p == '.') || (*p < 33)));
 
   // Display the message
-  uprintf(TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg);
+  ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg, eNum, sysMsg);
 }
 #endif

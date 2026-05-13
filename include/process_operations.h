@@ -1,4 +1,8 @@
 #pragma once
+#include <array>
+#include <cstring>
+#include <format>
+#include <span>
 #include "general.h"
 #include "string_utils.h"
 
@@ -50,9 +54,12 @@ class process_operations {
       }
     }
 #else
-    char path_buff[PATH_MAX] = {0};
-    get_exe_for_pid(process_pid, path_buff, PATH_MAX);
-    process_path = path_buff;
+    std::array<char, PATH_MAX> path_buff{};
+    const auto len = get_exe_for_pid(process_pid, path_buff);
+    if (len > 0) {
+      path_buff[len] = '\0';
+      process_path = path_buff.data();
+    }
 #endif
     return process_path;
   }
@@ -203,11 +210,9 @@ class process_operations {
   }
 
 #ifdef __linux__
-  static size_t get_exe_for_pid(int pid, char* buf, size_t bufsize) {
-    char path[32] = {0};
-    sprintf(path, "/proc/%d/exe", pid);
-    return readlink(path, buf, bufsize);
+  static ssize_t get_exe_for_pid(int pid, std::span<char> buf) {
+    const auto path = std::format("/proc/{}/exe", pid);
+    return readlink(path.c_str(), buf.data(), buf.size() - 1);
   }
 #endif
-
 };
