@@ -7,7 +7,7 @@ template <typename S>
 struct generic_node {
   generic_node() = delete;
 
-  generic_node(S& _data) : data(_data), parent(nullptr), level(0) {}
+  generic_node(const S& _data) : data(_data), parent(nullptr), level(0) {}
 
   generic_node(generic_node* const _parent, S const& _data)
       : data(_data), parent(_parent) {
@@ -66,13 +66,13 @@ struct generic_node {
 template <typename T>
 class generic_tree {
  public:
-  generic_tree(generic_node<T>* _parent, T& root_value) {
+  generic_tree(generic_node<T>* _parent, const T& root_value) {
     root_ = new_node(_parent, root_value);
   }
 
   ~generic_tree() { tree_cleaner(root_); }
 
-  generic_node<T>* add(generic_node<T>* _parent, T& _data) {
+  generic_node<T>* add(generic_node<T>* _parent, const T& _data) {
     generic_node<T>* pnew = new_node(_parent, _data);
     _parent->listChildren.push_back(pnew);
 
@@ -82,7 +82,7 @@ class generic_tree {
   generic_node<T>* get_root() const { return root_; }
 
  protected:
-  generic_node<T>* new_node(generic_node<T>* _parent, T& _data) {
+  generic_node<T>* new_node(generic_node<T>* _parent, const T& _data) {
     return new generic_node<T>(_parent, _data);
   }
 
