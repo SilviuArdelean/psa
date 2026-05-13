@@ -1,7 +1,8 @@
-#include "general.h"
 #include "operations.h"
+#include "general.h"
 
 #include <algorithm>
+#include <format>
 #include <iostream>
 #include <mutex>
 #include <ranges>
@@ -58,10 +59,10 @@ bool ProcessingOperations::BuildProcessesMap() {
   map_processes_.clear();
 
   do {
-    proc_info pi(pe32.th32ProcessID, pe32.th32ParentProcessID, pe32.szExeFile,
-                 GetProcessUsedMemory(pe32.th32ProcessID));
-
-    map_processes_.insert(std::pair<DWORD, proc_info>(pe32.th32ProcessID, pi));
+    map_processes_.emplace(
+        pe32.th32ProcessID,
+        proc_info(pe32.th32ProcessID, pe32.th32ParentProcessID, pe32.szExeFile,
+                  GetProcessUsedMemory(pe32.th32ProcessID)));
 
   } while (Process32Next(hProcessSnap, &pe32));
 
@@ -79,11 +80,11 @@ bool ProcessingOperations::BuildProcessesMap() {
   map_processes_.clear();
 
   while (readproc(proc, &_process) != NULL) {
-    proc_info pi(_process.tid, _process.ppid,
-                 (_process.cmdline != NULL) ? *_process.cmdline : _process.cmd,
-                 _process.vsize);  // !!! ??? make sure is the right attribute
-
-    map_processes_.insert(std::pair<DWORD, proc_info>(_process.tid, pi));
+    map_processes_.emplace(
+        _process.tid,
+        proc_info(_process.tid, _process.ppid,
+                  (_process.cmdline != NULL) ? *_process.cmdline : _process.cmd,
+                  _process.vsize));
   }
 
   closeproc(proc);
@@ -100,7 +101,8 @@ void ShowHeader() {
 }
 
 void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
-  if (!EnsureProcessesMap()) return;
+  if (!EnsureProcessesMap())
+    return;
 
   if (map_processes_.empty())
     ucout << "Processes list is empty" << std::endl;
@@ -128,13 +130,10 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   fixed_queue<data4sort, std::vector<data4sort>, LessThanByFileSize> top_queue(
       top);
 
-  for (auto& ob : map_processes_) {
-    data4sort data;
-    data.pid = ob.second.procPID;
-    data.proc_name = ob.second.procName;
-    data.mem_usage = ob.second.usedMemory;
-
-    top_queue.push(data);
+  for (const auto& proc : map_processes_ | std::views::values) {
+    top_queue.push({.pid = proc.procPID,
+                    .proc_name = proc.procName,
+                    .mem_usage = static_cast<ULONG64>(proc.usedMemory)});
   }
 
   ULONG64 processesAllSize = 0;
@@ -145,19 +144,20 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   // Copy out to a vector and sort - avoids breaking the heap invariant in
   // fixed_queue by never calling pop() on a sorted container.
   std::vector<data4sort> sorted(top_queue.begin(), top_queue.end());
-  std::sort(sorted.begin(), sorted.end(),
-            [](const auto& l, const auto& r) { return l.mem_usage > r.mem_usage; });
+  std::sort(sorted.begin(), sorted.end(), [](const auto& l, const auto& r) {
+    return l.mem_usage > r.mem_usage;
+  });
 
   for (const auto& ob : sorted) {
-    uprintf_s(_T(" [%d] \t %.2lf MB \t %-15s \n"), ob.pid,
-              ToMb(ob.mem_usage), ob.proc_name.c_str());
+    uprintf_s(_T(" [%d] \t %.2lf MB \t %-15s \n"), ob.pid, ToMb(ob.mem_usage),
+              ob.proc_name.c_str());
 
     processesAllSize += ob.mem_usage;
   }
 
   ucout << "-------------------------------------------" << std::endl;
-  ucout << "   Total used memory: " << (double)processesAllSize / MB_DIVIDER
-        << " MB" << std::endl;
+  ucout << "   Total used memory: " << ToMb(processesAllSize) << " MB"
+        << std::endl;
 }
 
 bool ProcessingOperations::get_filter_results(const ustring& process_name,
@@ -172,20 +172,21 @@ bool ProcessingOperations::PrintAllProcessesInformation(
   int processesCount = 0;
   ULONG64 processesAllSize = 0;
 
-  if (!EnsureProcessesMap()) return false;
+  if (!EnsureProcessesMap())
+    return false;
 
   ShowHeader();
 
   for (const auto& proc : map_processes_ | std::views::values) {
     auto procPID = proc.procPID;
 
-    #ifdef _WIN32
-        uprintf_s(_T("PID [%d] \t %.4lf MB \t %-15s \n"), procPID,
-                  ToMb(proc.usedMemory), proc.procName.c_str());
-    #else
-        uprintf_s("PID [%d] \t %.4lf MB \t %-15s \n", procPID,
-                  ToMb(proc.usedMemory), proc.procName.c_str());
-    #endif
+#ifdef _WIN32
+    uprintf_s(_T("PID [%d] \t %.4lf MB \t %-15s \n"), procPID,
+              ToMb(proc.usedMemory), proc.procName.c_str());
+#else
+    uprintf_s("PID [%d] \t %.4lf MB \t %-15s \n", procPID,
+              ToMb(proc.usedMemory), proc.procName.c_str());
+#endif
 
     if (show_details)
       static_cast<void>(PrintProcessDetailedInfo(procPID));
@@ -209,13 +210,17 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
   int processesCount = 0;
   ULONG64 processesAllSize = 0;
 
-  if (!EnsureProcessesMap()) return false;
+  if (!EnsureProcessesMap())
+    return false;
 
   ShowHeader();
 
   // https://msdn.microsoft.com/en-us/library/windows/desktop/ms682050(v=vs.85).aspx
+  const bool filter_is_pid = string_utils::is_number(filter);
   auto matching = map_processes_ | std::views::values |
                   std::views::filter([&](const proc_info& p) {
+                    if (filter_is_pid)
+                      return p.procPID == utoi(filter.c_str());
                     return string_utils::search_substring(p.procName, filter);
                   });
 
@@ -223,13 +228,13 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
     auto proc_pid = proc.procPID;
     auto process_path = process_operations::GetProcessPath(proc_pid);
 
-    #ifdef _WIN32
-        uprintf_s(_T("[PID: %d] \t %.4lf MB \t %-15s \n"), proc_pid,
-                  ToMb(proc.usedMemory), proc.procName.c_str());
-    #else
-        uprintf_s("[PID: %d] \t %.4lf MB \t %-15s \n", proc_pid,
-                  ToMb(proc.usedMemory), proc.procName.c_str());
-    #endif
+#ifdef _WIN32
+    uprintf_s(_T("[PID: %d] \t %.4lf MB \t %-15s \n"), proc_pid,
+              ToMb(proc.usedMemory), proc.procName.c_str());
+#else
+    uprintf_s("[PID: %d] \t %.4lf MB \t %-15s \n", proc_pid,
+              ToMb(proc.usedMemory), proc.procName.c_str());
+#endif
 
     if (!process_path.empty())
       ucout << _T("   [ ") << process_path.c_str() << _T(" ]") << std::endl;
@@ -248,17 +253,20 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
                 ToMb(processesAllSize), processesCount);
     } else {
 #ifdef _WIN32
-      ucout << _T("Seems psa.exe application runs under not enough privileges. ")
-               _T("Please launch it with administrator privileges.")
-            << std::endl;
+      ucout
+          << _T("Seems psa.exe application runs under not enough privileges. ")
+             _T("Please launch it with administrator privileges.")
+          << std::endl;
 #else
-      ucout << _T("Seems psa application runs under not enough privileges. Please ")
+      ucout << _T("Seems psa application runs under not enough privileges. ")
+               _T("Please ")
                _T("run it by root privileges.")
             << std::endl;
 #endif
     }
   } else {
-    ucout << _T("Undetected process with '") << filter << _T("' name.") << std::endl;
+    ucout << _T("Undetected process with '") << filter << _T("' name.")
+          << std::endl;
   }
 
   return true;
@@ -275,8 +283,8 @@ bool ProcessingOperations::PrintProcessDetailedInfo(DWORD pid) {
 }
 
 void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
-  if (map_processes_.empty())
-    BuildProcessesMap();
+  if (!EnsureProcessesMap())
+    return;
 
   ProcsTreeBuilder tree_builder(&map_processes_);
 
@@ -294,8 +302,8 @@ void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
 }
 
 void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
-  if (map_processes_.empty())
-    BuildProcessesMap();
+  if (!EnsureProcessesMap())
+    return;
 
   if (string_utils::is_number(argvProcessParam)) {
     process_operations::kill_process_by_pid_optimized(utoi(argvProcessParam),
@@ -352,7 +360,8 @@ BOOL ProcessingOperations::SetPrivilege(
                             lpszPrivilege,  // privilege to lookup
                             &luid))         // receives LUID of privilege
   {
-    printf("LookupPrivilegeValue error: %u\n", GetLastError());
+    std::cerr << std::format("LookupPrivilegeValue error: {}\n",
+                             GetLastError());
     return FALSE;
   }
 
@@ -364,12 +373,13 @@ BOOL ProcessingOperations::SetPrivilege(
 
   if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES),
                              (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL)) {
-    printf("AdjustTokenPrivileges error: %u\n", GetLastError());
+    std::cerr << std::format("AdjustTokenPrivileges error: {}\n",
+                             GetLastError());
     return FALSE;
   }
 
   if (GetLastError() == ERROR_NOT_ALL_ASSIGNED) {
-    printf("The token does not have the specified privilege. \n");
+    std::cerr << "The token does not have the specified privilege.\n";
     return FALSE;
   }
 
@@ -398,6 +408,7 @@ void ProcessingOperations::PrintError(const TCHAR* msg) {
   } while ((p >= sysMsg) && ((*p == '.') || (*p < 33)));
 
   // Display the message
-  uprintf(TEXT("\n  WARNING: %s failed with error %d (%s)"), msg, eNum, sysMsg);
+  ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg,
+                       eNum, sysMsg);
 }
 #endif

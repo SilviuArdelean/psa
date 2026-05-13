@@ -66,7 +66,7 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
   // optstring: 'k' and 'o' require arguments (k:, o:).
   // 'e' has an optional number — handled manually by peeking at argv[optind].
-  while ((opt = getopt(argc, argv, const_cast<TCHAR*>(_T("aek:o:tAEK:O:T")))) != EOF) {
+  while ((opt = getopt(argc, argv, _T("aek:o:tAEK:O:T"))) != EOF) {
 #ifdef _WIN32
     auto option = tolower(opt);
 #else
@@ -75,11 +75,13 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
     switch (option) {
       case _T('a'): {
-        pPO->PrintAllProcessesInformation();
+        if (!pPO->PrintAllProcessesInformation())
+          return false;
       } break;
 
       case _T('e'): {
-        // -e is optional: peek at argv[optind] — consume it only if it's a number.
+        // -e is optional: peek at argv[optind] — consume it only if it's a
+        // number.
         int top = 10;
         if (optind < argc && string_utils::is_number(argv[optind]))
           top = utoi(argv[optind++]);
