@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <queue>
+#include <string>
 #include <vector>
 #include "string_utils.h"
 

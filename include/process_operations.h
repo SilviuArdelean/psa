@@ -3,16 +3,20 @@
 #include <cstring>
 #include <format>
 #include <span>
+#include <string>
+#include <vector>
 #include "general.h"
 #include "string_utils.h"
 
 #ifdef _WIN32
+#include <winternl.h>
 #include "smart_handler.h"
 #else
 #include <proc/readproc.h>
 #include <sched.h>
 #include <signal.h>
 #include <unistd.h>
+#include <fstream>
 #endif
 
 #define process_fake_name _T("_|_")
@@ -62,6 +66,59 @@ class process_operations {
     }
 #endif
     return process_path;
+  }
+
+  [[nodiscard]] static ustring GetProcessCmdLine(int process_pid) {
+    ustring cmdline;
+#ifdef _WIN32
+    smart_handle hnd(OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ,
+                                 FALSE, process_pid));
+    if (!hnd.get_handle())
+      return cmdline;
+
+    // ProcessCommandLineInformation (60) available since Windows 8 / 2012
+    using NtQueryInformationProcess_t =
+        NTSTATUS(WINAPI*)(HANDLE, UINT, PVOID, ULONG, PULONG);
+    static const auto NtQIP =
+        reinterpret_cast<NtQueryInformationProcess_t>(GetProcAddress(
+            GetModuleHandleW(L"ntdll.dll"), "NtQueryInformationProcess"));
+    if (!NtQIP)
+      return cmdline;
+
+    ULONG size = 0;
+    // First call to get required size
+    NtQIP(hnd.get_handle(), 60, nullptr, 0, &size);
+    if (size == 0)
+      return cmdline;
+
+    std::vector<BYTE> buf(size);
+    const NTSTATUS status =
+        NtQIP(hnd.get_handle(), 60, buf.data(), size, &size);
+    if (status < 0)
+      return cmdline;
+
+    const auto* us = reinterpret_cast<const UNICODE_STRING*>(buf.data());
+    if (us->Buffer && us->Length > 0)
+      cmdline = ustring(us->Buffer, us->Length / sizeof(WCHAR));
+#else
+    const auto path = std::format("/proc/{}/cmdline", process_pid);
+    std::ifstream f(path, std::ios::binary);
+    if (!f)
+      return cmdline;
+
+    std::string raw(std::istreambuf_iterator<char>(f), {});
+    // /proc/<pid>/cmdline args are separated by '\0' — replace with spaces
+    for (auto& c : raw)
+      if (c == '\0')
+        c = ' ';
+
+    // trim trailing space
+    while (!raw.empty() && raw.back() == ' ')
+      raw.pop_back();
+
+    cmdline = raw;
+#endif
+    return cmdline;
   }
 
  private:
