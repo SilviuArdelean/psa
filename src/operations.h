@@ -2,8 +2,6 @@
 #pragma once
 #include <map>
 #include <mutex>
-#include <stack>
-#include <vector>
 #include "general.h"
 
 class ProcessingOperations {

@@ -12,11 +12,10 @@
 #include <winternl.h>
 #include "smart_handler.h"
 #else
+#include <fstream>
 #include <proc/readproc.h>
-#include <sched.h>
 #include <signal.h>
 #include <unistd.h>
-#include <fstream>
 #endif
 
 #define process_fake_name _T("_|_")
