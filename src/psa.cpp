@@ -12,8 +12,8 @@
 #endif
 
 #ifdef __linux__
-#include <unistd.h>
 #include <cstdio>
+#include <unistd.h>
 #endif
 
 void ShowParameters() {
