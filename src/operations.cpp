@@ -226,7 +226,6 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
 
   for (const auto& proc : matching) {
     auto proc_pid = proc.procPID;
-    auto process_path = process_operations::GetProcessPath(proc_pid);
 
 #ifdef _WIN32
     uprintf_s(_T("[PID: %d] \t %.4lf MB \t %-15s \n"), proc_pid,
@@ -236,11 +235,16 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
               ToMb(proc.usedMemory), proc.procName.c_str());
 #endif
 
-    if (!process_path.empty())
-      ucout << _T("   [ ") << process_path.c_str() << _T(" ]") << std::endl;
-
-    if (show_details)
-      static_cast<void>(PrintProcessDetailedInfo(proc_pid));
+    if (show_details) {
+      const auto cmdline = process_operations::GetProcessCmdLine(proc_pid);
+      if (!cmdline.empty()) {
+        ucout << _T("   cmdl: [ ") << cmdline.c_str() << _T(" ]") << std::endl;
+      } else {
+        const auto path = process_operations::GetProcessPath(proc_pid);
+        if (!path.empty())
+          ucout << _T("   path: [ ") << path.c_str() << _T(" ]") << std::endl;
+      }
+    }
 
     processesAllSize += proc.usedMemory;
     processesCount++;

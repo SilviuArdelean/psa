@@ -12,9 +12,8 @@
 #endif
 
 #ifdef __linux__
-#include <stdio.h>
-#include <stdlib.h>
 #include <unistd.h>
+#include <cstdio>
 #endif
 
 void ShowParameters() {
@@ -23,8 +22,13 @@ void ShowParameters() {
            _T("processes ")
            _T("| top 10 by default ")
         << std::endl;
-  ucout << _T("    -k  : kill specific process by PID or name") << std::endl;
-  ucout << _T("    -o    : info only one process name criteria ") << std::endl;
+  ucout << _T("    -k <name|pid> : kill specific process by PID or name")
+        << std::endl;
+  ucout << _T("    -o <name|pid> : info only one process name criteria ")
+        << std::endl;
+  ucout << _T("    -d <name|pid> : process details with command line for ")
+           _T("matching process(es)")
+        << std::endl;
   ucout << _T("    -t    : tree snapshot of current processes") << std::endl;
 }
 
@@ -33,6 +37,7 @@ void ShowAvailableInformation() {
   // e = top [no] most expensive memory consuming processes | top 10 by default
   // k = kill by process PID
   // o = info only one process name criteria
+  // d = show command line details per process (modifier for -o)
   // t = tree snapshot of current processes
   // nice to have
   // chose stream (iostream / fstream)
@@ -54,6 +59,26 @@ void ShowAvailableInformation() {
         << std::endl;
 }
 
+// Validates that optarg is not itself a flag (e.g. psa -o -d avast).
+// Returns the search term on success, or empty string + prints an error on
+// failure.
+static ustring resolve_process_arg(const TCHAR* flag, const TCHAR* optarg_val) {
+  ustring searchfor = (optarg_val != nullptr) ? optarg_val : _T("");
+  if (searchfor.empty()) {
+    ucout << _T("Error: missing argument for -") << flag << _T(".")
+          << std::endl;
+    return _T("");
+  }
+  if (searchfor[0] == _T('-')) {
+    ucout << _T("Error: missing argument for -") << flag << _T(".")
+          << std::endl;
+    ucout << _T("       Did you mean: psa ") << searchfor << _T(" <name|pid> ?")
+          << std::endl;
+    return _T("");
+  }
+  return searchfor;
+}
+
 bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
   if (!pPO) {
     ucout << _T("Internal error: ")
@@ -64,9 +89,9 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
   int opt = 0;
   bool good_params = false;
 
-  // optstring: 'k' and 'o' require arguments (k:, o:).
+  // optstring: 'k', 'o' and 'd' require arguments.
   // 'e' has an optional number — handled manually by peeking at argv[optind].
-  while ((opt = getopt(argc, argv, _T("aek:o:tAEK:O:T"))) != EOF) {
+  while ((opt = getopt(argc, argv, _T("aek:o:d:tAEK:O:D:T"))) != EOF) {
 #ifdef _WIN32
     auto option = tolower(opt);
 #else
@@ -92,19 +117,25 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
       } break;
 
       case _T('k'): {
-        if (optarg == nullptr || *optarg == _T('\0')) {
-          ucout << _T(" Invalid set of parameters. Please specify the PID or ")
-                   _T("the name of the process to be killed. \n");
+        const auto searchfor = resolve_process_arg(_T("k"), optarg);
+        if (searchfor.empty())
           return false;
-        }
-
-        pPO->KillProcesses(optarg);
+        pPO->KillProcesses(searchfor.c_str());
       } break;
 
       case _T('o'): {
-        // optarg is guaranteed non-null (o: in optstring).
-        ustring searchfor = (optarg != nullptr) ? optarg : _T("");
+        const auto searchfor = resolve_process_arg(_T("o"), optarg);
+        if (searchfor.empty())
+          return false;
         if (!pPO->PrintProcessInformation(searchfor))
+          return false;
+      } break;
+
+      case _T('d'): {
+        const auto searchfor = resolve_process_arg(_T("d"), optarg);
+        if (searchfor.empty())
+          return false;
+        if (!pPO->PrintProcessInformation(searchfor, true))
           return false;
       } break;
 
@@ -122,8 +153,8 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 
       case _T('?'):
         ShowAvailableInformation();
-        return true;
-        break;
+        return (optind > 1 && argv[optind - 1][0] == _T('-') &&
+                argv[optind - 1][1] == _T('?'));
       default:
         ucout << _T(" psa: invalid option ...") << std::endl;
         ucout << _T(" Please check the available list of parameters : \n");
