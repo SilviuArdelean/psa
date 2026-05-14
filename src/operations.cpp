@@ -3,10 +3,8 @@
 
 #include <algorithm>
 #include <format>
-#include <iostream>
 #include <mutex>
 #include <ranges>
-#include <vector>
 
 #include "fixed_queue.h"
 #include "process_operations.h"
@@ -14,7 +12,6 @@
 #include "string_utils.h"
 
 #ifdef _WIN32
-#include "Winternl.h"
 #include "smart_handler.h"
 #elif __linux__
 #include <proc/readproc.h>
