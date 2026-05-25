@@ -308,8 +308,16 @@ void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
   tree_builder.MapHandshake();
   tree_builder.BuildTree();
 
-  auto it = map_processes_.find(proc_pid);
-  if (it != map_processes_.end()) {
+  // Root sentinels (0 on Windows, 1 on Linux) are never in map_processes_
+  // they resolve to the fake root inside PrintTree.  Any other PID must exist.
+#ifdef _WIN32
+  constexpr int root_pid = 0;
+#else
+  constexpr int root_pid = 1;
+#endif
+
+  if (proc_pid == root_pid || proc_pid == FAKE_ROOT_PID ||
+      map_processes_.find(proc_pid) != map_processes_.end()) {
     tree_builder.PrintTree(proc_pid);
   } else {
     ucout << "Invalid Process ID | PID " << proc_pid
