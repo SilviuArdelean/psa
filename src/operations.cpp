@@ -20,8 +20,8 @@
  * THE SOFTWARE.
  */
 
-#include "pch.h"
 #include "operations.h"
+#include "pch.h"
 
 #include "fixed_queue.h"
 #include "process_operations.h"
@@ -330,8 +330,8 @@ void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
     return;
 
   if (string_utils::is_number(argvProcessParam)) {
-    process_operations::kill_process_by_pid_optimized(utoi(argvProcessParam),
-                                                      map_processes_);
+    int pid = utoi(argvProcessParam);
+    process_operations::kill_process_by_pid_optimized(pid, map_processes_);
   } else {
     process_operations::kill_process_by_name_optimized(argvProcessParam,
                                                        map_processes_);

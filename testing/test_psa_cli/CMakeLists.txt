@@ -31,12 +31,6 @@ set(TEST_PSA_SOURCES
     "${CMAKE_SOURCE_DIR}/src/processes_tree_builder.cpp"
 )
 
-if(WIN32)
-    list(APPEND TEST_PSA_SOURCES
-        "${CMAKE_SOURCE_DIR}/src/psa-win/XGetopt.cpp"
-    )
-endif()
-
 add_executable(test_psa_cli ${TEST_PSA_SOURCES})
 
 # ---------------------------------------------------------------------------

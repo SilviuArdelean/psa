@@ -116,6 +116,7 @@ void ProcsTreeBuilder::PrintTree(int const procPID) {
     pNode = ptr_search_tree_node_;
   }
 
+
   if (!pNode) {
     ucout << _T("Invalid process") << std::endl;
     return;
