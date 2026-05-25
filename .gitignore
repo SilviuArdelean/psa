@@ -48,6 +48,8 @@ Build/
 # CMake build directories
 build/
 CMakeFiles/
+
+CppProperties.json
 CMakeCache.txt
 cmake_install.cmake
 install_manifest.txt
