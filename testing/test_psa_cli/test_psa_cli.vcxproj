@@ -204,7 +204,7 @@
     <ClCompile Include="..\..\src\psa.cpp" />
     <ClCompile Include="..\..\src\operations.cpp" />
     <ClCompile Include="..\..\src\processes_tree_builder.cpp" />
-    <ClCompile Include="..\..\src\psa-win\XGetopt.cpp" />
+    <!-- XGetopt.cpp removed -->
     <!-- GTest single-compilation-unit sources — downloaded by CMake FetchContent -->
     <ClCompile Include="$(GTestSrcDir)\src\gtest-all.cc" />
   </ItemGroup>

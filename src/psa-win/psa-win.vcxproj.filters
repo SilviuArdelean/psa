@@ -2,9 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="..\psa.cpp" />
-    <ClCompile Include="XGetopt.cpp">
-      <Filter>Sources</Filter>
-    </ClCompile>
     <ClCompile Include="..\processes_tree_builder.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
@@ -29,9 +26,6 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\smart_handler.h">
-      <Filter>Headers</Filter>
-    </ClInclude>
-    <ClInclude Include="XGetopt.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\process_operations.h">

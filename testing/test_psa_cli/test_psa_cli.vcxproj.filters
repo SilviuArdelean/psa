@@ -58,9 +58,9 @@
     <ClCompile Include="..\..\src\processes_tree_builder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\psa-win\XGetopt.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <!-- XGetopt.cpp removed -->
     <ClCompile Include="$(GTestSrcDir)\src\gtest-all.cc">
       <Filter>GTest</Filter>
     </ClCompile>

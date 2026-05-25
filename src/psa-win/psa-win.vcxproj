@@ -187,13 +187,12 @@
     <ClInclude Include="..\..\include\string_utils.h" />
     <ClInclude Include="..\operations.h" />
     <ClInclude Include="..\processes_tree_builder.h" />
-    <ClInclude Include="xgetopt.h" />
+    <ClInclude Include="..\..\include\cxxopts.hpp" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\operations.cpp" />
     <ClCompile Include="..\processes_tree_builder.cpp" />
-    <ClCompile Include="xgetopt.cpp" />
     <ClCompile Include="..\psa.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

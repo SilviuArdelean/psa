@@ -1,6 +1,5 @@
+
 /*
- * psa - Processes Status Analysis
- *
  * Copyright (c) 2017-2026 Silviu-Marius Ardelean
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -20,19 +19,13 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
+ *
+ *    Processes Status Analysis - psa
  */
 
+#include "cxxopts.hpp"
 #include "operations.h"
 #include "string_utils.h"
-
-#ifdef _WIN32
-#include "psa-win/XGetopt.h"
-#endif
-
-#ifdef __linux__
-#include <cstdio>
-#include <unistd.h>
-#endif
 
 void ShowParameters() {
   ucout << _T("    -a    : list all processes information") << std::endl;
@@ -47,7 +40,8 @@ void ShowParameters() {
   ucout << _T("    -d <name|pid> : process details with command line for ")
            _T("matching process(es)")
         << std::endl;
-  ucout << _T("    -t    : tree snapshot of current processes") << std::endl;
+  ucout << _T("    -t [pid] : tree snapshot of current processes") << std::endl;
+  ucout << _T("    -h    : show available options") << std::endl;
 }
 
 void ShowAvailableInformation() {
@@ -61,126 +55,189 @@ void ShowAvailableInformation() {
   // chose stream (iostream / fstream)
   // specify additional pid as root to build the tree
 
-  ucout << _T("-----------------------------------------------------------")
+  ucout << _T("----------------------------------------------------------")
         << std::endl;
-  ucout << _T("       Processes Status Analysis - version 0.3") << std::endl;
-  ucout << _T("-----------------------------------------------------------")
+  ucout << _T("     psa - Processes Status Analysis - version 0.4")
+        << std::endl;
+  ucout << _T("----------------------------------------------------------")
         << std::endl;
 
   ShowParameters();
 
-  ucout << _T("-----------------------------------------------------------")
+  ucout << _T("----------------------------------------------------------")
         << std::endl;
-  ucout << _T("  Author: Silviu-Marius Ardelean http://silviuardelean.ro ")
+  ucout << _T("    Author: Silviu-Marius Ardelean https://ardelean.ch ")
         << std::endl;
-  ucout << _T("-----------------------------------------------------------")
+  ucout << _T("----------------------------------------------------------")
         << std::endl;
 }
 
-// Validates that optarg is not itself a flag (e.g. psa -o -d avast).
-// Returns the search term on success, or empty string + prints an error on
-// failure.
-static ustring resolve_process_arg(const TCHAR* flag, const TCHAR* optarg_val) {
-  ustring searchfor = (optarg_val != nullptr) ? optarg_val : _T("");
-  if (searchfor.empty()) {
-    ucout << _T("Error: missing argument for -") << flag << _T(".")
-          << std::endl;
-    return _T("");
+// Converts a narrow UTF-8 string (from cxxopts) to the project's native string
+// type. On Windows Unicode builds this widens to UTF-16; on Linux it's a no-op.
+static ustring to_ustring(const std::string& s) {
+#ifdef _WIN32
+  // argv is in the current code page (ACP), not UTF-8
+  int wlen = MultiByteToWideChar(CP_ACP, 0, s.c_str(), -1, nullptr, 0);
+  if (wlen > 1) {
+    std::wstring ws(wlen, L'\0');
+    MultiByteToWideChar(CP_ACP, 0, s.c_str(), -1, &ws[0], wlen);
+    ws.resize(wlen - 1);  // remove null terminator
+    return ws;
+  } else {
+    return std::wstring();
   }
-  if (searchfor[0] == _T('-')) {
-    ucout << _T("Error: missing argument for -") << flag << _T(".")
-          << std::endl;
-    ucout << _T("       Did you mean: psa ") << searchfor << _T(" <name|pid> ?")
-          << std::endl;
-    return _T("");
-  }
-  return searchfor;
+#else
+  return s;
+#endif
 }
 
-bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
+bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
+  // Backward compatibility: preserve support for space-separated forms (e.g.,
+  // -e 5, -t 1234) and accept upper-case flags on Windows by mapping them to
+  // lowercase.
+  // Special-case: if any argument is exactly "-?", show help and return true
+  for (int i = 1; i < argc; ++i) {
+    if (std::strcmp(argv[i], "-?") == 0) {
+      ShowAvailableInformation();
+      return true;
+    }
+  }
   if (!pPO) {
     ucout << _T("Internal error: ")
           << PSA_INTERNAL_ERRORS::invalid_processing_operations;
     return false;
   }
 
-  int opt = 0;
+  // cxxopts does not consume a space-separated token for implicit-value options
+  // (e.g. "-e 5" or "-t 1234"). Pre-process argv to merge such pairs into the
+  // "=" form ("-e=5", "-t=1234") so the original calling convention is
+  // preserved. Additionally, on Windows, map upper-case flags to lower-case for
+  // backward compatibility.
+  static const auto is_all_digits = [](const char* s) {
+    if (!s || !*s)
+      return false;
+    while (*s) {
+      if (!isdigit(static_cast<unsigned char>(*s++)))
+        return false;
+    }
+    return true;
+  };
+  std::vector<std::string> cooked_storage;
+  std::vector<const char*> cooked_argv;
+  cooked_storage.reserve(argc);
+  cooked_argv.reserve(argc);
+  for (int i = 0; i < argc; ++i) {
+    std::string a = argv[i];
+#ifdef _WIN32
+    // Map upper-case flag to lower-case for aliased options
+    if (a.size() == 2 && a[0] == '-' && std::strchr("ADEKOT", a[1])) {
+      a[1] = static_cast<char>(tolower(a[1]));
+    }
+#endif
+    if ((a == "-e" || a == "-t") && i + 1 < argc &&
+        is_all_digits(argv[i + 1])) {
+      // implicit_value options can't consume space-separated tokens as short
+      // opts. Use the long-option "=" form which cxxopts handles correctly.
+      std::string longform = (a == "-e") ? "--entries=" : "--tree=";
+      cooked_storage.push_back(longform + argv[i + 1]);
+      ++i;
+    } else {
+      cooked_storage.push_back(std::move(a));
+    }
+  }
+  for (const auto& s : cooked_storage)
+    cooked_argv.push_back(s.c_str());
+  const int cooked_argc = static_cast<int>(cooked_argv.size());
+
+  cxxopts::Options options("psa", "Processes Status Analysis");
+  options.add_options()("a", "List all processes information")(
+      "e,entries",
+      "Top [no] most expensive memory consuming processes (default: 10)",
+      cxxopts::value<int>()->implicit_value("10"),
+      "[no]")("k", "Kill specific process by PID or name",
+              cxxopts::value<std::string>(),
+              "<name|pid>")("o", "Info for one process matching name criteria",
+                            cxxopts::value<std::string>(), "<name|pid>")(
+      "d", "Process details with command line for matching process(es)",
+      cxxopts::value<std::string>(), "<name|pid>")
+#ifdef _WIN32
+      ("t,tree", "Tree snapshot of current processes",
+       cxxopts::value<int>()->implicit_value("0"),
+       "[pid]")  // Windows ROOT PID = 0
+#else
+      ("t,tree", "Tree snapshot of current processes",
+       cxxopts::value<int>()->implicit_value("1"),
+       "[pid]")  // Linux ROOT PID = 1
+#endif
+      ("h,help", "Show available options");
+
+  cxxopts::ParseResult result;
+  try {
+    result = options.parse(cooked_argc, cooked_argv.data());
+  } catch (const cxxopts::exceptions::exception& e) {
+    ucout << _T("Error: ") << to_ustring(e.what()) << std::endl;
+    ShowParameters();
+    return false;
+  }
+
+  if (result.count("help")) {
+    ShowAvailableInformation();
+    return true;
+  }
+
   bool good_params = false;
 
-  // optstring: 'k', 'o' and 'd' require arguments.
-  // 'e' has an optional number — handled manually by peeking at argv[optind].
-  while ((opt = getopt(argc, argv, _T("aek:o:d:tAEK:O:D:T"))) != EOF) {
-#ifdef _WIN32
-    auto option = tolower(opt);
-#else
-    auto option = opt;
-#endif
+  if (result.count("a")) {
+    if (!pPO->PrintAllProcessesInformation())
+      return false;
+    good_params = true;
+  }
 
-    switch (option) {
-      case _T('a'): {
-        if (!pPO->PrintAllProcessesInformation())
-          return false;
-      } break;
+  if (result.count("e")) {
+    int top = result["e"].as<int>();
+    if (top <= 0)
+      top = 10;
+    pPO->PrintTopExpensiveProcesses(top);
+    good_params = true;
+  }
 
-      case _T('e'): {
-        // -e is optional: peek at argv[optind] — consume it only if it's a
-        // number.
-        int top = 10;
-        if (optind < argc && string_utils::is_number(argv[optind]))
-          top = utoi(argv[optind++]);
-        if (top == 0)
-          top = 10;
-
-        pPO->PrintTopExpensiveProcesses(top);
-      } break;
-
-      case _T('k'): {
-        const auto searchfor = resolve_process_arg(_T("k"), optarg);
-        if (searchfor.empty())
-          return false;
-        pPO->KillProcesses(searchfor.c_str());
-      } break;
-
-      case _T('o'): {
-        const auto searchfor = resolve_process_arg(_T("o"), optarg);
-        if (searchfor.empty())
-          return false;
-        if (!pPO->PrintProcessInformation(searchfor))
-          return false;
-      } break;
-
-      case _T('d'): {
-        const auto searchfor = resolve_process_arg(_T("d"), optarg);
-        if (searchfor.empty())
-          return false;
-        if (!pPO->PrintProcessInformation(searchfor, true))
-          return false;
-      } break;
-
-      case _T('t'): {
-#ifdef _WIN32
-        auto proc_pid = 0;  // Windows ROOT PID = 0
-#else
-        auto proc_pid = 1;  // Linux   ROOT PID = 1
-#endif
-        if (3 == argc && isdigit(*argv[argc - 1]))
-          proc_pid = utoi(argv[argc - 1]);
-
-        pPO->GenerateProcessesTree(proc_pid);
-      } break;
-
-      case _T('?'):
-        ShowAvailableInformation();
-        return (optind > 1 && argv[optind - 1][0] == _T('-') &&
-                argv[optind - 1][1] == _T('?'));
-      default:
-        ucout << _T(" psa: invalid option ...") << std::endl;
-        ucout << _T(" Please check the available list of parameters : \n");
-        ShowParameters();
-        return false;
-        break;
+  if (result.count("k")) {
+    const std::string& val = result["k"].as<std::string>();
+    if (!val.empty() && val[0] == '-') {
+      // Reject flag-looking argument as value
+      return false;
     }
+    const auto searchfor = to_ustring(val);
+    pPO->KillProcesses(searchfor.c_str());
+    good_params = true;
+  }
 
+  if (result.count("o")) {
+    const std::string& val = result["o"].as<std::string>();
+    if (!val.empty() && val[0] == '-') {
+      // Reject flag-looking argument as value
+      return false;
+    }
+    const auto searchfor = to_ustring(val);
+    if (!pPO->PrintProcessInformation(searchfor))
+      return false;
+    good_params = true;
+  }
+
+  if (result.count("d")) {
+    const std::string& val = result["d"].as<std::string>();
+    if (!val.empty() && val[0] == '-') {
+      // Reject flag-looking argument as value
+      return false;
+    }
+    const auto searchfor = to_ustring(val);
+    if (!pPO->PrintProcessInformation(searchfor, true))
+      return false;
+    good_params = true;
+  }
+
+  if (result.count("t")) {
+    pPO->GenerateProcessesTree(result["t"].as<int>());
     good_params = true;
   }
 
@@ -193,12 +250,7 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
 }
 
 #ifndef PSA_TEST_BUILD
-#ifdef _WIN32
-int _tmain(int argc, TCHAR* argv[])
-#else
-int main(int argc, char** argv)
-#endif
-{
+int main(int argc, char** argv) {
   ProcessingOperations po;
   return ProcessCommandLine(argc, argv, &po) ? 0 : 1;
 }
