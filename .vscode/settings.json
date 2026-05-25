@@ -1,0 +1,22 @@
+{
+    "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+    "C_Cpp.default.cppStandard": "c++20",
+    "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
+    "cmake.configureOnOpen": true,
+    "editor.formatOnSave": true,
+    "files.associations": {
+        "*.h": "cpp",
+        "*.hpp": "cpp"
+    },
+    "files.exclude": {
+        "**/build": true,
+        "**/.vs": true,
+        "**/Pre-Build": true,
+        "**/Build": true
+    },
+    "search.exclude": {
+        "**/build": true,
+        "**/Pre-Build": true,
+        "**/Build": true
+    }
+}
