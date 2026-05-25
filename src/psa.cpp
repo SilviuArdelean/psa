@@ -192,6 +192,7 @@ bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO) {
   return true;
 }
 
+#ifndef PSA_TEST_BUILD
 #ifdef _WIN32
 int _tmain(int argc, TCHAR* argv[])
 #else
@@ -201,3 +202,4 @@ int main(int argc, char** argv)
   ProcessingOperations po;
   return ProcessCommandLine(argc, argv, &po) ? 0 : 1;
 }
+#endif  // PSA_TEST_BUILD

@@ -28,19 +28,19 @@
 class ProcessingOperations {
  public:
   ProcessingOperations(void);
-  ~ProcessingOperations() {};
+  virtual ~ProcessingOperations() {};
 
   [[nodiscard]] bool BuildProcessesMap();
 
   std::multimap<DWORD, proc_info>* GetProcessesMap() { return &map_processes_; }
 
-  [[nodiscard]] bool PrintAllProcessesInformation(
+  [[nodiscard]] virtual bool PrintAllProcessesInformation(
       bool const show_details = false);
-  [[nodiscard]] bool PrintProcessInformation(const ustring& process_name,
+  [[nodiscard]] virtual bool PrintProcessInformation(const ustring& process_name,
                                              bool const show_details = false);
-  void PrintTopExpensiveProcesses(const int top);
-  void KillProcesses(TCHAR const* argvProcessParam);
-  void GenerateProcessesTree(int const proc_pid);
+  virtual void PrintTopExpensiveProcesses(const int top);
+  virtual void KillProcesses(TCHAR const* argvProcessParam);
+  virtual void GenerateProcessesTree(int const proc_pid);
 
  protected:
   [[nodiscard]] bool PrintProcessDetailedInfo(DWORD pid);

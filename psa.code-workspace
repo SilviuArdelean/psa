@@ -39,7 +39,7 @@
         // ----------------------------------------------------------------
         "editor.formatOnSave": true,
         "[cpp]": {
-            "editor.defaultFormatter": "ms-vscode.cpptools"
+            "editor.defaultFormatter": "xaver.clang-format"
         },
         // ----------------------------------------------------------------
         // File associations
@@ -61,6 +61,9 @@
             "**/build": true,
             "**/Pre-Build": true,
             "**/Build": true
+        },
+        "chat.tools.terminal.autoApprove": {
+            "&\"${env:ProgramFiles(x86)}\\Microsoft": true
         }
     },
     "extensions": {
