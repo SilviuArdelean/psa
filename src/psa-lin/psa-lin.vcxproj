@@ -147,6 +147,7 @@
     <ClInclude Include="..\..\include\process_operations.h" />
     <ClInclude Include="..\..\include\string_utils.h" />
     <ClInclude Include="..\operations.h" />
+    <ClInclude Include="..\pch.h" />
     <ClInclude Include="..\processes_tree_builder.h" />
   </ItemGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

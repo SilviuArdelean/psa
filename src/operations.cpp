@@ -1,11 +1,5 @@
+#include "pch.h"
 #include "operations.h"
-#include "general.h"
-
-#include <algorithm>
-#include <format>
-#include <mutex>
-#include <ranges>
-#include <vector>
 
 #include "fixed_queue.h"
 #include "process_operations.h"
@@ -14,8 +8,6 @@
 
 #ifdef _WIN32
 #include "smart_handler.h"
-#elif __linux__
-#include <proc/readproc.h>
 #endif
 
 ProcessingOperations::ProcessingOperations(void) {}

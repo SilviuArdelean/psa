@@ -2,13 +2,12 @@
  *    Processes Status Analysis - psa
  */
 
-#include "general.h"
+#include "pch.h"
 #include "operations.h"
 #include "string_utils.h"
 
 #ifdef _WIN32
 #include "psa-win/XGetopt.h"
-#include "tchar.h"
 #endif
 
 #ifdef __linux__
