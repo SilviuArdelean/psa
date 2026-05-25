@@ -1,0 +1,83 @@
+{
+    "folders": [
+        {
+            "name": "psa (root)",
+            "path": "."
+        }
+    ],
+    "settings": {
+        // ----------------------------------------------------------------
+        // CMake Tools
+        // ----------------------------------------------------------------
+        "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
+        "cmake.installPrefix": "${workspaceFolder}/install",
+        "cmake.configureOnOpen": true,
+        "cmake.defaultVariants": {
+            "buildType": {
+                "default": "debug",
+                "choices": {
+                    "debug": {
+                        "short": "Debug",
+                        "long": "Disable optimizations, generate debug info",
+                        "buildType": "Debug"
+                    },
+                    "release": {
+                        "short": "Release",
+                        "long": "Enable optimizations",
+                        "buildType": "Release"
+                    }
+                }
+            }
+        },
+        // ----------------------------------------------------------------
+        // C/C++ IntelliSense — let CMake Tools drive it automatically
+        // ----------------------------------------------------------------
+        "C_Cpp.default.configurationProvider": "ms-vscode.cmake-tools",
+        "C_Cpp.default.cppStandard": "c++20",
+        // ----------------------------------------------------------------
+        // Editor / formatting
+        // ----------------------------------------------------------------
+        "editor.formatOnSave": true,
+        "[cpp]": {
+            "editor.defaultFormatter": "ms-vscode.cpptools"
+        },
+        // ----------------------------------------------------------------
+        // File associations
+        // ----------------------------------------------------------------
+        "files.associations": {
+            "*.h": "cpp",
+            "*.hpp": "cpp"
+        },
+        // ----------------------------------------------------------------
+        // Exclude build artefacts from the explorer / search
+        // ----------------------------------------------------------------
+        "files.exclude": {
+            "**/build": true,
+            "**/.vs": true,
+            "**/Pre-Build": true,
+            "**/Build": true
+        },
+        "search.exclude": {
+            "**/build": true,
+            "**/Pre-Build": true,
+            "**/Build": true
+        }
+    },
+    "extensions": {
+        "recommendations": [
+            // C++ language support + IntelliSense
+            "ms-vscode.cpptools",
+            "ms-vscode.cpptools-extension-pack",
+            // CMake
+            "ms-vscode.cmake-tools",
+            "twxs.cmake",
+            // Remote SSH — replicates the old VS Linux/SSH workflow
+            "ms-vscode-remote.remote-ssh",
+            "ms-vscode-remote.remote-ssh-edit",
+            "ms-vscode.remote-explorer",
+            // Productivity
+            "editorconfig.editorconfig",
+            "xaver.clang-format"
+        ]
+    }
+}

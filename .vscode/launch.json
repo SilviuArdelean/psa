@@ -1,0 +1,141 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        // ----------------------------------------------------------------
+        // Windows — MSVC debugger
+        // ----------------------------------------------------------------
+        {
+            "name": "Windows: Debug psa (MSVC)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [
+                "-o",
+                "chrome"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "integratedTerminal",
+            "preLaunchTask": "CMake: Build Debug"
+        },
+        // ----------------------------------------------------------------
+        // Linux / macOS — GDB / LLDB
+        //
+        // Remote-SSH: SSH host, username, and key are configured in VS Code
+        // user settings ("remote.SSH.configFile" → ~/.ssh/config) or via the
+        // Remote-SSH extension UI.  No credentials belong in this file.
+        // When connected, ${workspaceFolder} resolves to the remote path and
+        // all tasks/debugger run on the remote machine automatically.
+        // ----------------------------------------------------------------
+        {
+            "name": "Linux: Debug psa (GDB)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/bin/psa",
+            "args": [
+                "-a"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for GDB",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "CMake: Build Debug"
+        },
+        {
+            "name": "macOS: Debug psa (LLDB)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/bin/psa",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "CMake: Build Debug"
+        },
+        // ----------------------------------------------------------------
+        // Windows — Release (run, not debuggable — optimised binary)
+        // ----------------------------------------------------------------
+        {
+            "name": "Windows: Release psa (MSVC)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [
+                "-o",
+                "chrome"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "console": "integratedTerminal",
+            "preLaunchTask": "CMake: Build Release"
+        },
+        {
+            "name": "Linux: Release psa (GDB)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Release/bin/psa",
+            "args": [
+                "-a"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for GDB",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "CMake: Build Release"
+        },
+        {
+            "name": "macOS: Release psa (LLDB)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Release/bin/psa",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "lldb",
+            "preLaunchTask": "CMake: Build Release"
+        },
+        // ----------------------------------------------------------------
+        // testGenericTree — debug the test binary directly
+        // ----------------------------------------------------------------
+        {
+            "name": "Debug testGenericTree",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Debug/bin/testGenericTree",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "windows": {
+                "type": "cppvsdbg",
+                "program": "${workspaceFolder}/build/Debug/bin/testGenericTree.exe"
+            }
+        }
+    ]
+}
