@@ -1,0 +1,57 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "CMake: Configure (Debug)",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["-S", ".", "-B", "build/Debug", "-DCMAKE_BUILD_TYPE=Debug"],
+            "group": "build",
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "presentation": { "reveal": "always", "panel": "shared" }
+        },
+        {
+            "label": "CMake: Build Debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build/Debug", "--parallel"],
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "dependsOn": "CMake: Configure (Debug)",
+            "presentation": { "reveal": "always", "panel": "shared" }
+        },
+        {
+            "label": "CMake: Configure (Release)",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["-S", ".", "-B", "build/Release", "-DCMAKE_BUILD_TYPE=Release"],
+            "group": "build",
+            "problemMatcher": ["$gcc", "$msCompile"]
+        },
+        {
+            "label": "CMake: Build Release",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build/Release", "--parallel"],
+            "group": "build",
+            "problemMatcher": ["$gcc", "$msCompile"],
+            "dependsOn": "CMake: Configure (Release)"
+        },
+        {
+            "label": "CTest: Run All Tests",
+            "type": "shell",
+            "command": "ctest",
+            "args": ["--test-dir", "build/Debug", "--output-on-failure", "-V"],
+            "group": { "kind": "test", "isDefault": true },
+            "problemMatcher": []
+        },
+        {
+            "label": "CMake: Clean",
+            "type": "shell",
+            "command": "cmake",
+            "args": ["--build", "build/Debug", "--target", "clean"],
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

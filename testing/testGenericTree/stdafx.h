@@ -5,9 +5,9 @@
 
 #pragma once
 
+#ifdef _WIN32
 #include "targetver.h"
+#include <tchar.h>
+#endif
 
 #include <stdio.h>
-#include <tchar.h>
-
-// TODO: reference additional headers your program requires here
