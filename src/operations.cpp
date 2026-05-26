@@ -298,7 +298,8 @@ bool ProcessingOperations::PrintProcessDetailedInfo(DWORD pid) {
   return true;
 }
 
-void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
+void ProcessingOperations::GenerateProcessesTree(int const proc_pid,
+                                                 bool print_header) {
   if (!EnsureProcessesMap())
     return;
 
@@ -318,7 +319,7 @@ void ProcessingOperations::GenerateProcessesTree(int const proc_pid) {
 
   if (proc_pid == root_pid || proc_pid == FAKE_ROOT_PID ||
       map_processes_.find(proc_pid) != map_processes_.end()) {
-    tree_builder.PrintTree(proc_pid);
+    tree_builder.PrintTree(proc_pid, print_header);
   } else {
     ucout << "Invalid Process ID | PID " << proc_pid
           << " not detected in memory" << std::endl;

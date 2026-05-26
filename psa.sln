@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26730.16
+# Visual Studio Version 18
+VisualStudioVersion = 18.5.11801.241
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "psa-win", "src\psa-win\psa-win.vcxproj", "{AD77D8E2-05FD-47BD-88AA-AD5A0DFA7616}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_psa_cli", "testing\test_psa_cli\test_psa_cli.vcxproj", "{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "psa-lin", "src\psa-lin\psa-lin.vcxproj", "{A6C69049-ACAC-4487-9F03-E23AE24EDCCC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "src\gtest.vcxproj", "{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +67,18 @@ Global
 		{A6C69049-ACAC-4487-9F03-E23AE24EDCCC}.Release|x64.Build.0 = Release|x64
 		{A6C69049-ACAC-4487-9F03-E23AE24EDCCC}.Release|x86.ActiveCfg = Release|x86
 		{A6C69049-ACAC-4487-9F03-E23AE24EDCCC}.Release|x86.Build.0 = Release|x86
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Debug|ARM.ActiveCfg = Debug|x64
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Debug|ARM.Build.0 = Debug|x64
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Debug|x64.ActiveCfg = Debug|x64
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Debug|x64.Build.0 = Debug|x64
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Debug|x86.ActiveCfg = Debug|Win32
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Debug|x86.Build.0 = Debug|Win32
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Release|ARM.ActiveCfg = Release|x64
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Release|ARM.Build.0 = Release|x64
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Release|x64.ActiveCfg = Release|x64
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Release|x64.Build.0 = Release|x64
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Release|x86.ActiveCfg = Release|Win32
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,6 +86,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{54079939-8F51-44B9-8E16-A6251E693F88} = {B27D09A6-192B-4816-9204-A357DAD34E93}
 		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C} = {B27D09A6-192B-4816-9204-A357DAD34E93}
+		{A1B2C3D4-E5F6-47A8-9B0C-1D2E3F4A5B6C} = {B27D09A6-192B-4816-9204-A357DAD34E93}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0BCB27C5-CCB2-467C-B6F2-5920B77750FC}

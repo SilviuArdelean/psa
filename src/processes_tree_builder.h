@@ -34,7 +34,7 @@ class ProcsTreeBuilder {
   void MapBuilder();
   void MapHandshake();
   void BuildTree();
-  void PrintTree(int const procPID = 0);
+  void PrintTree(int const procPID = 0, bool print_header = false);
 
   friend uostream& operator<<(uostream& stream, const proc_info& info);
 
