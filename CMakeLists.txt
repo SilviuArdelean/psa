@@ -28,10 +28,12 @@ set(PSA_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 # ---------------------------------------------------------------------------
 enable_testing()
 
+# Always print test output and summary on failure
+set(CTEST_OUTPUT_ON_FAILURE ON)
+
 # ---------------------------------------------------------------------------
 # Sub-projects
 # ---------------------------------------------------------------------------
 add_subdirectory(src)
-if(WIN32)
-    add_subdirectory(testing/testGenericTree)
-endif()
+add_subdirectory(testing/test_generic_tree)
+add_subdirectory(testing/test_psa_cli)
