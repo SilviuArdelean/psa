@@ -122,6 +122,9 @@ void ProcsTreeBuilder::PrintTree(int const procPID) {
     return;
   }
 
+  // Print header for integration test compatibility
+  ucout << _T("PID\tProcess Name") << std::endl;
+
 #ifdef __linux__
   generic_tree_handler<proc_info> gt;
   gt.set_parent(this);
