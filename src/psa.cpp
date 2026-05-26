@@ -62,6 +62,13 @@ static ustring to_ustring(const std::string& s) {
 }
 
 bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
+    // Special-case: if any argument is exactly "-?", show help and return true (backward compatibility)
+    for (int i = 1; i < argc; ++i) {
+      if (std::strcmp(argv[i], "-?") == 0) {
+        ShowAvailableInformation();
+        return true;
+      }
+    }
   if (!pPO) {
     ucout << _T("Internal error: ")
           << PSA_INTERNAL_ERRORS::invalid_processing_operations;
@@ -71,6 +78,7 @@ bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
   // cxxopts does not consume a space-separated token for implicit-value options
   // (e.g. "-e 5" or "-t 1234"). Pre-process argv to merge such pairs into the
   // "=" form ("-e=5", "-t=1234") so the original calling convention is preserved.
+  // Additionally, on Windows, map upper-case flags to lower-case for backward compatibility.
   static const auto is_all_digits = [](const char* s) {
     if (!s || !*s) return false;
     while (*s) { if (!isdigit(static_cast<unsigned char>(*s++))) return false; }
@@ -82,6 +90,12 @@ bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
   cooked_argv.reserve(argc);
   for (int i = 0; i < argc; ++i) {
     std::string a = argv[i];
+#ifdef _WIN32
+    // Map upper-case flag to lower-case for aliased options
+    if (a.size() == 2 && a[0] == '-' && std::strchr("ADEKOT", a[1])) {
+      a[1] = static_cast<char>(tolower(a[1]));
+    }
+#endif
     if ((a == "-e" || a == "-t") && i + 1 < argc && is_all_digits(argv[i + 1])) {
       // implicit_value options can't consume space-separated tokens as short opts.
       // Use the long-option "=" form which cxxopts handles correctly.
@@ -147,20 +161,35 @@ bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
   }
 
   if (result.count("k")) {
-    const auto searchfor = to_ustring(result["k"].as<std::string>());
+    const std::string& val = result["k"].as<std::string>();
+    if (!val.empty() && val[0] == '-') {
+      // Reject flag-looking argument as value
+      return false;
+    }
+    const auto searchfor = to_ustring(val);
     pPO->KillProcesses(searchfor.c_str());
     good_params = true;
   }
 
   if (result.count("o")) {
-    const auto searchfor = to_ustring(result["o"].as<std::string>());
+    const std::string& val = result["o"].as<std::string>();
+    if (!val.empty() && val[0] == '-') {
+      // Reject flag-looking argument as value
+      return false;
+    }
+    const auto searchfor = to_ustring(val);
     if (!pPO->PrintProcessInformation(searchfor))
       return false;
     good_params = true;
   }
 
   if (result.count("d")) {
-    const auto searchfor = to_ustring(result["d"].as<std::string>());
+    const std::string& val = result["d"].as<std::string>();
+    if (!val.empty() && val[0] == '-') {
+      // Reject flag-looking argument as value
+      return false;
+    }
+    const auto searchfor = to_ustring(val);
     if (!pPO->PrintProcessInformation(searchfor, true))
       return false;
     good_params = true;

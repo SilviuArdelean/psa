@@ -268,11 +268,16 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcess) {
   ASSERT_NE(hProcess, nullptr);
   std::ostringstream ss;
   ss << pid;
-  Argv av{"psa", "-k", ss.str().c_str()};
+  std::string pid_str = ss.str();
+  Argv av{"psa", "-k", pid_str.c_str()};
   std::wstring out;
   EXPECT_TRUE(run_and_capture(av, out));
-  // Should mention the PID or success
-  std::wstring wpid(ss.str().begin(), ss.str().end());
+  // Safe conversion: build wpid from digits
+  std::wstring wpid;
+  if (pid_str.empty()) {
+    std::wcerr << L"[DEBUG] PID string is empty!\n";
+  }
+  for (char c : pid_str) wpid += static_cast<wchar_t>(c);
   EXPECT_NE(out.find(wpid), std::wstring::npos);
   // Confirm process is gone: wait for process to exit
   DWORD waitResult = WaitForSingleObject(hProcess, 2000); // 2s timeout

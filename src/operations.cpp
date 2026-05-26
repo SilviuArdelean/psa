@@ -330,11 +330,15 @@ void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
     return;
 
   if (string_utils::is_number(argvProcessParam)) {
-    process_operations::kill_process_by_pid_optimized(utoi(argvProcessParam),
-                                                      map_processes_);
+    int pid = utoi(argvProcessParam);
+    process_operations::kill_process_by_pid_optimized(pid, map_processes_);
+#ifdef _WIN32
+    ucout << std::to_wstring(pid) << std::endl;
+#else
+    ucout << pid << std::endl;
+#endif
   } else {
-    process_operations::kill_process_by_name_optimized(argvProcessParam,
-                                                       map_processes_);
+    process_operations::kill_process_by_name_optimized(argvProcessParam, map_processes_);
   }
 }
 
