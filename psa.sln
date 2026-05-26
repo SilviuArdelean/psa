@@ -7,7 +7,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "psa-win", "src\psa-win\psa-
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "testing", "testing", "{B27D09A6-192B-4816-9204-A357DAD34E93}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testGenericTree", "testing\testGenericTree\testGenericTree.vcxproj", "{54079939-8F51-44B9-8E16-A6251E693F88}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_generic_tree", "testing\test_generic_tree\test_generic_tree.vcxproj", "{54079939-8F51-44B9-8E16-A6251E693F88}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_psa_cli", "testing\test_psa_cli\test_psa_cli.vcxproj", "{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "psa-lin", "src\psa-lin\psa-lin.vcxproj", "{A6C69049-ACAC-4487-9F03-E23AE24EDCCC}"
 EndProject
@@ -41,6 +43,16 @@ Global
 		{54079939-8F51-44B9-8E16-A6251E693F88}.Release|x64.Build.0 = Release|x64
 		{54079939-8F51-44B9-8E16-A6251E693F88}.Release|x86.ActiveCfg = Release|Win32
 		{54079939-8F51-44B9-8E16-A6251E693F88}.Release|x86.Build.0 = Release|Win32
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Debug|ARM.ActiveCfg = Debug|Win32
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Debug|x64.ActiveCfg = Debug|x64
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Debug|x64.Build.0 = Debug|x64
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Debug|x86.ActiveCfg = Debug|Win32
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Debug|x86.Build.0 = Debug|Win32
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Release|ARM.ActiveCfg = Release|Win32
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Release|x64.ActiveCfg = Release|x64
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Release|x64.Build.0 = Release|x64
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Release|x86.ActiveCfg = Release|Win32
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C}.Release|x86.Build.0 = Release|Win32
 		{A6C69049-ACAC-4487-9F03-E23AE24EDCCC}.Debug|ARM.ActiveCfg = Debug|ARM
 		{A6C69049-ACAC-4487-9F03-E23AE24EDCCC}.Debug|ARM.Build.0 = Debug|ARM
 		{A6C69049-ACAC-4487-9F03-E23AE24EDCCC}.Debug|x64.ActiveCfg = Debug|x64
@@ -59,6 +71,7 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{54079939-8F51-44B9-8E16-A6251E693F88} = {B27D09A6-192B-4816-9204-A357DAD34E93}
+		{C3E1F5A7-B2D4-4E8F-9A6C-1D3B5E7F9A2C} = {B27D09A6-192B-4816-9204-A357DAD34E93}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0BCB27C5-CCB2-467C-B6F2-5920B77750FC}

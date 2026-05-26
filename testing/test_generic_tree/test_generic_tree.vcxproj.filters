@@ -35,7 +35,7 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="testGenericTree.cpp">
+    <ClCompile Include="test_generic_tree.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
