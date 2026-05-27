@@ -145,6 +145,7 @@
     <ClInclude Include="..\..\include\generic_tree.h" />
     <ClInclude Include="..\..\include\generic_tree_handler.h" />
     <ClInclude Include="..\..\include\process_operations.h" />
+    <ClInclude Include="..\..\include\cxxopts.hpp" />
     <ClInclude Include="..\..\include\string_utils.h" />
     <ClInclude Include="..\operations.h" />
     <ClInclude Include="..\pch.h" />
@@ -163,6 +164,7 @@
       <Command>-o"D:\development\TESTS\pslin\bin\x64\Debug\pslin.out" "3600000" -Wl,-z,relro -Wl,-z,noexecstack -Wl,--no-undefined "g++" -lprocps"/usr/lib/x86_64-linux-gnu" -Wl,-z,now</Command>
     </CustomBuildStep>
     <ClCompile>
+      <AdditionalIncludeDirectories>..\..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CppAdditionalWarning>switch;no-deprecated-declarations;empty-body;conversion;return-type;parentheses;no-format;uninitialized;unreachable-code;unused-function;unused-value;unused-variable;%(CppAdditionalWarning)</CppAdditionalWarning>
       <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
@@ -174,6 +176,7 @@
       </AdditionalOptions>
     </Link>
     <ClCompile>
+      <AdditionalIncludeDirectories>..\..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -182,6 +185,7 @@
       <LibraryDependencies>procps;%(LibraryDependencies)</LibraryDependencies>
     </Link>
     <ClCompile>
+      <AdditionalIncludeDirectories>..\..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -190,6 +194,7 @@
       <LibraryDependencies>procps;%(LibraryDependencies)</LibraryDependencies>
     </Link>
     <ClCompile>
+      <AdditionalIncludeDirectories>..\..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -198,6 +203,7 @@
       <LibraryDependencies>procps;%(LibraryDependencies)</LibraryDependencies>
     </Link>
     <ClCompile>
+      <AdditionalIncludeDirectories>..\..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>
@@ -206,6 +212,7 @@
       <LibraryDependencies>procps;%(LibraryDependencies)</LibraryDependencies>
     </Link>
     <ClCompile>
+      <AdditionalIncludeDirectories>..\..\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>-std=c++20 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
   </ItemDefinitionGroup>

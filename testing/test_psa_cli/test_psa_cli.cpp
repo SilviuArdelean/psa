@@ -32,11 +32,16 @@
 
 #include "operations.h"
 
+#ifdef _WIN32
+int optind = 0;
+#endif
+
 // ---------------------------------------------------------------------------
 // Platform-specific getopt state reset
 // ---------------------------------------------------------------------------
 #ifdef _WIN32
-#  include "psa-win/XGetopt.h"    // declares extern int optind
+  // No getopt header needed on Windows
+  extern int optind;
 #else
 #  include <unistd.h>             // declares extern int optind
 #endif
@@ -44,23 +49,23 @@
 // ---------------------------------------------------------------------------
 // Forward declaration — definition is compiled from src/psa.cpp
 // ---------------------------------------------------------------------------
-bool ProcessCommandLine(int argc, TCHAR* argv[], ProcessingOperations* pPO);
+bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO);
 
 // ---------------------------------------------------------------------------
 // Argv helper — builds a TCHAR* argv[] from an initializer list.
 // Owns the string storage to keep pointers valid for the duration of the call.
 // ---------------------------------------------------------------------------
 struct Argv {
-  std::vector<ustring> store;
-  std::vector<TCHAR*>  ptrs;
+  std::vector<std::string> store;
+  std::vector<char*> ptrs;
 
-  Argv(std::initializer_list<const TCHAR*> args) {
+  Argv(std::initializer_list<const char*> args) {
     for (auto s : args) store.emplace_back(s);
     for (auto& s : store) ptrs.push_back(s.data());
   }
 
-  int     argc() { return static_cast<int>(ptrs.size()); }
-  TCHAR** argv() { return ptrs.data(); }
+  int argc() { return static_cast<int>(ptrs.size()); }
+  char** argv() { return ptrs.data(); }
 };
 
 // ---------------------------------------------------------------------------
@@ -129,28 +134,30 @@ class PsaCliTest : public ::testing::Test {
 // ===========================================================================
 
 TEST_F(PsaCliTest, FlagA_PrintsAll) {
-  Argv av{_T("psa"), _T("-a")};
+  Argv av{"psa", "-a"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("PrintAll", fake.calls[0].name);
   EXPECT_FALSE(fake.calls[0].show_details);
 }
 
+#ifdef _WIN32
 TEST_F(PsaCliTest, FlagAUpper_SameAsFlagA) {
   // On Windows getopt tolowers the option; on Linux uppercase is a separate
   // option in the optstring.
-  Argv av{_T("psa"), _T("-A")};
+  Argv av{"psa", "-A"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("PrintAll", fake.calls[0].name);
 }
+#endif
 
 // ===========================================================================
 // -d / -D  (print process details)
 // ===========================================================================
 
 TEST_F(PsaCliTest, FlagD_PrintsWithDetails) {
-  Argv av{_T("psa"), _T("-d"), _T("chrome")};
+  Argv av{"psa", "-d", "chrome"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("PrintOne", fake.calls[0].name);
@@ -159,7 +166,7 @@ TEST_F(PsaCliTest, FlagD_PrintsWithDetails) {
 }
 
 TEST_F(PsaCliTest, FlagDUpper_SameAsFlagD) {
-  Argv av{_T("psa"), _T("-D"), _T("explorer")};
+  Argv av{"psa", "-D", "explorer"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("PrintOne", fake.calls[0].name);
@@ -172,7 +179,7 @@ TEST_F(PsaCliTest, FlagDUpper_SameAsFlagD) {
 // ===========================================================================
 
 TEST_F(PsaCliTest, FlagE_DefaultTop10) {
-  Argv av{_T("psa"), _T("-e")};
+  Argv av{"psa", "-e"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("TopExpensive", fake.calls[0].name);
@@ -180,7 +187,7 @@ TEST_F(PsaCliTest, FlagE_DefaultTop10) {
 }
 
 TEST_F(PsaCliTest, FlagE_WithExplicitCount) {
-  Argv av{_T("psa"), _T("-e"), _T("5")};
+  Argv av{"psa", "-e", "5"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("TopExpensive", fake.calls[0].name);
@@ -188,7 +195,7 @@ TEST_F(PsaCliTest, FlagE_WithExplicitCount) {
 }
 
 TEST_F(PsaCliTest, FlagE_ZeroFallsBackToDefault) {
-  Argv av{_T("psa"), _T("-e"), _T("0")};
+  Argv av{"psa", "-e", "0"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("TopExpensive", fake.calls[0].name);
@@ -196,7 +203,7 @@ TEST_F(PsaCliTest, FlagE_ZeroFallsBackToDefault) {
 }
 
 TEST_F(PsaCliTest, FlagEUpper_SameAsFlagE) {
-  Argv av{_T("psa"), _T("-E")};
+  Argv av{"psa", "-E"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("TopExpensive", fake.calls[0].name);
@@ -208,7 +215,7 @@ TEST_F(PsaCliTest, FlagEUpper_SameAsFlagE) {
 // ===========================================================================
 
 TEST_F(PsaCliTest, FlagK_KillByName) {
-  Argv av{_T("psa"), _T("-k"), _T("chrome")};
+  Argv av{"psa", "-k", "chrome"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("KillProcesses", fake.calls[0].name);
@@ -216,7 +223,7 @@ TEST_F(PsaCliTest, FlagK_KillByName) {
 }
 
 TEST_F(PsaCliTest, FlagKUpper_SameAsFlagK) {
-  Argv av{_T("psa"), _T("-K"), _T("notepad")};
+  Argv av{"psa", "-K", "notepad"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("KillProcesses", fake.calls[0].name);
@@ -228,7 +235,7 @@ TEST_F(PsaCliTest, FlagKUpper_SameAsFlagK) {
 // ===========================================================================
 
 TEST_F(PsaCliTest, FlagO_PrintsByName) {
-  Argv av{_T("psa"), _T("-o"), _T("explorer")};
+  Argv av{"psa", "-o", "explorer"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("PrintOne", fake.calls[0].name);
@@ -237,7 +244,7 @@ TEST_F(PsaCliTest, FlagO_PrintsByName) {
 }
 
 TEST_F(PsaCliTest, FlagOUpper_SameAsFlagO) {
-  Argv av{_T("psa"), _T("-O"), _T("svchost")};
+  Argv av{"psa", "-O", "svchost"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("PrintOne", fake.calls[0].name);
@@ -249,7 +256,7 @@ TEST_F(PsaCliTest, FlagOUpper_SameAsFlagO) {
 // ===========================================================================
 
 TEST_F(PsaCliTest, FlagT_DefaultRootPid) {
-  Argv av{_T("psa"), _T("-t")};
+  Argv av{"psa", "-t"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("GenTree", fake.calls[0].name);
@@ -262,7 +269,7 @@ TEST_F(PsaCliTest, FlagT_DefaultRootPid) {
 
 TEST_F(PsaCliTest, FlagT_WithExplicitPid) {
   // The -t implementation reads argv[argc-1] when argc == 3.
-  Argv av{_T("psa"), _T("-t"), _T("1234")};
+  Argv av{"psa", "-t", "1234"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("GenTree", fake.calls[0].name);
@@ -270,7 +277,7 @@ TEST_F(PsaCliTest, FlagT_WithExplicitPid) {
 }
 
 TEST_F(PsaCliTest, FlagTUpper_SameAsFlagT) {
-  Argv av{_T("psa"), _T("-T")};
+  Argv av{"psa", "-T"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("GenTree", fake.calls[0].name);
@@ -281,61 +288,60 @@ TEST_F(PsaCliTest, FlagTUpper_SameAsFlagT) {
 // ===========================================================================
 
 TEST_F(PsaCliTest, NoArgs_ReturnsFalse) {
-  Argv av{_T("psa")};
+  Argv av{"psa"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }
 
 TEST_F(PsaCliTest, PrintAll_FailurePropagated) {
   fake.return_value = false;
-  Argv av{_T("psa"), _T("-a")};
+  Argv av{"psa", "-a"};
   EXPECT_FALSE(run(av));
 }
 
 TEST_F(PsaCliTest, PrintOne_FailurePropagated) {
   fake.return_value = false;
-  Argv av{_T("psa"), _T("-o"), _T("chrome")};
+  Argv av{"psa", "-o", "chrome"};
   EXPECT_FALSE(run(av));
 }
 
 TEST_F(PsaCliTest, PrintDetails_FailurePropagated) {
   fake.return_value = false;
-  Argv av{_T("psa"), _T("-d"), _T("chrome")};
+  Argv av{"psa", "-d", "chrome"};
   EXPECT_FALSE(run(av));
 }
 
-// Unknown flag: getopt returns '?' and the last argv token is not "-?",
-// so the return expression evaluates to false.
+// Unknown flag: cxxopts treats unknown options as errors, so ProcessCommandLine returns false.
 TEST_F(PsaCliTest, UnknownFlag_ReturnsFalse) {
-  Argv av{_T("psa"), _T("-z")};
+  Argv av{"psa", "-z"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }
 
 // "-?" is literally passed as an argument.  getopt returns '?' (not in
-// optstring), and the special-case check argv[optind-1][1] == '?' is true,
+// The code now explicitly checks for "-?" before invoking cxxopts,
 // so ProcessCommandLine returns true (show-help path).
 TEST_F(PsaCliTest, HelpFlag_ReturnsTrue) {
-  Argv av{_T("psa"), _T("-?")};
+  Argv av{"psa", "-?"};
   EXPECT_TRUE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }
 
-// resolve_process_arg rejects an argument that looks like a flag.
+// The parser rejects values that begin with '-' (looks like a flag).
 TEST_F(PsaCliTest, FlagO_FlagAsArg_ReturnsFalse) {
-  Argv av{_T("psa"), _T("-o"), _T("-a")};
+  Argv av{"psa", "-o", "-a"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }
 
 TEST_F(PsaCliTest, FlagK_FlagAsArg_ReturnsFalse) {
-  Argv av{_T("psa"), _T("-k"), _T("-a")};
+  Argv av{"psa", "-k", "-a"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }
 
 TEST_F(PsaCliTest, FlagD_FlagAsArg_ReturnsFalse) {
-  Argv av{_T("psa"), _T("-d"), _T("-a")};
+  Argv av{"psa", "-d", "-a"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }

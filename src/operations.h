@@ -36,8 +36,9 @@ class ProcessingOperations {
 
   [[nodiscard]] virtual bool PrintAllProcessesInformation(
       bool const show_details = false);
-  [[nodiscard]] virtual bool PrintProcessInformation(const ustring& process_name,
-                                             bool const show_details = false);
+  [[nodiscard]] virtual bool PrintProcessInformation(
+      const ustring& process_name,
+      bool const show_details = false);
   virtual void PrintTopExpensiveProcesses(const int top);
   virtual void KillProcesses(TCHAR const* argvProcessParam);
   virtual void GenerateProcessesTree(int const proc_pid);
