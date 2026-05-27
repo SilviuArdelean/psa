@@ -40,10 +40,10 @@ int optind = 0;
 // Platform-specific getopt state reset
 // ---------------------------------------------------------------------------
 #ifdef _WIN32
-  // No getopt header needed on Windows
-  extern int optind;
+// No getopt header needed on Windows
+extern int optind;
 #else
-#  include <unistd.h>             // declares extern int optind
+#include <unistd.h>  // declares extern int optind
 #endif
 
 // ---------------------------------------------------------------------------
@@ -60,8 +60,10 @@ struct Argv {
   std::vector<char*> ptrs;
 
   Argv(std::initializer_list<const char*> args) {
-    for (auto s : args) store.emplace_back(s);
-    for (auto& s : store) ptrs.push_back(s.data());
+    for (auto s : args)
+      store.emplace_back(s);
+    for (auto& s : store)
+      ptrs.push_back(s.data());
   }
 
   int argc() { return static_cast<int>(ptrs.size()); }
@@ -74,13 +76,13 @@ struct Argv {
 struct FakeProcessingOperations : ProcessingOperations {
   struct Call {
     std::string name;
-    bool        show_details = false;
-    ustring     str_arg;
-    int         int_arg      = 0;
+    bool show_details = false;
+    ustring str_arg;
+    int int_arg = 0;
   };
 
   std::vector<Call> calls;
-  bool              return_value = true;
+  bool return_value = true;
 
   bool PrintAllProcessesInformation(bool const show_details = false) override {
     calls.push_back({"PrintAll", show_details});
@@ -88,7 +90,7 @@ struct FakeProcessingOperations : ProcessingOperations {
   }
 
   bool PrintProcessInformation(const ustring& process_name,
-                                bool const show_details = false) override {
+                               bool const show_details = false) override {
     calls.push_back({"PrintOne", show_details, process_name});
     return return_value;
   }
@@ -101,8 +103,9 @@ struct FakeProcessingOperations : ProcessingOperations {
     calls.push_back({"KillProcesses", false, ustring(argvProcessParam)});
   }
 
-  void GenerateProcessesTree(int const proc_pid) override {
-    calls.push_back({"GenTree", false, {}, proc_pid});
+  void GenerateProcessesTree(int const proc_pid,
+                             bool print_header = false) override {
+    calls.push_back({"GenTree", print_header, {}, proc_pid});
   }
 };
 
@@ -124,9 +127,7 @@ class PsaCliTest : public ::testing::Test {
     // reinitialisation trigger.
   }
 
-  bool run(Argv& av) {
-    return ProcessCommandLine(av.argc(), av.argv(), &fake);
-  }
+  bool run(Argv& av) { return ProcessCommandLine(av.argc(), av.argv(), &fake); }
 };
 
 // ===========================================================================
@@ -311,7 +312,8 @@ TEST_F(PsaCliTest, PrintDetails_FailurePropagated) {
   EXPECT_FALSE(run(av));
 }
 
-// Unknown flag: cxxopts treats unknown options as errors, so ProcessCommandLine returns false.
+// Unknown flag: cxxopts treats unknown options as errors, so ProcessCommandLine
+// returns false.
 TEST_F(PsaCliTest, UnknownFlag_ReturnsFalse) {
   Argv av{"psa", "-z"};
   EXPECT_FALSE(run(av));

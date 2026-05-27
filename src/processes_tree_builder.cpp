@@ -20,8 +20,8 @@
  * THE SOFTWARE.
  */
 
-#include "pch.h"
 #include "processes_tree_builder.h"
+#include "pch.h"
 
 #include "generic_tree.h"
 #include "generic_tree_handler.h"
@@ -105,7 +105,7 @@ void ProcsTreeBuilder::BuildTreeRecursive(generic_node<proc_info>* node) {
   }
 }
 
-void ProcsTreeBuilder::PrintTree(int const procPID) {
+void ProcsTreeBuilder::PrintTree(int const procPID, bool print_header) {
   generic_node<proc_info>* pNode = nullptr;
 
   if (0 == procPID || FAKE_ROOT_PID == procPID) {
@@ -116,10 +116,14 @@ void ProcsTreeBuilder::PrintTree(int const procPID) {
     pNode = ptr_search_tree_node_;
   }
 
-
   if (!pNode) {
     ucout << _T("Invalid process") << std::endl;
     return;
+  }
+
+  // Print header only if requested
+  if (print_header) {
+    ucout << _T("PID\tProcess Name") << std::endl;
   }
 
 #ifdef __linux__

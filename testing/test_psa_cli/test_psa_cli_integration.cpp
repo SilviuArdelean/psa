@@ -8,13 +8,10 @@
  */
 
 #include <gtest/gtest.h>
-#include <chrono>
 #include <cstdio>
 #include <fstream>
 #include <iostream>
 #include <sstream>
-#include <thread>
-#include <vector>
 #include "pch.h"
 #ifdef _WIN32
 #include <windows.h>
@@ -31,10 +28,18 @@ extern int optind;
 // Forward declaration
 bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO);
 
+// Test-only subclass to force header printing for tree output
+class TestProcessingOperationsWithHeader : public ProcessingOperations {
+ public:
+  void GenerateProcessesTree(int const proc_pid,
+                             bool print_header = false) override {
+    ProcessingOperations::GenerateProcessesTree(proc_pid, true);
+  }
+};
+
 // Cross-platform capture of ucout (std::wcout or std::cout) and C stdout
 #include <cstdio>
 #include <sstream>
-#include <vector>
 #ifdef _WIN32
 #include <fcntl.h>
 #include <io.h>
@@ -169,7 +174,7 @@ class PsaCliIntegrationTest : public ::testing::Test {
   bool run_and_capture(Argv& av, std::wstring& out) {
     UcoutCapture cap;
     StdoutCapture stdcap;
-    ProcessingOperations real;
+    TestProcessingOperationsWithHeader real;
     bool result = ProcessCommandLine(av.argc(), av.argv(), &real);
     out = cap.str();
     // Also append C stdout (converted to wstring)
@@ -184,7 +189,7 @@ class PsaCliIntegrationTest : public ::testing::Test {
   bool run_and_capture(Argv& av, std::string& out) {
     UcoutCapture cap;
     StdoutCapture stdcap;
-    ProcessingOperations real;
+    TestProcessingOperationsWithHeader real;
     bool result = ProcessCommandLine(av.argc(), av.argv(), &real);
     out = cap.str();
     out += stdcap.str();
