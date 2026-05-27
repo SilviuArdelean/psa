@@ -15,10 +15,8 @@ set(PSA_HEADERS
     pch.h
 )
 
-# --- Windows-only helper (XGetopt — replaces POSIX getopt) ---
 if(WIN32)
-    list(APPEND PSA_SOURCES psa-win/XGetopt.cpp)
-    list(APPEND PSA_HEADERS psa-win/XGetopt.h psa-win/targetver.h)
+    list(APPEND PSA_HEADERS psa-win/targetver.h)
 endif()
 
 add_executable(psa ${PSA_SOURCES} ${PSA_HEADERS})
