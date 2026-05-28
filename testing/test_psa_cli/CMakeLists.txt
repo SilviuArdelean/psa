@@ -29,8 +29,10 @@ set(TEST_PSA_SOURCES
     test_psa_cli.cpp
     test_psa_cli_integration.cpp
     test_psa_cli_main.cpp
+    "${CMAKE_SOURCE_DIR}/src/psa_cli_parsing.cpp"
     "${CMAKE_SOURCE_DIR}/src/psa.cpp"
     "${CMAKE_SOURCE_DIR}/src/operations.cpp"
+    "${CMAKE_SOURCE_DIR}/src/process_actions.cpp"
     "${CMAKE_SOURCE_DIR}/src/processes_tree_builder.cpp"
 )
 

@@ -35,9 +35,9 @@ class string_utils {
 
   [[nodiscard]] static bool is_filename(const ustring& filename) {
 #ifdef UNICODE
-    const std::wregex pattern(_T("^([a-zA-Z0-9s._-]+)$"));
+    const std::wregex pattern(_T("^([a-zA-Z0-9\\s._-]+)$"));
 #else
-    const std::regex pattern("^([a-zA-Z0-9s._-]+)$");
+    const std::regex pattern("^([a-zA-Z0-9\\s._-]+)$");
 #endif
 
     return std::regex_match(filename.cbegin(), filename.cend(), pattern);
@@ -66,7 +66,7 @@ class string_utils {
 
   [[nodiscard]] static bool is_number(const ustring& s) {
     return (!s.empty() && std::find_if(s.begin(), s.end(), [](TCHAR c) {
-                            return !std::isdigit(c);
+                            return !(c >= _T('0') && c <= _T('9'));
                           }) == s.end());
   }
 
