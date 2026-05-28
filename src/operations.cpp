@@ -71,10 +71,11 @@ bool ProcessingOperations::BuildProcessesMap() {
   map_processes_.clear();
 
   do {
+    ustring cmdline = process_operations::GetProcessCmdLine(pe32.th32ProcessID);
     map_processes_.emplace(
         pe32.th32ProcessID,
         proc_info(pe32.th32ProcessID, pe32.th32ParentProcessID, pe32.szExeFile,
-                  GetProcessUsedMemory(pe32.th32ProcessID)));
+                  GetProcessUsedMemory(pe32.th32ProcessID), cmdline));
 
   } while (Process32Next(hProcessSnap, &pe32));
 
@@ -92,11 +93,13 @@ bool ProcessingOperations::BuildProcessesMap() {
   map_processes_.clear();
 
   while (readproc(proc, &_process) != NULL) {
+    ustring cmdline = (_process.cmdline != NULL) ? *_process.cmdline : _process.cmd;
     map_processes_.emplace(
         _process.tid,
         proc_info(_process.tid, _process.ppid,
                   (_process.cmdline != NULL) ? *_process.cmdline : _process.cmd,
-                  _process.vsize));
+                  _process.vsize,
+                  cmdline));
   }
 
   closeproc(proc);
@@ -333,6 +336,14 @@ void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam,
 
   if (string_utils::is_number(argvProcessParam)) {
     int pid = utoi(argvProcessParam);
+    if (!cmdline_filter.empty()) {
+      ustring proc_cmdline = process_operations::GetProcessCmdLine(pid);
+      if (!string_utils::search_substring(proc_cmdline, cmdline_filter)) {
+        ucout << _T("Process PID [") << pid
+              << _T("] does not match the command line filter.") << std::endl;
+        return;
+      }
+    }
     process_operations::kill_process_by_pid_optimized(pid, map_processes_);
   } else {
     process_operations::kill_process_by_name_optimized(
