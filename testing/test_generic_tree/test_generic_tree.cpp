@@ -44,7 +44,7 @@ void print_tree_indented(std::ostream& os,
   for (int i = 0; i < indent; ++i)
     os << "  ";
   os << node->data << "\n";
-  for (auto child : node->listChildren) {
+  for (auto child : node->list_children) {
     print_tree_indented(os, child, indent + 1);
   }
 }
@@ -129,9 +129,9 @@ TEST_F(GenericTreeTest, TreeStructureIsCorrect) {
   ASSERT_NE(ptrRoot, nullptr);
   EXPECT_EQ(ptrRoot->data, 333);
   // Root should have 5 children
-  EXPECT_EQ(ptrRoot->listChildren.size(), 5);
+  EXPECT_EQ(ptrRoot->list_children.size(), 5);
   // Check some children values
-  auto it = ptrRoot->listChildren.begin();
+  auto it = ptrRoot->list_children.begin();
   EXPECT_EQ((*it)->data, 22);
   ++it;
   EXPECT_EQ((*it)->data, 12);
@@ -156,7 +156,7 @@ TEST(GenericTreeEdgeCases, SingleNodeTree) {
   ASSERT_NE(root, nullptr);
   EXPECT_EQ(root->data, 42);
   EXPECT_EQ(root->parent, nullptr);
-  EXPECT_TRUE(root->listChildren.empty());
+  EXPECT_TRUE(root->list_children.empty());
 }
 
 // ===================== Add Nodes =====================
@@ -164,19 +164,20 @@ TEST(GenericTreeOperations, AddChildToRoot) {
   generic_tree<INT> tree(nullptr, 1);
   auto root = tree.get_root();
   auto child = tree.add(root, 2);
-  ASSERT_EQ(root->listChildren.size(), 1);
-  EXPECT_EQ((*root->listChildren.begin())->data, 2);
+  ASSERT_EQ(root->list_children.size(), 1);
+  EXPECT_EQ((*root->list_children.begin())->data, 2);
   EXPECT_EQ(child->parent, root);
 }
 
 TEST(GenericTreeOperations, AddMultipleChildren) {
   generic_tree<INT> tree(nullptr, 10);
   auto root = tree.get_root();
-  tree.add(root, 2);
+  auto first_child = tree.add(root, 2);
   tree.add(root, 3);
-  tree.add(root->listChildren.front(), 4);
-  EXPECT_EQ((*root->listChildren.begin())->data, 20);
-  EXPECT_EQ((*std::next(root->listChildren.begin()))->data, 30);
+  auto nested = tree.add(root->list_children.front(), 4);
+  EXPECT_EQ((*root->list_children.begin())->data, 2);
+  EXPECT_EQ((*std::next(root->list_children.begin()))->data, 3);
+  EXPECT_EQ(nested->parent, first_child);
 }
 
 // ===================== Root Access =====================
@@ -206,7 +207,7 @@ TEST(GenericTreePrint, PrintTreeIndentedOutput) {
   auto root = tree.get_root();
   tree.add(root, 2);
   tree.add(root, 3);
-  tree.add(root->listChildren.front(), 4);
+  tree.add(root->list_children.front(), 4);
   std::ostringstream oss;
   tree.print_tree(oss);
   std::string expected = "1\n  2\n    4\n  3\n";
@@ -270,7 +271,7 @@ TEST(GenericTreeCopyMove, CopyConstructorCreatesDeepCopy) {
   auto root = tree.get_root();
   tree.add(root, 2);
   tree.add(root, 3);
-  tree.add(root->listChildren.front(), 4);
+  tree.add(root->list_children.front(), 4);
   generic_tree<INT> copy(tree);
   std::ostringstream oss1, oss2;
   tree.print_tree(oss1);

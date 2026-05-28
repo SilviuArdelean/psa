@@ -25,7 +25,136 @@
 
 #include "cxxopts.hpp"
 #include "operations.h"
-#include "string_utils.h"
+#include "psa_cli_parsing.h"
+
+void ShowAvailableInformation();
+static ustring to_ustring(const std::string& s);
+
+namespace {
+
+cxxopts::Options create_options() {
+  cxxopts::Options options("psa", "Processes Status Analysis");
+  options.add_options()("a", "List all processes information")(
+      "e,entries",
+      "Top [no] most expensive memory consuming processes (default: 10)",
+      cxxopts::value<int>()->implicit_value("10"),
+      "[no]")("k", "Kill specific process by PID or name",
+              cxxopts::value<std::string>(),
+              "<name|pid>")("o", "Info for one process matching name criteria",
+                            cxxopts::value<std::string>(), "<name|pid>")(
+      "d", "Process details with command line for matching process(es)",
+      cxxopts::value<std::string>(), "<name|pid>")
+#ifdef _WIN32
+      ("t,tree", "Tree snapshot of current processes",
+       cxxopts::value<int>()->implicit_value("0"), "[pid]")
+#else
+      ("t,tree", "Tree snapshot of current processes",
+       cxxopts::value<int>()->implicit_value("1"), "[pid]")
+#endif
+          ("h,help", "Show available options");
+  return options;
+}
+
+bool handle_filter_option(const cxxopts::ParseResult& result,
+                          const char* key,
+                          bool show_details,
+                          ProcessingOperations* processing_operations,
+                          bool& good_params) {
+  if (!result.count(key)) {
+    return true;
+  }
+
+  const std::string& value = result[key].as<std::string>();
+  if (cli_parsing::is_flag_like_value(value)) {
+    return false;
+  }
+
+  const auto filter = to_ustring(value);
+  const bool ok =
+      show_details
+          ? processing_operations->PrintProcessInformation(filter, true)
+          : processing_operations->PrintProcessInformation(filter);
+  if (!ok) {
+    return false;
+  }
+
+  good_params = true;
+  return true;
+}
+
+bool handle_kill_option(const cxxopts::ParseResult& result,
+                        ProcessingOperations* processing_operations,
+                        bool& good_params) {
+  if (!result.count("k")) {
+    return true;
+  }
+
+  const std::string& value = result["k"].as<std::string>();
+  if (cli_parsing::is_flag_like_value(value)) {
+    return false;
+  }
+
+  const auto filter = to_ustring(value);
+  processing_operations->KillProcesses(filter.c_str());
+  good_params = true;
+  return true;
+}
+
+void handle_entries_option(const cxxopts::ParseResult& result,
+                           ProcessingOperations* processing_operations,
+                           bool& good_params) {
+  if (!result.count("e")) {
+    return;
+  }
+
+  int top = result["e"].as<int>();
+  if (top <= 0)
+    top = 10;
+
+  processing_operations->PrintTopExpensiveProcesses(top);
+  good_params = true;
+}
+
+bool dispatch_requested_options(const cxxopts::ParseResult& result,
+                                ProcessingOperations* processing_operations) {
+  bool good_params = false;
+
+  if (result.count("a")) {
+    if (!processing_operations->PrintAllProcessesInformation())
+      return false;
+    good_params = true;
+  }
+
+  handle_entries_option(result, processing_operations, good_params);
+
+  if (!handle_kill_option(result, processing_operations, good_params)) {
+    return false;
+  }
+
+  if (!handle_filter_option(result, "o", false, processing_operations,
+                            good_params)) {
+    return false;
+  }
+
+  if (!handle_filter_option(result, "d", true, processing_operations,
+                            good_params)) {
+    return false;
+  }
+
+  if (result.count("t")) {
+    processing_operations->GenerateProcessesTree(result["t"].as<int>());
+    good_params = true;
+  }
+
+  if (!good_params) {
+    ShowAvailableInformation();
+    return false;
+  }
+
+  return true;
+}
+
+}  // namespace
 
 void ShowParameters() {
   ucout << _T("    -a    : list all processes information") << std::endl;
@@ -45,16 +174,6 @@ void ShowParameters() {
 }
 
 void ShowAvailableInformation() {
-  // a = list all processes information
-  // e = top [no] most expensive memory consuming processes | top 10 by default
-  // k = kill by process PID
-  // o = info only one process name criteria
-  // d = show command line details per process (modifier for -o)
-  // t = tree snapshot of current processes
-  // nice to have
-  // chose stream (iostream / fstream)
-  // specify additional pid as root to build the tree
-
   ucout << _T("----------------------------------------------------------")
         << std::endl;
   ucout << _T("     psa - Processes Status Analysis - version 0.4")
@@ -72,16 +191,14 @@ void ShowAvailableInformation() {
         << std::endl;
 }
 
-// Converts a narrow UTF-8 string (from cxxopts) to the project's native string
-// type. On Windows Unicode builds this widens to UTF-16; on Linux it's a no-op.
+// Convert parsed option values to the project's string type.
 static ustring to_ustring(const std::string& s) {
 #ifdef _WIN32
-  // argv is in the current code page (ACP), not UTF-8
   int wlen = MultiByteToWideChar(CP_ACP, 0, s.c_str(), -1, nullptr, 0);
   if (wlen > 1) {
     std::wstring ws(wlen, L'\0');
     MultiByteToWideChar(CP_ACP, 0, s.c_str(), -1, &ws[0], wlen);
-    ws.resize(wlen - 1);  // remove null terminator
+    ws.resize(wlen - 1);
     return ws;
   } else {
     return std::wstring();
@@ -92,84 +209,24 @@ static ustring to_ustring(const std::string& s) {
 }
 
 bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
-  // Backward compatibility: preserve support for space-separated forms (e.g.,
-  // -e 5, -t 1234) and accept upper-case flags on Windows by mapping them to
-  // lowercase.
-  // Special-case: if any argument is exactly "-?", show help and return true
-  for (int i = 1; i < argc; ++i) {
-    if (std::strcmp(argv[i], "-?") == 0) {
-      ShowAvailableInformation();
-      return true;
-    }
+  // Handle legacy help switch before parsing.
+  if (cli_parsing::has_legacy_help_switch(argc, argv)) {
+    ShowAvailableInformation();
+    return true;
   }
+
   if (!pPO) {
     ucout << _T("Internal error: ")
-          << PSA_INTERNAL_ERRORS::invalid_processing_operations;
+          << static_cast<int>(
+                 PSA_INTERNAL_ERRORS::invalid_processing_operations);
     return false;
   }
 
-  // cxxopts does not consume a space-separated token for implicit-value options
-  // (e.g. "-e 5" or "-t 1234"). Pre-process argv to merge such pairs into the
-  // "=" form ("-e=5", "-t=1234") so the original calling convention is
-  // preserved. Additionally, on Windows, map upper-case flags to lower-case for
-  // backward compatibility.
-  static const auto is_all_digits = [](const char* s) {
-    if (!s || !*s)
-      return false;
-    while (*s) {
-      if (!isdigit(static_cast<unsigned char>(*s++)))
-        return false;
-    }
-    return true;
-  };
-  std::vector<std::string> cooked_storage;
-  std::vector<const char*> cooked_argv;
-  cooked_storage.reserve(argc);
-  cooked_argv.reserve(argc);
-  for (int i = 0; i < argc; ++i) {
-    std::string a = argv[i];
-#ifdef _WIN32
-    // Map upper-case flag to lower-case for aliased options
-    if (a.size() == 2 && a[0] == '-' && std::strchr("ADEKOT", a[1])) {
-      a[1] = static_cast<char>(tolower(a[1]));
-    }
-#endif
-    if ((a == "-e" || a == "-t") && i + 1 < argc &&
-        is_all_digits(argv[i + 1])) {
-      // implicit_value options can't consume space-separated tokens as short
-      // opts. Use the long-option "=" form which cxxopts handles correctly.
-      std::string longform = (a == "-e") ? "--entries=" : "--tree=";
-      cooked_storage.push_back(longform + argv[i + 1]);
-      ++i;
-    } else {
-      cooked_storage.push_back(std::move(a));
-    }
-  }
-  for (const auto& s : cooked_storage)
-    cooked_argv.push_back(s.c_str());
+  auto cooked_storage = cli_parsing::normalize_arguments(argc, argv);
+  auto cooked_argv = cli_parsing::build_argv_view(cooked_storage);
   const int cooked_argc = static_cast<int>(cooked_argv.size());
 
-  cxxopts::Options options("psa", "Processes Status Analysis");
-  options.add_options()("a", "List all processes information")(
-      "e,entries",
-      "Top [no] most expensive memory consuming processes (default: 10)",
-      cxxopts::value<int>()->implicit_value("10"),
-      "[no]")("k", "Kill specific process by PID or name",
-              cxxopts::value<std::string>(),
-              "<name|pid>")("o", "Info for one process matching name criteria",
-                            cxxopts::value<std::string>(), "<name|pid>")(
-      "d", "Process details with command line for matching process(es)",
-      cxxopts::value<std::string>(), "<name|pid>")
-#ifdef _WIN32
-      ("t,tree", "Tree snapshot of current processes",
-       cxxopts::value<int>()->implicit_value("0"),
-       "[pid]")  // Windows ROOT PID = 0
-#else
-      ("t,tree", "Tree snapshot of current processes",
-       cxxopts::value<int>()->implicit_value("1"),
-       "[pid]")  // Linux ROOT PID = 1
-#endif
-      ("h,help", "Show available options");
+  auto options = create_options();
 
   cxxopts::ParseResult result;
   try {
@@ -185,68 +242,7 @@ bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
     return true;
   }
 
-  bool good_params = false;
-
-  if (result.count("a")) {
-    if (!pPO->PrintAllProcessesInformation())
-      return false;
-    good_params = true;
-  }
-
-  if (result.count("e")) {
-    int top = result["e"].as<int>();
-    if (top <= 0)
-      top = 10;
-    pPO->PrintTopExpensiveProcesses(top);
-    good_params = true;
-  }
-
-  if (result.count("k")) {
-    const std::string& val = result["k"].as<std::string>();
-    if (!val.empty() && val[0] == '-') {
-      // Reject flag-looking argument as value
-      return false;
-    }
-    const auto searchfor = to_ustring(val);
-    pPO->KillProcesses(searchfor.c_str());
-    good_params = true;
-  }
-
-  if (result.count("o")) {
-    const std::string& val = result["o"].as<std::string>();
-    if (!val.empty() && val[0] == '-') {
-      // Reject flag-looking argument as value
-      return false;
-    }
-    const auto searchfor = to_ustring(val);
-    if (!pPO->PrintProcessInformation(searchfor))
-      return false;
-    good_params = true;
-  }
-
-  if (result.count("d")) {
-    const std::string& val = result["d"].as<std::string>();
-    if (!val.empty() && val[0] == '-') {
-      // Reject flag-looking argument as value
-      return false;
-    }
-    const auto searchfor = to_ustring(val);
-    if (!pPO->PrintProcessInformation(searchfor, true))
-      return false;
-    good_params = true;
-  }
-
-  if (result.count("t")) {
-    pPO->GenerateProcessesTree(result["t"].as<int>());
-    good_params = true;
-  }
-
-  if (!good_params) {
-    ShowAvailableInformation();
-    return false;
-  }
-
-  return true;
+  return dispatch_requested_options(result, pPO);
 }
 
 #ifndef PSA_TEST_BUILD

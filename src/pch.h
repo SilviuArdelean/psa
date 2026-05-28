@@ -7,6 +7,7 @@
 // Standard C++ headers
 #include <algorithm>
 #include <cctype>
+#include <cstring>
 #include <format>
 #include <iostream>
 #include <map>
