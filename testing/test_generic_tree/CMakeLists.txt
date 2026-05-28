@@ -1,35 +1,38 @@
 # ---------------------------------------------------------------------------
-# test_generic_tree — unit-test executable
+# test_generic_tree — GTest unit tests for generic_tree
 # ---------------------------------------------------------------------------
+
+include(FetchContent)
+
+# ---------------------------------------------------------------------------
+# Google Test v1.14.0 — fetched at configure time
+# ---------------------------------------------------------------------------
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+    googletest
+    URL      https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    URL_HASH SHA256=1f357c27ca988c3f7c6b4bf68a9395005ac6761f034046e9dde0896e3aba00e4
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+FetchContent_MakeAvailable(googletest)
 
 add_executable(test_generic_tree
     test_generic_tree.cpp
-    # stdafx.cpp is a legacy PCH stub; its content is just the PCH create step.
-    # CMake uses target_precompile_headers instead — no need to compile it separately.
 )
 
 target_include_directories(test_generic_tree PRIVATE
-    "${PSA_INCLUDE_DIR}"                       # include/  (generic_tree.h, general.h, etc.)
-    "${CMAKE_CURRENT_SOURCE_DIR}"              # testing/test_generic_tree/ (stdafx.h, targetver.h)
+    "${PSA_INCLUDE_DIR}"
+    "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-# ---------------------------------------------------------------------------
-# Precompiled header — modern CMake equivalent of the old <PrecompiledHeader>
-# stdafx.h is Windows-specific, so only enable it for WIN32 builds.
-# ---------------------------------------------------------------------------
-if(WIN32)
-    target_precompile_headers(test_generic_tree PRIVATE stdafx.h)
-endif()
-
-# ---------------------------------------------------------------------------
-# Platform flags  (test project mirrors psa-win defines; no procps needed)
-# ---------------------------------------------------------------------------
 if(WIN32)
     target_compile_definitions(test_generic_tree PRIVATE
         _WIN32
         _CONSOLE
         UNICODE
         _UNICODE
+        _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
         $<$<CONFIG:Debug>:_DEBUG>
         $<$<CONFIG:Release>:NDEBUG>
     )
@@ -48,6 +51,7 @@ if(WIN32)
             $<$<CONFIG:Release>:/OPT:ICF>
         )
     endif()
+    target_link_libraries(test_generic_tree PRIVATE psapi shlwapi GTest::gtest GTest::gtest_main)
 elseif(UNIX)
     target_compile_options(test_generic_tree PRIVATE
         -Wall
@@ -59,12 +63,11 @@ elseif(UNIX)
         $<$<CONFIG:Debug>:_DEBUG>
         $<$<CONFIG:Release>:NDEBUG>
     )
+    target_link_libraries(test_generic_tree PRIVATE GTest::gtest GTest::gtest_main)
 endif()
 
 # ---------------------------------------------------------------------------
-# CTest integration — enable_testing() is called in the root CMakeLists.txt
+# CTest integration — each TEST/TEST_F becomes a separate CTest case
 # ---------------------------------------------------------------------------
-# Use $<TARGET_FILE:...> so CTest resolves the exact binary path at build time,
-# including multi-config generators (Visual Studio / Ninja Multi-Config) that
-# place outputs under bin/<Config>/ rather than bin/.
-add_test(NAME test_generic_tree COMMAND $<TARGET_FILE:test_generic_tree>)
+include(GoogleTest)
+gtest_discover_tests(test_generic_tree)
