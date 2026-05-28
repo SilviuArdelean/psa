@@ -21,46 +21,16 @@
  */
 
 #pragma once
-#include "general.h"
 
-class smart_handle {
-  HANDLE handle_;
+#include <string>
+#include <vector>
 
-  static bool is_valid(HANDLE h) noexcept {
-    return h != nullptr && h != INVALID_HANDLE_VALUE;
-  }
+namespace cli_parsing {
 
- public:
-  smart_handle(const HANDLE& h) : handle_(h) {}
+bool has_legacy_help_switch(int argc, char* argv[]);
+std::vector<std::string> normalize_arguments(int argc, char* argv[]);
+std::vector<const char*> build_argv_view(
+    const std::vector<std::string>& cooked_storage);
+bool is_flag_like_value(const std::string& value);
 
-  ~smart_handle() {
-    if (is_valid(handle_)) {
-      CloseHandle(handle_);
-      handle_ = nullptr;
-    }
-  }
-
-  HANDLE get_handle() const { return handle_; }
-
-  smart_handle(const smart_handle&) = delete;
-  smart_handle& operator=(const smart_handle&) = delete;
-
-  smart_handle(smart_handle&& rhs) noexcept : handle_(rhs.handle_) {
-    rhs.handle_ = nullptr;
-  }
-
-  smart_handle& operator=(smart_handle&& rhs) noexcept {
-    if (this != &rhs) {
-      if (is_valid(handle_))
-        CloseHandle(handle_);
-      handle_ = rhs.handle_;
-      rhs.handle_ = nullptr;
-    }
-    return *this;
-  }
-
-  operator HANDLE() const { return handle_; }
-
-  operator bool() const { return is_valid(handle_); }
-  bool operator!() const { return !is_valid(handle_); }
-};
+}  // namespace cli_parsing

@@ -4,13 +4,16 @@
 
 # --- Source files shared across all platforms ---
 set(PSA_SOURCES
+    psa_cli_parsing.cpp
     psa.cpp
     operations.cpp
     processes_tree_builder.cpp
+    process_actions.cpp
 )
 
 set(PSA_HEADERS
     operations.h
+    psa_cli_parsing.h
     processes_tree_builder.h
     pch.h
 )

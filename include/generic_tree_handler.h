@@ -66,13 +66,13 @@ class generic_tree_handler {
 
     ucout << node->data << std::endl;
 
-    for (auto it = node->listChildren.begin(); it != node->listChildren.end();
+    for (auto it = node->list_children.begin(); it != node->list_children.end();
          ++it) {
       auto it_temp = it;
       it_temp++;
 
-      if (node->parent == nullptr && it_temp == node->listChildren.end()) {
-        lastRN = true;  // the last child of the root
+      if (node->parent == nullptr && it_temp == node->list_children.end()) {
+        lastRN = true;
       }
 
       dfs_traverse(*it, lastRN);
@@ -93,7 +93,10 @@ class generic_tree_handler {
           ucout << _T("\u2514\u2500\u2500\u2500 ");  // "└───"
       } else {
         for (auto i = 1; i < node->level; i++) {
-          ucout << _T("    ");
+          if (!lastRN)
+            ucout << _T("\u2502   ");  // "│   "
+          else
+            ucout << _T("    ");
         }
 
         ucout << _T("\u2514\u2500\u2500\u2500 ");  // "└───"
@@ -105,12 +108,12 @@ class generic_tree_handler {
     else
       ucout << node->data;
 
-    for (auto it = node->listChildren.begin(); it != node->listChildren.end();
+    for (auto it = node->list_children.begin(); it != node->list_children.end();
          ++it) {
       auto it_temp = it;
       it_temp++;
 
-      if (node->parent == nullptr && it_temp == node->listChildren.end()) {
+      if (node->parent == nullptr && it_temp == node->list_children.end()) {
         lastRN = true;  // the last child of the root
       }
 
@@ -138,7 +141,7 @@ class generic_tree_handler {
 
     ucout << node->data;
 
-    for (auto it = node->listChildren.begin(); it != node->listChildren.end();
+    for (auto it = node->list_children.begin(); it != node->list_children.end();
          ++it) {
       dfs_traverse_nonunicode(*it);
     }
@@ -149,7 +152,7 @@ class generic_tree_handler {
  private:
   ProcsTreeBuilder* parent = nullptr;
 
-  // Configures stdout for Unicode output — executed exactly once per process.
+  // Configure stdout for Unicode once per process on Windows.
   static void SetupOutput() {
 #ifdef _WIN32
     static std::once_flag flag;

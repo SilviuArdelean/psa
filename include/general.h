@@ -23,9 +23,11 @@
 #pragma once
 
 #include <cctype>
+#include <cstdint>
 #include <iostream>
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #ifdef _WIN32
@@ -38,8 +40,6 @@
 #pragma comment(lib, "psapi.lib")
 #pragma comment(lib, "Shlwapi.lib")
 #endif
-
-/* changed for deprecation warnings */
 
 #ifdef _UNICODE
 #define ustrcmp wcscmp
@@ -65,9 +65,15 @@
 #define utok wcstok_s
 #define SEPARATOR _T("]|[")
 #define uprintf_s wprintf
+#ifndef __T
 #define __T(x) L##x
+#endif
+#ifndef _T
 #define _T(x) __T(x)
+#endif
+#ifndef TCHAR
 #define TCHAR wchar_t
+#endif
 #define ucout std::wcout
 #else
 #define ustrcmp strcmp
@@ -93,85 +99,54 @@
 #define utok strtok_s
 #define SEPARATOR "]|["
 #define uprintf_s printf
+#ifndef _T
 #define _T(x) x
+#endif
+#ifndef TCHAR
 #define TCHAR char
-#define uatoi atoi
+#endif
 #define ucout std::cout
 #endif
 
 #ifdef __linux__
-typedef unsigned long DWORD;
-typedef int64_t ULONG64;
-#define SIZE_T unsigned int64_t
+using DWORD = unsigned long;
+using ULONG64 = int64_t;
+using SIZE_T = std::uint64_t;
 #define utoi atoi
 #elif _WIN32
 #define utoi _ttoi
 #endif
 
 struct proc_info {
-  int procPID;
-  int parentPID;
-  ustring procName;
-  int64_t usedMemory;
+  int proc_pid = 0;
+  int parent_pid = 0;
+  ustring proc_name;
+  int64_t used_memory = 0;
+  ustring cmdline_args;
 
-  proc_info() : procPID(0), parentPID(0), procName(_T("")), usedMemory(0) {}
+  proc_info() = default;
 
-  proc_info(int _procPID,
-            int _parentPID,
-            ustring _procName,
-            int64_t _usedMemory)
-      : procPID(_procPID),
-        parentPID(_parentPID),
-        procName(_procName),
-        usedMemory(_usedMemory) {}
+  proc_info(int procPID,
+            int parentPID,
+            ustring procName,
+            int64_t usedMemory,
+            ustring cmdlineArgs)
+      : proc_pid(procPID),
+        parent_pid(parentPID),
+        proc_name(std::move(procName)),
+        used_memory(usedMemory),
+        cmdline_args(std::move(cmdlineArgs)) {}
 
-  proc_info(const proc_info& rhs)
-      : procPID(rhs.procPID),
-        parentPID(rhs.parentPID),
-        procName(rhs.procName),
-        usedMemory(rhs.usedMemory) {}
+  proc_info(const proc_info& rhs) = default;
 
-  proc_info& operator=(const proc_info& rhs) {
-    if (this != &rhs) {
-      procPID = rhs.procPID;
-      parentPID = rhs.parentPID;
-      procName = rhs.procName;
-      usedMemory = rhs.usedMemory;
-    }
+  proc_info& operator=(const proc_info& rhs) = default;
 
-    return *this;
-  }
+  proc_info(proc_info&& rhs) noexcept = default;
 
-  proc_info(proc_info&& rhs) {
-    procPID = rhs.procPID;
-    parentPID = rhs.parentPID;
-    procName = std::move(rhs.procName);
-    usedMemory = rhs.usedMemory;
-
-    rhs.procPID = 0;
-    rhs.parentPID = 0;
-    rhs.procName.clear();
-    rhs.usedMemory = 0;
-  }
-
-  proc_info& operator=(proc_info&& rhs) {
-    if (this != &rhs) {
-      procPID = rhs.procPID;
-      parentPID = rhs.parentPID;
-      procName = std::move(rhs.procName);
-      usedMemory = rhs.usedMemory;
-
-      rhs.procPID = 0;
-      rhs.parentPID = 0;
-      rhs.procName.clear();
-      rhs.usedMemory = 0;
-    }
-
-    return *this;
-  }
+  proc_info& operator=(proc_info&& rhs) noexcept = default;
 };
 
-typedef std::multimap<DWORD, proc_info> procs_map;
+using procs_map = std::multimap<DWORD, proc_info>;
 
 constexpr ULONG64 KB_DIVIDER = 1024;
 constexpr ULONG64 MB_DIVIDER = 1024 * 1024;
@@ -187,7 +162,7 @@ constexpr double ToGb(ULONG64 bytes) noexcept {
   return static_cast<double>(bytes) / GB_DIVIDER;
 }
 
-#define FAKE_ROOT_PID 999999
-#define FAKE_ROOT_PARENT_PID 1000000
+constexpr int kFakeRootPID = 999999;
+constexpr int kFakeRootParentPID = 1000000;
 
-enum PSA_INTERNAL_ERRORS { invalid_processing_operations = 10001 };
+enum class PSA_INTERNAL_ERRORS : int { invalid_processing_operations = 10001 };

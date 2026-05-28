@@ -181,17 +181,20 @@
     <ClInclude Include="..\..\include\general.h" />
     <ClInclude Include="..\..\include\generic_tree.h" />
     <ClInclude Include="..\..\include\generic_tree_handler.h" />
-    <ClInclude Include="..\..\include\process_operations.h" />
+    <ClInclude Include="..\..\include\process_actions.h" />
     <ClInclude Include="..\..\include\smart_handler.h" />
     <ClInclude Include="..\..\include\string_utils.h" />
     <ClInclude Include="..\operations.h" />
+    <ClInclude Include="..\psa_cli_parsing.h" />
     <ClInclude Include="..\processes_tree_builder.h" />
     <ClInclude Include="..\..\include\cxxopts.hpp" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\operations.cpp" />
+    <ClCompile Include="..\psa_cli_parsing.cpp" />
     <ClCompile Include="..\processes_tree_builder.cpp" />
+    <ClCompile Include="..\process_actions.cpp" />
     <ClCompile Include="..\psa.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
