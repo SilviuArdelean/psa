@@ -1,9 +1,5 @@
 /*
- * Integration tests for psa ProcessCommandLine() with real OS operations.
- *
- * These tests exercise the actual ProcessingOperations implementation and
- * verify that the output is as expected. They do not mock the OS.
- *
+ * Integration tests for ProcessCommandLine() against real OS operations.
  * Copyright (c) 2017-2026 Silviu-Marius Ardelean
  */
 
@@ -19,16 +15,14 @@
 #include "operations.h"
 
 #ifdef _WIN32
-// No getopt header needed on Windows
 extern int optind;
 #else
 #include <unistd.h>
 #endif
 
-// Forward declaration
 bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO);
 
-// Test-only subclass to force header printing for tree output
+// Force header printing for tree output during tests.
 class TestProcessingOperationsWithHeader : public ProcessingOperations {
  public:
   void GenerateProcessesTree(int const proc_pid,
@@ -37,7 +31,6 @@ class TestProcessingOperationsWithHeader : public ProcessingOperations {
   }
 };
 
-// Cross-platform capture of ucout (std::wcout or std::cout) and C stdout
 #include <cstdio>
 #include <sstream>
 #ifdef _WIN32
@@ -71,7 +64,7 @@ class UcoutCapture {
 };
 #endif
 
-// Helper: capture C stdout to a string (cross-platform)
+// Capture C stdout to a temporary file.
 class StdoutCapture {
  public:
   StdoutCapture() {
@@ -83,7 +76,6 @@ class StdoutCapture {
     char tmp_path[MAX_PATH] = {0};
     UINT uRet = 0;
     if (dwRet == 0 || dwRet > MAX_PATH) {
-      // fallback to current directory
       strcpy_s(tmp_dir, ".\\");
     }
     uRet = GetTempFileNameA(tmp_dir, "psa", 0, tmp_path);
@@ -94,7 +86,6 @@ class StdoutCapture {
     }
     FILE* tmp = nullptr;
     if (freopen_s(&tmp, tmp_name.c_str(), "w+b", stdout) != 0 || !tmp) {
-      // fallback: do nothing, stdout will not be captured
       tmp_name.clear();
     }
 #else
@@ -106,7 +97,7 @@ class StdoutCapture {
       tmp_name = "stdout_capture_posix.tmp";
     } else {
       tmp_name = tmp_template;
-      close(fd);  // will reopen with freopen
+      close(fd);
     }
     FILE* tmp = freopen(tmp_name.c_str(), "w+b", stdout);
     if (!tmp) {
@@ -130,7 +121,6 @@ class StdoutCapture {
       close(old_fd);
 #endif
     }
-    // Remove the temp file if it was created
     if (!tmp_name.empty()) {
 #ifdef _WIN32
       DeleteFileA(tmp_name.c_str());
@@ -152,7 +142,6 @@ class StdoutCapture {
   std::string tmp_name;
 };
 
-// Helper: Argv builder
 struct Argv {
   std::vector<std::string> store;
   std::vector<char*> ptrs;
@@ -166,7 +155,6 @@ struct Argv {
   char** argv() { return ptrs.data(); }
 };
 
-// Integration fixture
 class PsaCliIntegrationTest : public ::testing::Test {
  protected:
   void SetUp() override { optind = 0; }
@@ -177,7 +165,6 @@ class PsaCliIntegrationTest : public ::testing::Test {
     TestProcessingOperationsWithHeader real;
     bool result = ProcessCommandLine(av.argc(), av.argv(), &real);
     out = cap.str();
-    // Also append C stdout (converted to wstring)
     std::string cstdout = stdcap.str();
     if (!cstdout.empty()) {
       std::wstring wstdout(cstdout.begin(), cstdout.end());
@@ -287,9 +274,7 @@ TEST_F(PsaCliIntegrationTest, FlagT_TreeSnapshot) {
 #endif
 }
 
-// Helper: spawn a dummy process (ping -n 60 127.0.0.1)
 #ifdef _WIN32
-// Returns process handle (caller must CloseHandle), sets pid
 static HANDLE spawn_dummy_process(DWORD& pid) {
   STARTUPINFOW si = {sizeof(si)};
   PROCESS_INFORMATION pi = {};
@@ -315,7 +300,6 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcess) {
   Argv av{"psa", "-k", pid_str.c_str()};
   std::wstring out;
   EXPECT_TRUE(run_and_capture(av, out));
-  // Safe conversion: build wpid from digits
   std::wstring wpid;
   if (pid_str.empty()) {
     std::wcerr << L"[DEBUG] PID string is empty!\n";
@@ -323,8 +307,7 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcess) {
   for (char c : pid_str)
     wpid += static_cast<wchar_t>(c);
   EXPECT_NE(out.find(wpid), std::wstring::npos);
-  // Confirm process is gone: wait for process to exit
-  DWORD waitResult = WaitForSingleObject(hProcess, 2000);  // 2s timeout
+  DWORD waitResult = WaitForSingleObject(hProcess, 2000);
   EXPECT_TRUE(waitResult == WAIT_OBJECT_0);
   DWORD exitCode = 0;
   BOOL gotExit = GetExitCodeProcess(hProcess, &exitCode);
@@ -333,8 +316,6 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcess) {
   CloseHandle(hProcess);
 }
 #else
-// On Linux, spawn a short-lived background process via fork()/exec() and
-// kill it by PID using the -k flag.
 #include <signal.h>
 #include <sys/types.h>
 #include <sys/wait.h>
@@ -342,11 +323,10 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcess) {
 static pid_t spawn_dummy_process() {
   pid_t pid = fork();
   if (pid == 0) {
-    // Child: sleep long enough for the test to kill it
     execlp("sleep", "sleep", "60", nullptr);
     _exit(1);
   }
-  return pid;  // parent returns child PID (or -1 on fork failure)
+  return pid;
 }
 
 TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcess) {
@@ -361,7 +341,6 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcess) {
   std::this_thread::sleep_for(std::chrono::milliseconds(200));
   // Confirm process is gone — kill(pid, 0) returns -1/ESRCH when not found
   EXPECT_EQ(kill(pid, 0), -1);
-  // Clean up zombie if still present
   waitpid(pid, nullptr, WNOHANG);
 }
 #endif

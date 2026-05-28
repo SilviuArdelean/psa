@@ -30,12 +30,18 @@
     <ClInclude Include="..\..\include\generic_tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\psa_cli_parsing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="test_generic_tree.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\psa_cli_parsing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

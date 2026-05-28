@@ -24,13 +24,96 @@
 #include "pch.h"
 
 #include "fixed_queue.h"
-#include "process_operations.h"
+// RENAMED: process_actions
+#include "process_actions.h"
 #include "processes_tree_builder.h"
 #include "string_utils.h"
 
 #ifdef _WIN32
 #include "smart_handler.h"
 #endif
+
+namespace {
+
+void print_process_row(const proc_info& process, bool bracket_pid) {
+#ifdef _WIN32
+  if (bracket_pid) {
+    uprintf_s(_T("[PID: %d] \t %.4lf MB \t %-15s \n"), process.proc_pid,
+              ToMb(process.used_memory), process.proc_name.c_str());
+    return;
+  }
+
+  uprintf_s(_T("PID [%d] \t %.4lf MB \t %-15s \n"), process.proc_pid,
+            ToMb(process.used_memory), process.proc_name.c_str());
+#else
+  if (bracket_pid) {
+    uprintf_s("[PID: %d] \t %.4lf MB \t %-15s \n", process.proc_pid,
+              ToMb(process.used_memory), process.proc_name.c_str());
+    return;
+  }
+
+  uprintf_s("PID [%d] \t %.4lf MB \t %-15s \n", process.proc_pid,
+            ToMb(process.used_memory), process.proc_name.c_str());
+#endif
+}
+
+void print_total_memory_summary(ULONG64 total_memory, int process_count) {
+  ucout << _T("-----------------------------------") << std::endl;
+  uprintf_s(_T("   Total used memory: %.4lf MB  [ %d processes ]\n"),
+            ToMb(total_memory), process_count);
+}
+
+void print_all_processes_summary(ULONG64 total_memory, int process_count) {
+  ucout << _T("--------------------------------------------------------")
+        << std::endl;
+  uprintf_s(_T("   Total used memory: %.4lf MB  [ %d processes ]\n"),
+            ToMb(total_memory), process_count);
+}
+void print_insufficient_privileges_message() {
+#ifdef _WIN32
+  ucout << _T("Seems psa.exe application runs under not enough privileges. ")
+           _T("Please launch it with administrator privileges.")
+        << std::endl;
+#else
+  ucout << _T("Seems psa application runs under not enough privileges. ")
+           _T("Please ")
+           _T("run it by root privileges.")
+        << std::endl;
+#endif
+}
+
+bool process_matches_filter(const proc_info& process,
+                            const ustring& filter,
+                            bool filter_is_pid) {
+  if (filter_is_pid) {
+    return process.proc_pid == utoi(filter.c_str());
+  }
+
+  return string_utils::search_substring(process.proc_name, filter);
+}
+
+ustring resolve_process_details(const proc_info& process) {
+  if (!process.cmdline_args.empty()) {
+    return process.cmdline_args;
+  }
+
+  return process_actions::GetProcessCmdLine(process.proc_pid);
+}
+
+void print_process_details(const proc_info& process) {
+  const auto cmdline = resolve_process_details(process);
+  if (!cmdline.empty()) {
+    ucout << _T("   cmdl: [ ") << cmdline.c_str() << _T(" ]") << std::endl;
+    return;
+  }
+
+  const auto path = process_actions::GetProcessPath(process.proc_pid);
+  if (!path.empty()) {
+    ucout << _T("   path: [ ") << path.c_str() << _T(" ]") << std::endl;
+  }
+}
+
+}  // namespace
 
 ProcessingOperations::ProcessingOperations(void) {}
 
@@ -47,24 +130,17 @@ bool ProcessingOperations::BuildProcessesMap() {
 
   PROCESSENTRY32 pe32;
 
-  // Take a snapshot of all processes in the system.
   smart_handle hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
   if (hProcessSnap == INVALID_HANDLE_VALUE) {
     PrintError(TEXT("CreateToolhelp32Snapshot (of processes)"));
     return FALSE;
   }
 
-  // Set the size of the structure before using it.
   pe32.dwSize = sizeof(PROCESSENTRY32);
 
-  // Retrieve information about the first process,
-  // and exit if unsuccessful
+  // Start iteration from the first process entry.
   if (!Process32First(hProcessSnap, &pe32)) {
-    PrintError(TEXT(
-        "Retrieve information about the first process has failed"));  // show
-                                                                      // cause
-                                                                      // of
-                                                                      // failure
+    PrintError(TEXT("Retrieve information about the first process has failed"));
     return FALSE;
   }
 
@@ -74,20 +150,18 @@ bool ProcessingOperations::BuildProcessesMap() {
     map_processes_.emplace(
         pe32.th32ProcessID,
         proc_info(pe32.th32ProcessID, pe32.th32ParentProcessID, pe32.szExeFile,
-                  GetProcessUsedMemory(pe32.th32ProcessID)));
+                  GetProcessUsedMemory(pe32.th32ProcessID),
+                  process_actions::GetProcessCmdLine(pe32.th32ProcessID)));
 
   } while (Process32Next(hProcessSnap, &pe32));
 
 #else
 
-  PROCTAB* proc = openproc(PROC_FILLARG       // fillarg used for cmdline
-                           | PROC_FILLSTAT);  // fillstat used for cmd
+  PROCTAB* proc = openproc(PROC_FILLARG | PROC_FILLSTAT);
 
-  static proc_t _process;  // needs static because of readproc() throws
-                           // segmantation fault unleast on Ubuntu 16
-                           // https://gitlab.com/procps-ng/procps/issues/33
+  // Keep this static to avoid procps readproc crashes seen on older Ubuntu.
+  static proc_t _process;
 
-  // zero out the allocated proc_info memory
   memset(&_process, 0, sizeof(_process));
   map_processes_.clear();
 
@@ -96,7 +170,8 @@ bool ProcessingOperations::BuildProcessesMap() {
         _process.tid,
         proc_info(_process.tid, _process.ppid,
                   (_process.cmdline != NULL) ? *_process.cmdline : _process.cmd,
-                  _process.vsize));
+                  _process.vsize,
+                  process_actions::GetProcessCmdLine(_process.tid)));
   }
 
   closeproc(proc);
@@ -143,9 +218,9 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
       top);
 
   for (const auto& proc : map_processes_ | std::views::values) {
-    top_queue.push({.pid = proc.procPID,
-                    .proc_name = proc.procName,
-                    .mem_usage = static_cast<ULONG64>(proc.usedMemory)});
+    top_queue.push({.pid = proc.proc_pid,
+                    .proc_name = proc.proc_name,
+                    .mem_usage = static_cast<ULONG64>(proc.used_memory)});
   }
 
   ULONG64 processesAllSize = 0;
@@ -153,8 +228,7 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   ucout << _T(" Top ") << top << _T(" most consuming memory processes \n");
   ShowHeader();
 
-  // Copy out to a vector and sort - avoids breaking the heap invariant in
-  // fixed_queue by never calling pop() on a sorted container.
+  // Copy to a vector, then sort it for display without mutating fixed_queue.
   std::vector<data4sort> sorted(top_queue.begin(), top_queue.end());
   std::sort(sorted.begin(), sorted.end(), [](const auto& l, const auto& r) {
     return l.mem_usage > r.mem_usage;
@@ -190,28 +264,17 @@ bool ProcessingOperations::PrintAllProcessesInformation(
   ShowHeader();
 
   for (const auto& proc : map_processes_ | std::views::values) {
-    auto procPID = proc.procPID;
-
-#ifdef _WIN32
-    uprintf_s(_T("PID [%d] \t %.4lf MB \t %-15s \n"), procPID,
-              ToMb(proc.usedMemory), proc.procName.c_str());
-#else
-    uprintf_s("PID [%d] \t %.4lf MB \t %-15s \n", procPID,
-              ToMb(proc.usedMemory), proc.procName.c_str());
-#endif
+    print_process_row(proc, false);
 
     if (show_details)
-      static_cast<void>(PrintProcessDetailedInfo(procPID));
+      static_cast<void>(PrintProcessDetailedInfo(proc.proc_pid));
 
-    processesAllSize += proc.usedMemory;
+    processesAllSize += proc.used_memory;
     processesCount++;
   }
 
   if (processesCount != 0) {
-    ucout << _T("--------------------------------------------------------")
-          << std::endl;
-    uprintf_s(_T("   Total used memory: %.4lf MB  [ %d processes ]\n"),
-              ToMb(processesAllSize), processesCount);
+    print_all_processes_summary(processesAllSize, processesCount);
   }
 
   return true;
@@ -227,58 +290,27 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
 
   ShowHeader();
 
-  // https://msdn.microsoft.com/en-us/library/windows/desktop/ms682050(v=vs.85).aspx
   const bool filter_is_pid = string_utils::is_number(filter);
-  auto matching = map_processes_ | std::views::values |
-                  std::views::filter([&](const proc_info& p) {
-                    if (filter_is_pid)
-                      return p.procPID == utoi(filter.c_str());
-                    return string_utils::search_substring(p.procName, filter);
-                  });
-
-  for (const auto& proc : matching) {
-    auto proc_pid = proc.procPID;
-
-#ifdef _WIN32
-    uprintf_s(_T("[PID: %d] \t %.4lf MB \t %-15s \n"), proc_pid,
-              ToMb(proc.usedMemory), proc.procName.c_str());
-#else
-    uprintf_s("[PID: %d] \t %.4lf MB \t %-15s \n", proc_pid,
-              ToMb(proc.usedMemory), proc.procName.c_str());
-#endif
-
-    if (show_details) {
-      const auto cmdline = process_operations::GetProcessCmdLine(proc_pid);
-      if (!cmdline.empty()) {
-        ucout << _T("   cmdl: [ ") << cmdline.c_str() << _T(" ]") << std::endl;
-      } else {
-        const auto path = process_operations::GetProcessPath(proc_pid);
-        if (!path.empty())
-          ucout << _T("   path: [ ") << path.c_str() << _T(" ]") << std::endl;
-      }
+  for (const auto& proc : map_processes_ | std::views::values) {
+    if (!process_matches_filter(proc, filter, filter_is_pid)) {
+      continue;
     }
 
-    processesAllSize += proc.usedMemory;
+    print_process_row(proc, true);
+
+    if (show_details) {
+      print_process_details(proc);
+    }
+
+    processesAllSize += proc.used_memory;
     processesCount++;
   }
 
   if (processesCount != 0) {
     if (0 != processesAllSize) {
-      ucout << _T("-----------------------------------") << std::endl;
-      uprintf_s(_T("   Total used memory: %.4lf MB  [ %d processes ]\n"),
-                ToMb(processesAllSize), processesCount);
+      print_total_memory_summary(processesAllSize, processesCount);
     } else {
-#ifdef _WIN32
-      ucout
-          << _T("Seems psa.exe application runs under not enough privileges. ")
-             _T("Please launch it with administrator privileges.")
-          << std::endl;
-#else
-      ucout << _T("Seems psa application runs under not enough privileges. ")
-               _T("Please ")
-               _T("run it by root privileges.")
-            << std::endl;
-#endif
+      print_insufficient_privileges_message();
     }
   } else {
     ucout << _T("Undetected process with '") << filter << _T("' name.")
@@ -317,7 +349,7 @@ void ProcessingOperations::GenerateProcessesTree(int const proc_pid,
   constexpr int root_pid = 1;
 #endif
 
-  if (proc_pid == root_pid || proc_pid == FAKE_ROOT_PID ||
+  if (proc_pid == root_pid || proc_pid == kFakeRootPID ||
       map_processes_.find(proc_pid) != map_processes_.end()) {
     tree_builder.PrintTree(proc_pid, print_header);
   } else {
@@ -332,10 +364,10 @@ void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
 
   if (string_utils::is_number(argvProcessParam)) {
     int pid = utoi(argvProcessParam);
-    process_operations::kill_process_by_pid_optimized(pid, map_processes_);
+    process_actions::kill_process_by_pid_optimized(pid, map_processes_);
   } else {
-    process_operations::kill_process_by_name_optimized(argvProcessParam,
-                                                       map_processes_);
+    process_actions::kill_process_by_name_optimized(argvProcessParam,
+                                                    map_processes_);
   }
 }
 
@@ -349,42 +381,19 @@ SIZE_T ProcessingOperations::GetProcessUsedMemory(DWORD const processID) const {
   PROCESS_MEMORY_COUNTERS_EX pmc;
   ::ZeroMemory(&pmc, sizeof(PROCESS_MEMORY_COUNTERS_EX));
 
-  if (K32GetProcessMemoryInfo(hProcess, (PROCESS_MEMORY_COUNTERS*)&pmc,
-                              sizeof(pmc))) {
-    /*
-    printf("\tPageFaultCount: 0x%08X\n", pmc.PageFaultCount);
-    printf("\tPeakWorkingSetSize: 0x%08X\n",
-    pmc.PeakWorkingSetSize);
-    printf("\tWorkingSetSize: 0x%08X\n", pmc.WorkingSetSize);
-    printf("\tQuotaPeakPagedPoolUsage: 0x%08X\n",
-    pmc.QuotaPeakPagedPoolUsage);
-    printf("\tQuotaPagedPoolUsage: 0x%08X\n",
-    pmc.QuotaPagedPoolUsage);
-    printf("\tQuotaPeakNonPagedPoolUsage: 0x%08X\n",
-    pmc.QuotaPeakNonPagedPoolUsage);
-    printf("\tQuotaNonPagedPoolUsage: 0x%08X\n",
-    pmc.QuotaNonPagedPoolUsage);
-    printf("\tPagefileUsage: 0x%08X\n", pmc.PagefileUsage);
-    printf("\tPeakPagefileUsage: 0x%08X\n",
-    pmc.PeakPagefileUsage)
-    */
-  }
+  K32GetProcessMemoryInfo(hProcess, (PROCESS_MEMORY_COUNTERS*)&pmc,
+                          sizeof(pmc));
 
   return pmc.PrivateUsage;
 }
 
-BOOL ProcessingOperations::SetPrivilege(
-    HANDLE hToken,          // access token handle
-    LPCTSTR lpszPrivilege,  // name of privilege to enable/disable
-    BOOL bEnablePrivilege   // to enable or disable privilege
-) {
+BOOL ProcessingOperations::SetPrivilege(HANDLE hToken,
+                                        LPCTSTR lpszPrivilege,
+                                        BOOL bEnablePrivilege) {
   TOKEN_PRIVILEGES tp;
   LUID luid;
 
-  if (!LookupPrivilegeValue(NULL,           // lookup privilege on local system
-                            lpszPrivilege,  // privilege to lookup
-                            &luid))         // receives LUID of privilege
-  {
+  if (!LookupPrivilegeValue(NULL, lpszPrivilege, &luid)) {
     std::cerr << std::format("LookupPrivilegeValue error: {}\n",
                              GetLastError());
     return FALSE;
@@ -393,8 +402,6 @@ BOOL ProcessingOperations::SetPrivilege(
   tp.PrivilegeCount = 1;
   tp.Privileges[0].Luid = luid;
   tp.Privileges[0].Attributes = (bEnablePrivilege) ? SE_PRIVILEGE_ENABLED : 0;
-
-  // Enable the privilege or disable all privileges.
 
   if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES),
                              (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL)) {
@@ -420,11 +427,10 @@ void ProcessingOperations::PrintError(const TCHAR* msg) {
 
   eNum = GetLastError();
   FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                NULL, eNum,
-                MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),  // Default language
-                sysMsg, 256, NULL);
+                NULL, eNum, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), sysMsg,
+                256, NULL);
 
-  // Trim the end of the line and terminate it with a null
+  // Trim trailing punctuation/newline from the system message.
   p = sysMsg;
   while ((*p > 31) || (*p == 9))
     ++p;
@@ -432,7 +438,6 @@ void ProcessingOperations::PrintError(const TCHAR* msg) {
     *p-- = 0;
   } while ((p >= sysMsg) && ((*p == '.') || (*p < 33)));
 
-  // Display the message
   ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg,
                        eNum, sysMsg);
 }

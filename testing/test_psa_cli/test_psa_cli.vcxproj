@@ -190,12 +190,13 @@
     <ClInclude Include="..\..\include\general.h" />
     <ClInclude Include="..\..\include\generic_tree.h" />
     <ClInclude Include="..\..\include\generic_tree_handler.h" />
-    <ClInclude Include="..\..\include\process_operations.h" />
+    <ClInclude Include="..\..\include\process_actions.h" />
     <ClInclude Include="..\..\include\smart_handler.h" />
     <ClInclude Include="..\..\include\string_utils.h" />
     <ClInclude Include="..\..\src\operations.h" />
     <ClInclude Include="..\..\src\processes_tree_builder.h" />
     <ClInclude Include="..\..\src\pch.h" />
+    <ClInclude Include="..\..\src\psa_cli_parsing.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
@@ -203,9 +204,11 @@
     <ClCompile Include="test_psa_cli_integration.cpp" />
     <ClCompile Include="test_psa_cli_main.cpp" />
     <!-- psa sources compiled with PSA_TEST_BUILD to suppress _tmain/main -->
+    <ClCompile Include="..\..\src\psa_cli_parsing.cpp" />
     <ClCompile Include="..\..\src\psa.cpp" />
     <ClCompile Include="..\..\src\operations.cpp" />
     <ClCompile Include="..\..\src\processes_tree_builder.cpp" />
+    <ClCompile Include="..\..\src\process_actions.cpp" />
     <ClCompile Include="$(GTestSrcDir)\src\gtest-all.cc" />
     <ProjectReference Include="..\..\src\gtest.vcxproj" />
   </ItemGroup>
