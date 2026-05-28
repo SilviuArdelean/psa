@@ -35,6 +35,9 @@ void ShowParameters() {
         << std::endl;
   ucout << _T("    -k <name|pid> : kill specific process by PID or name")
         << std::endl;
+  ucout << _T("    -k <name|pid> --cmdline <text> : kill by name or PID, ")
+           _T("filtered by command line substring")
+        << std::endl;
   ucout << _T("    -o <name|pid> : info only one process name criteria ")
         << std::endl;
   ucout << _T("    -d <name|pid> : process details with command line for ")
@@ -47,7 +50,7 @@ void ShowParameters() {
 void ShowAvailableInformation() {
   // a = list all processes information
   // e = top [no] most expensive memory consuming processes | top 10 by default
-  // k = kill by process PID
+  // k = kill by process PID or name, with optional command line filter
   // o = info only one process name criteria
   // d = show command line details per process (modifier for -o)
   // t = tree snapshot of current processes
@@ -156,8 +159,10 @@ bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
       cxxopts::value<int>()->implicit_value("10"),
       "[no]")("k", "Kill specific process by PID or name",
               cxxopts::value<std::string>(),
-              "<name|pid>")("o", "Info for one process matching name criteria",
-                            cxxopts::value<std::string>(), "<name|pid>")(
+              "<name|pid>")("cmdline", "Command line substring filter for kill",
+                            cxxopts::value<std::string>(), "<text>")(
+      "o", "Info for one process matching name criteria",
+      cxxopts::value<std::string>(), "<name|pid>")(
       "d", "Process details with command line for matching process(es)",
       cxxopts::value<std::string>(), "<name|pid>")
 #ifdef _WIN32
@@ -208,7 +213,12 @@ bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
       return false;
     }
     const auto searchfor = to_ustring(val);
-    pPO->KillProcesses(searchfor.c_str());
+    ustring cmdline_filter;
+    if (result.count("cmdline")) {
+      cmdline_filter = to_ustring(result["cmdline"].as<std::string>());
+    }
+    // TODO: Update KillProcesses to accept cmdline_filter in next step
+    pPO->KillProcesses(searchfor.c_str(), cmdline_filter);
     good_params = true;
   }
 

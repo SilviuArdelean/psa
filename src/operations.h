@@ -40,7 +40,8 @@ class ProcessingOperations {
       const ustring& process_name,
       bool const show_details = false);
   virtual void PrintTopExpensiveProcesses(const int top);
-  virtual void KillProcesses(TCHAR const* argvProcessParam);
+  virtual void KillProcesses(TCHAR const* argvProcessParam,
+                             const ustring& cmdline_filter = ustring());
   virtual void GenerateProcessesTree(int const proc_pid,
                                      bool print_header = false);
 

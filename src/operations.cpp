@@ -326,7 +326,8 @@ void ProcessingOperations::GenerateProcessesTree(int const proc_pid,
   }
 }
 
-void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
+void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam,
+                                         const ustring& cmdline_filter) {
   if (!EnsureProcessesMap())
     return;
 
@@ -334,8 +335,8 @@ void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
     int pid = utoi(argvProcessParam);
     process_operations::kill_process_by_pid_optimized(pid, map_processes_);
   } else {
-    process_operations::kill_process_by_name_optimized(argvProcessParam,
-                                                       map_processes_);
+    process_operations::kill_process_by_name_optimized(
+        argvProcessParam, map_processes_, cmdline_filter);
   }
 }
 

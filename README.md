@@ -11,7 +11,8 @@ Parameters
 
 * -a        : list all processes information from current processes snapshot.
 * -e [no]   : top [no] most expensive memory consuming processes | top 10 by default
-* -k        : kill specific process by PID
+* -k        : kill specific process by PID or name
+* -k <proc_name|PID> --cmdline <text> : kill by name or PID, filtered by command line substring
 * -o        : info only one process name criteria
 * -t [pid]  : tree snapshot of current processes or of the subprocesses of a specified process PID.
 * -d <name|pid> : process details with command line for matching process(es)
@@ -28,8 +29,10 @@ psa -t 768                                // tree with the children processes of
 psa -o chrome                             // find how much memory uses your Chrome!   o_O
 psa -t > processes_tree.txt               // full snapshot tree redirection to a file
 psa -e 20 > top_expensive_processes.txt   // top most 'expensive' processes and save information in a file
-psa -k notep                              // kill all the processs containing 'notep' within the process name
+psa -k notep                              // kill all the processes containing 'notep' within the process name
 psa -k 7891                               // kill the process having PID = 7891
+psa -k chrome --cmdline network           // kill all 'chrome' processes whose command line contains 'network'
+psa -k chrome --cmdline "utility-sub-type=network" // kill all 'chrome' processes with this exact command line substring
 psa -d chrome                              // show details and command line for all processes matching 'chrome'
 psa -d 1234                                 // show details and command line for process with PID 1234
 ```

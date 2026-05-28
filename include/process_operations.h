@@ -34,10 +34,10 @@
 #include <winternl.h>
 #include "smart_handler.h"
 #else
-#include <fstream>
 #include <proc/readproc.h>
 #include <signal.h>
 #include <unistd.h>
+#include <fstream>
 #endif
 
 #define process_fake_name _T("_|_")
@@ -52,9 +52,12 @@ class process_operations {
     execute_kill_process(process_pid, process_fake_name);
   }
 
-  static void kill_process_by_name_optimized(const TCHAR* process_name,
-                                             const procs_map& map_processes) {
-    execute_kill_process_optimized(0, process_name, map_processes);
+  static void kill_process_by_name_optimized(
+      const TCHAR* process_name,
+      const procs_map& map_processes,
+      const ustring& cmdline_filter = ustring()) {
+    execute_kill_process_optimized(0, process_name, map_processes,
+                                   cmdline_filter);
   }
 
   static void kill_process_by_pid_optimized(const int process_pid,
@@ -202,9 +205,11 @@ class process_operations {
 #endif
   }
 
-  static void execute_kill_process_optimized(const int process_pid,
-                                             const TCHAR* process_name,
-                                             const procs_map& map_processes) {
+  static void execute_kill_process_optimized(
+      const int process_pid,
+      const TCHAR* process_name,
+      const procs_map& map_processes,
+      const ustring& cmdline_filter = ustring()) {
     bool process_not_found = true;
 
     if (string_utils::search_substring(process_fake_name, process_name)) {
@@ -250,6 +255,13 @@ class process_operations {
       for (auto& proc : map_processes) {
         if (string_utils::search_substring(proc.second.procName,
                                            process_name)) {
+          // If a cmdline_filter is provided, check the process command line
+          if (!cmdline_filter.empty()) {
+            ustring proc_cmdline = GetProcessCmdLine(proc.second.procPID);
+            if (!string_utils::search_substring(proc_cmdline, cmdline_filter)) {
+              continue;
+            }
+          }
           process_not_found = false;
 #ifdef _WIN32
           HANDLE hProcess =
