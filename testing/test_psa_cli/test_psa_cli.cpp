@@ -79,6 +79,7 @@ struct FakeProcessingOperations : ProcessingOperations {
     bool show_details = false;
     ustring str_arg;
     int int_arg = 0;
+    ustring cmdline_filter;
   };
 
   std::vector<Call> calls;
@@ -99,8 +100,10 @@ struct FakeProcessingOperations : ProcessingOperations {
     calls.push_back({"TopExpensive", false, {}, top});
   }
 
-  void KillProcesses(TCHAR const* argvProcessParam) override {
-    calls.push_back({"KillProcesses", false, ustring(argvProcessParam)});
+  void KillProcesses(TCHAR const* argvProcessParam,
+                     const ustring& cmdline_filter = ustring()) override {
+    calls.push_back(
+        {"KillProcesses", false, ustring(argvProcessParam), 0, cmdline_filter});
   }
 
   void GenerateProcessesTree(int const proc_pid,
@@ -221,6 +224,16 @@ TEST_F(PsaCliTest, FlagK_KillByName) {
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("KillProcesses", fake.calls[0].name);
   EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+  EXPECT_TRUE(fake.calls[0].cmdline_filter.empty());
+}
+
+TEST_F(PsaCliTest, FlagK_KillByNameWithCmdline) {
+  Argv av{"psa", "-k", "chrome", "--cmdline", "network"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("KillProcesses", fake.calls[0].name);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+  EXPECT_EQ(ustring(_T("network")), fake.calls[0].cmdline_filter);
 }
 
 TEST_F(PsaCliTest, FlagKUpper_SameAsFlagK) {
