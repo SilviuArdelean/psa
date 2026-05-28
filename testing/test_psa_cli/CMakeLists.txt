@@ -2,13 +2,12 @@
 # testPsaCli — GTest unit tests for ProcessCommandLine()
 # ---------------------------------------------------------------------------
 
-include(FetchContent)
 
 # ---------------------------------------------------------------------------
 # Google Test v1.14.0 — fetched at configure time
 # ---------------------------------------------------------------------------
+include(FetchContent)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-
 FetchContent_Declare(
     googletest
     URL      https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
@@ -16,6 +15,10 @@ FetchContent_Declare(
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(googletest)
+
+if(NOT TARGET GTest::gtest)
+    message(FATAL_ERROR "GTest::gtest target not found after FetchContent_MakeAvailable. Check GoogleTest build.")
+endif()
 
 # ---------------------------------------------------------------------------
 # Sources — reuse psa.cpp + operations.cpp + processes_tree_builder.cpp
