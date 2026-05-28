@@ -27,6 +27,7 @@
 #include <span>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include "general.h"
 #include "string_utils.h"
 
@@ -43,6 +44,9 @@
 #define process_fake_name _T("_|_")
 
 class process_operations {
+ private:
+  // Removed: find_matching_processes. Filtering will use proc_info.cmdline directly.
+
  public:
   static void kill_process_by_name(const TCHAR* process_name) {
     execute_kill_process(0, process_name);
@@ -250,52 +254,50 @@ class process_operations {
               << std::endl;
       }
     } else {
-      // Try to kill the process based by process name
-
-      for (auto& proc : map_processes) {
-        if (string_utils::search_substring(proc.second.procName,
-                                           process_name)) {
-          // If a cmdline_filter is provided, check the process command line
-          if (!cmdline_filter.empty()) {
-            ustring proc_cmdline = GetProcessCmdLine(proc.second.procPID);
-            if (!string_utils::search_substring(proc_cmdline, cmdline_filter)) {
-              continue;
+        // Try to kill the process based by process name
+        for (auto& proc : map_processes) {
+          if (string_utils::search_substring(proc.second.procName, process_name)) {
+            // If a cmdline_filter is provided, check the process command line
+            if (!cmdline_filter.empty()) {
+              ustring proc_cmdline = GetProcessCmdLine(proc.second.procPID);
+              if (!string_utils::search_substring(proc_cmdline, cmdline_filter)) {
+                continue;
+              }
             }
-          }
-          process_not_found = false;
-#ifdef _WIN32
-          HANDLE hProcess =
-              OpenProcess(PROCESS_TERMINATE, 0, (DWORD)proc.second.procPID);
-          if (NULL != hProcess) {
-            auto res = TerminateProcess(hProcess, 9);
-            if (res == 0) {
+            process_not_found = false;
+            #ifdef _WIN32
+            HANDLE hProcess =
+                OpenProcess(PROCESS_TERMINATE, 0, (DWORD)proc.second.procPID);
+            if (NULL != hProcess) {
+              auto res = TerminateProcess(hProcess, 9);
+              if (res == 0) {
+                ucout << _T("Process '") << proc.second.procName << _T("' PID [")
+                      << proc.second.procPID << _T("] cannot be terminated.")
+                      << std::endl;
+              }
+
+              CloseHandle(hProcess);
+              if (res == 0)
+                continue;
+            }
+            #else
+            if (0 != kill(proc.second.procPID, SIGKILL)) {
               ucout << _T("Process '") << proc.second.procName << _T("' PID [")
                     << proc.second.procPID << _T("] cannot be terminated.")
                     << std::endl;
-            }
-
-            CloseHandle(hProcess);
-            if (res == 0)
               continue;
-          }
-#else
-          if (0 != kill(proc.second.procPID, SIGKILL)) {
+            }
+            #endif
             ucout << _T("Process '") << proc.second.procName << _T("' PID [")
-                  << proc.second.procPID << _T("] cannot be terminated.")
-                  << std::endl;
-            continue;
+                  << proc.second.procPID << _T("] was terminated.") << std::endl;
           }
-#endif
-          ucout << _T("Process '") << proc.second.procName << _T("' PID [")
-                << proc.second.procPID << _T("] was terminated.") << std::endl;
         }
-      }
 
-      if (process_not_found) {
-        ucout << _T("No '") << process_name
-              << _T("' name or including this name pattern was found.")
-              << std::endl;
-      }
+        if (process_not_found) {
+          ucout << _T("No '") << process_name
+                << _T("' name or including this name pattern was found.")
+                << std::endl;
+        }
     }
   }
 

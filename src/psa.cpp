@@ -35,7 +35,7 @@ void ShowParameters() {
         << std::endl;
   ucout << _T("    -k <name|pid> : kill specific process by PID or name")
         << std::endl;
-  ucout << _T("    -k <name|pid> --cmdline <text> : kill by name or PID, ")
+  ucout << _T("    -k <name|pid> --cmdline <param> : kill by name or PID, ")
            _T("filtered by command line substring")
         << std::endl;
   ucout << _T("    -o <name|pid> : info only one process name criteria ")
@@ -217,7 +217,6 @@ bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
     if (result.count("cmdline")) {
       cmdline_filter = to_ustring(result["cmdline"].as<std::string>());
     }
-    // TODO: Update KillProcesses to accept cmdline_filter in next step
     pPO->KillProcesses(searchfor.c_str(), cmdline_filter);
     good_params = true;
   }

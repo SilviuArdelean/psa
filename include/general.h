@@ -113,23 +113,27 @@ struct proc_info {
   int parentPID;
   ustring procName;
   int64_t usedMemory;
+  ustring cmdline;
 
-  proc_info() : procPID(0), parentPID(0), procName(_T("")), usedMemory(0) {}
+  proc_info() : procPID(0), parentPID(0), procName(_T("")), usedMemory(0), cmdline(_T("")) {}
 
   proc_info(int _procPID,
             int _parentPID,
             ustring _procName,
-            int64_t _usedMemory)
+            int64_t _usedMemory,
+            ustring _cmdline = ustring())
       : procPID(_procPID),
         parentPID(_parentPID),
         procName(_procName),
-        usedMemory(_usedMemory) {}
+        usedMemory(_usedMemory),
+        cmdline(_cmdline) {}
 
   proc_info(const proc_info& rhs)
       : procPID(rhs.procPID),
         parentPID(rhs.parentPID),
         procName(rhs.procName),
-        usedMemory(rhs.usedMemory) {}
+        usedMemory(rhs.usedMemory),
+        cmdline(rhs.cmdline) {}
 
   proc_info& operator=(const proc_info& rhs) {
     if (this != &rhs) {
@@ -137,8 +141,8 @@ struct proc_info {
       parentPID = rhs.parentPID;
       procName = rhs.procName;
       usedMemory = rhs.usedMemory;
+      cmdline = rhs.cmdline;
     }
-
     return *this;
   }
 
@@ -147,11 +151,13 @@ struct proc_info {
     parentPID = rhs.parentPID;
     procName = std::move(rhs.procName);
     usedMemory = rhs.usedMemory;
+    cmdline = std::move(rhs.cmdline);
 
     rhs.procPID = 0;
     rhs.parentPID = 0;
     rhs.procName.clear();
     rhs.usedMemory = 0;
+    rhs.cmdline.clear();
   }
 
   proc_info& operator=(proc_info&& rhs) {
@@ -160,13 +166,14 @@ struct proc_info {
       parentPID = rhs.parentPID;
       procName = std::move(rhs.procName);
       usedMemory = rhs.usedMemory;
+      cmdline = std::move(rhs.cmdline);
 
       rhs.procPID = 0;
       rhs.parentPID = 0;
       rhs.procName.clear();
       rhs.usedMemory = 0;
+      rhs.cmdline.clear();
     }
-
     return *this;
   }
 };

@@ -101,7 +101,7 @@ struct FakeProcessingOperations : ProcessingOperations {
   }
 
   void KillProcesses(TCHAR const* argvProcessParam,
-                     const ustring& cmdline_filter = ustring()) override {
+                     const ustring& cmdline_filter) override {
     calls.push_back(
         {"KillProcesses", false, ustring(argvProcessParam), 0, cmdline_filter});
   }
