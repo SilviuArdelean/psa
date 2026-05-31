@@ -23,11 +23,15 @@
 #include "operations.h"
 #include "pch.h"
 
+#include <cstdlib>
+#include <sstream>
 #include "fixed_queue.h"
-// RENAMED: process_actions
 #include "process_actions.h"
 #include "processes_tree_builder.h"
 #include "string_utils.h"
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #ifdef _WIN32
 #include "smart_handler.h"
@@ -127,7 +131,6 @@ bool ProcessingOperations::BuildProcessesMap() {
   std::lock_guard<std::mutex> lock(map_mutex_);
 
 #ifdef _WIN32
-
   PROCESSENTRY32 pe32;
 
   smart_handle hProcessSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
@@ -255,8 +258,8 @@ bool ProcessingOperations::get_filter_results(const ustring& process_name,
 
 bool ProcessingOperations::PrintAllProcessesInformation(
     bool const show_details) {
-  int processesCount = 0;
-  ULONG64 processesAllSize = 0;
+  int process_count = 0;
+  ULONG64 all_process_size = 0;
 
   if (!EnsureProcessesMap())
     return false;
@@ -269,12 +272,12 @@ bool ProcessingOperations::PrintAllProcessesInformation(
     if (show_details)
       static_cast<void>(PrintProcessDetailedInfo(proc.proc_pid));
 
-    processesAllSize += proc.used_memory;
-    processesCount++;
+    all_process_size += proc.used_memory;
+    process_count++;
   }
 
-  if (processesCount != 0) {
-    print_all_processes_summary(processesAllSize, processesCount);
+  if (process_count != 0) {
+    print_all_processes_summary(all_process_size, process_count);
   }
 
   return true;
@@ -282,8 +285,8 @@ bool ProcessingOperations::PrintAllProcessesInformation(
 
 bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
                                                    bool const show_details) {
-  int processesCount = 0;
-  ULONG64 processesAllSize = 0;
+  int process_count = 0;
+  ULONG64 all_processes_size = 0;
 
   if (!EnsureProcessesMap())
     return false;
@@ -302,13 +305,13 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
       print_process_details(proc);
     }
 
-    processesAllSize += proc.used_memory;
-    processesCount++;
+    all_processes_size += proc.used_memory;
+    process_count++;
   }
 
-  if (processesCount != 0) {
-    if (0 != processesAllSize) {
-      print_total_memory_summary(processesAllSize, processesCount);
+  if (process_count != 0) {
+    if (0 != all_processes_size) {
+      print_total_memory_summary(all_processes_size, process_count);
     } else {
       print_insufficient_privileges_message();
     }
@@ -371,6 +374,57 @@ void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {
   }
 }
 
+void ProcessingOperations::KillProcessesWithCmdLine(
+    const ustring& argv_process_param,
+    const ustring& cmdline_filter) {
+  if (argv_process_param.empty()) {
+    ucout << _T("Error: Process name or PID cannot be empty.") << std::endl;
+    return;
+  }
+  if (cmdline_filter.empty()) {
+    ucout << _T("Error: Command line filter cannot be empty.") << std::endl;
+    return;
+  }
+
+  if (!EnsureProcessesMap())
+    return;
+
+  std::vector<proc_info> candidates;
+  const bool filter_is_pid = string_utils::is_number(argv_process_param);
+
+  if (filter_is_pid) {
+    DWORD pid = static_cast<DWORD>(utoi(argv_process_param.c_str()));
+    auto range = map_processes_.equal_range(pid);
+    for (auto it = range.first; it != range.second; ++it) {
+      candidates.push_back(it->second);
+    }
+  } else {
+    for (const auto& [pid, proc] : map_processes_) {
+      if (string_utils::search_substring(proc.proc_name, argv_process_param)) {
+        candidates.push_back(proc);
+      }
+    }
+  }
+
+  std::vector<int> pids_to_kill;
+  for (const auto& proc : candidates) {
+    if (string_utils::search_substring(proc.cmdline_args, cmdline_filter)) {
+      pids_to_kill.push_back(proc.proc_pid);
+    }
+  }
+
+  if (pids_to_kill.empty()) {
+    ucout << _T("No processes matching '") << argv_process_param
+          << _T("' with command line containing '") << cmdline_filter
+          << _T("' were found.") << std::endl;
+    return;
+  }
+
+  for (int pid : pids_to_kill) {
+    process_actions::kill_process_by_pid_optimized(pid, map_processes_);
+  }
+}
+
 #ifdef _WIN32
 SIZE_T ProcessingOperations::GetProcessUsedMemory(DWORD const processID) const {
   smart_handle hProcess = OpenProcess(
@@ -421,24 +475,24 @@ BOOL ProcessingOperations::SetPrivilege(HANDLE hToken,
 }
 
 void ProcessingOperations::PrintError(const TCHAR* msg) {
-  DWORD eNum;
-  TCHAR sysMsg[256];
+  DWORD num;
+  TCHAR sys_msg[256];
   TCHAR* p;
 
-  eNum = GetLastError();
+  num = GetLastError();
   FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
-                NULL, eNum, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), sysMsg,
+                NULL, num, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), sys_msg,
                 256, NULL);
 
   // Trim trailing punctuation/newline from the system message.
-  p = sysMsg;
+  p = sys_msg;
   while ((*p > 31) || (*p == 9))
     ++p;
   do {
     *p-- = 0;
-  } while ((p >= sysMsg) && ((*p == '.') || (*p < 33)));
+  } while ((p >= sys_msg) && ((*p == '.') || (*p < 33)));
 
   ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg,
-                       eNum, sysMsg);
+                       num, sys_msg);
 }
 #endif

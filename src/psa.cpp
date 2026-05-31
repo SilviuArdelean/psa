@@ -28,6 +28,7 @@
 #include "psa_cli_parsing.h"
 
 void ShowAvailableInformation();
+void ShowParameters();
 static ustring to_ustring(const std::string& s);
 
 namespace {
@@ -51,7 +52,10 @@ cxxopts::Options create_options() {
       ("t,tree", "Tree snapshot of current processes",
        cxxopts::value<int>()->implicit_value("1"), "[pid]")
 #endif
-          ("h,help", "Show available options");
+          ("filter-param",
+           "Filter processes to kill by command line substring (used with -k)",
+           cxxopts::value<std::string>(),
+           "<value>")("h,help", "Show available options");
   return options;
 }
 
@@ -66,6 +70,10 @@ bool handle_filter_option(const cxxopts::ParseResult& result,
 
   const std::string& value = result[key].as<std::string>();
   if (cli_parsing::is_flag_like_value(value)) {
+    ucout << _T("Error: option -") << to_ustring(key)
+          << _T(" requires a non-flag value.") << std::endl
+          << _T("More information:") << std::endl;
+    ShowParameters();
     return false;
   }
 
@@ -91,11 +99,28 @@ bool handle_kill_option(const cxxopts::ParseResult& result,
 
   const std::string& value = result["k"].as<std::string>();
   if (cli_parsing::is_flag_like_value(value)) {
+    ucout << _T("Error: option -k requires a non-flag value.") << std::endl;
+    ucout << _T("More information:") << std::endl;
+    ShowParameters();
     return false;
   }
 
   const auto filter = to_ustring(value);
-  processing_operations->KillProcesses(filter.c_str());
+  if (result.count("filter-param")) {
+    const std::string& cmdline_val = result["filter-param"].as<std::string>();
+    if (cmdline_val.empty() || cli_parsing::is_flag_like_value(cmdline_val)) {
+      ucout << _T("Error: option --filter-param requires a non-empty, ")
+               _T("non-flag value.")
+            << std::endl;
+      ucout << _T("More information:") << std::endl;
+      ShowParameters();
+      return false;
+    }
+    const auto cmdline_filter = to_ustring(cmdline_val);
+    processing_operations->KillProcessesWithCmdLine(filter, cmdline_filter);
+  } else {
+    processing_operations->KillProcesses(filter.c_str());
+  }
   good_params = true;
   return true;
 }
@@ -117,6 +142,12 @@ void handle_entries_option(const cxxopts::ParseResult& result,
 
 bool dispatch_requested_options(const cxxopts::ParseResult& result,
                                 ProcessingOperations* processing_operations) {
+  if (result.count("filter-param") && !result.count("k")) {
+    ucout << _T("Error: --filter-param can only be used with -k.") << std::endl;
+    ShowParameters();
+    return false;
+  }
+
   bool good_params = false;
 
   if (result.count("a")) {
@@ -162,7 +193,9 @@ void ShowParameters() {
            _T("processes ")
            _T("| top 10 by default ")
         << std::endl;
-  ucout << _T("    -k <name|pid> : kill specific process by PID or name")
+  ucout << _T("    -k <name|pid> [--filter-param <value>] : kill specific ")
+           _T("process ")
+           _T("by PID or name, optionally filtering by command line parameter")
         << std::endl;
   ucout << _T("    -o <name|pid> : info only one process name criteria ")
         << std::endl;
