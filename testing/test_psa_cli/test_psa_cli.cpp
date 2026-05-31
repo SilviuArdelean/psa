@@ -183,12 +183,7 @@ TEST_F(PsaCliTest, FlagO_ThenDetails_ThenValue_NormalizesAndSucceeds) {
 }
 
 TEST_F(PsaCliTest, DetailsWithoutO_ReturnsFalse) {
-  Argv av{"psa", "--details", "chrome"};
-  EXPECT_FALSE(run(av));
-  EXPECT_TRUE(fake.calls.empty());
-}
-
-TEST_F(PsaCliTest, DetailsAlone_ReturnsFalse) {
+  // --details is a boolean flag; without -o it must be rejected.
   Argv av{"psa", "--details"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
@@ -198,6 +193,17 @@ TEST_F(PsaCliTest, FlagD_IsUnknownOption_ReturnsFalse) {
   Argv av{"psa", "-d", "chrome"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagO_WithDetails_AndFlagA_InvokesBoth) {
+  // -a and -o --details are independent; both operations should be dispatched.
+  Argv av{"psa", "-a", "-o", "chrome", "--details"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(2u, fake.calls.size());
+  EXPECT_EQ("PrintAll", fake.calls[0].name);
+  EXPECT_EQ("PrintOne", fake.calls[1].name);
+  EXPECT_TRUE(fake.calls[1].show_details);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[1].str_arg);
 }
 
 // ===========================================================================
@@ -304,7 +310,23 @@ TEST_F(PsaCliTest, FlagOUpper_SameAsFlagO) {
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("PrintOne", fake.calls[0].name);
+  EXPECT_FALSE(fake.calls[0].show_details);
   EXPECT_EQ(ustring(_T("svchost")), fake.calls[0].str_arg);
+}
+
+// Combined: -o <name> --details alongside -e still works; both operations run.
+TEST_F(PsaCliTest, FlagO_WithDetails_AndFlagE_BothRun) {
+  Argv av{"psa", "-o", "chrome", "--details", "-e", "5"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(2u, fake.calls.size());
+  // -e runs first (handle_entries_option order), then -o.
+  const auto& entries_call = fake.calls[0];
+  EXPECT_EQ("TopExpensive", entries_call.name);
+  EXPECT_EQ(5, entries_call.int_arg);
+  const auto& print_call = fake.calls[1];
+  EXPECT_EQ("PrintOne", print_call.name);
+  EXPECT_TRUE(print_call.show_details);
+  EXPECT_EQ(ustring(_T("chrome")), print_call.str_arg);
 }
 
 // ===========================================================================

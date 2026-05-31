@@ -41,7 +41,7 @@ bool is_all_digits(const char* value) {
 void normalize_windows_short_option(std::string& argument) {
 #ifdef _WIN32
   if (argument.size() == 2 && argument[0] == '-' &&
-      std::strchr("ADEKOT", argument[1])) {
+      std::strchr("AEKOT", argument[1])) {
     argument[1] = static_cast<char>(tolower(argument[1]));
   }
 #else
