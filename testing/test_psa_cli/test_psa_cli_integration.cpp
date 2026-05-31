@@ -315,6 +315,37 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcess) {
   EXPECT_NE(exitCode, STILL_ACTIVE);
   CloseHandle(hProcess);
 }
+
+TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcessWithFilterParam) {
+  DWORD pid = 0;
+  HANDLE hProcess = spawn_dummy_process(pid);
+  ASSERT_NE(pid, 0u);
+  ASSERT_NE(hProcess, nullptr);
+  std::ostringstream ss;
+  ss << pid;
+  std::string pid_str = ss.str();
+  Argv av{"psa", "-k", pid_str.c_str(), "--filter-param", "ping"};
+  std::wstring out;
+  EXPECT_TRUE(run_and_capture(av, out));
+  std::wstring wpid;
+  for (char c : pid_str)
+    wpid += static_cast<wchar_t>(c);
+  EXPECT_NE(out.find(wpid), std::wstring::npos);
+  DWORD waitResult = WaitForSingleObject(hProcess, 2000);
+  EXPECT_TRUE(waitResult == WAIT_OBJECT_0);
+  DWORD exitCode = 0;
+  BOOL gotExit = GetExitCodeProcess(hProcess, &exitCode);
+  EXPECT_TRUE(gotExit);
+  EXPECT_NE(exitCode, STILL_ACTIVE);
+  CloseHandle(hProcess);
+}
+
+TEST_F(PsaCliIntegrationTest, FlagK_KillNonExistentProcessWithFilterParam) {
+  Argv av{"psa", "-k", "nonexistent_proc_xyz", "--filter-param", "nonexistent_val_abc"};
+  std::wstring out;
+  EXPECT_TRUE(run_and_capture(av, out));
+  EXPECT_NE(out.find(L"No processes matching 'nonexistent_proc_xyz' with command line containing 'nonexistent_val_abc' were found."), std::wstring::npos);
+}
 #else
 #include <signal.h>
 #include <sys/types.h>
@@ -342,5 +373,27 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcess) {
   // Confirm process is gone — kill(pid, 0) returns -1/ESRCH when not found
   EXPECT_EQ(kill(pid, 0), -1);
   waitpid(pid, nullptr, WNOHANG);
+}
+
+TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcessWithFilterParam) {
+  pid_t pid = spawn_dummy_process();
+  ASSERT_GT(pid, 0);
+  std::stringstream ss;
+  ss << pid;
+  std::string pid_str = ss.str();
+  Argv av{"psa", "-k", pid_str.c_str(), "--filter-param", "60"};
+  std::string out;
+  EXPECT_TRUE(run_and_capture(av, out));
+  EXPECT_NE(out.find(ss.str()), std::string::npos);
+  std::this_thread::sleep_for(std::chrono::milliseconds(200));
+  EXPECT_EQ(kill(pid, 0), -1);
+  waitpid(pid, nullptr, WNOHANG);
+}
+
+TEST_F(PsaCliIntegrationTest, FlagK_KillNonExistentProcessWithFilterParam) {
+  Argv av{"psa", "-k", "nonexistent_proc_xyz", "--filter-param", "nonexistent_val_abc"};
+  std::string out;
+  EXPECT_TRUE(run_and_capture(av, out));
+  EXPECT_NE(out.find("No processes matching 'nonexistent_proc_xyz' with command line containing 'nonexistent_val_abc' were found."), std::string::npos);
 }
 #endif

@@ -44,8 +44,8 @@ class string_utils {
   }
 
   [[nodiscard]] static bool search_substring(const ustring& str,
-                               const ustring& sub_str,
-                               bool case_insensitive = true) {
+                                             const ustring& sub_str,
+                                             bool case_insensitive = true) {
     if (case_insensitive) {
 #ifdef _WIN32
       ustring path2seach(str);
@@ -56,6 +56,9 @@ class string_utils {
                      toupper);
       return path2seach.find(str4seach) != ustring::npos;
 #else
+      // By design: Linux processes and system environments are case-sensitive
+      // by convention. We intentionally ignore the case sensitive flag here
+      // to enforce strict matching on Linux.
       return str.find(sub_str) != ustring::npos;  // no copies needed on Linux
 #endif
     }
