@@ -43,8 +43,7 @@ cxxopts::Options create_options() {
               cxxopts::value<std::string>(),
               "<name|pid>")("o", "Info for one process matching name criteria",
                             cxxopts::value<std::string>(), "<name|pid>")(
-      "d", "Process details with command line for matching process(es)",
-      cxxopts::value<std::string>(), "<name|pid>")
+      "details", "Show detailed process information (used with -o)")
 #ifdef _WIN32
       ("t,tree", "Tree snapshot of current processes",
        cxxopts::value<int>()->implicit_value("0"), "[pid]")
@@ -148,6 +147,12 @@ bool dispatch_requested_options(const cxxopts::ParseResult& result,
     return false;
   }
 
+  if (result.count("details") && !result.count("o")) {
+    ucout << _T("Error: --details can only be used with -o.") << std::endl;
+    ShowParameters();
+    return false;
+  }
+
   bool good_params = false;
 
   if (result.count("a")) {
@@ -162,12 +167,8 @@ bool dispatch_requested_options(const cxxopts::ParseResult& result,
     return false;
   }
 
-  if (!handle_filter_option(result, "o", false, processing_operations,
-                            good_params)) {
-    return false;
-  }
-
-  if (!handle_filter_option(result, "d", true, processing_operations,
+  const bool show_details = result.count("details") > 0;
+  if (!handle_filter_option(result, "o", show_details, processing_operations,
                             good_params)) {
     return false;
   }
@@ -197,11 +198,12 @@ void ShowParameters() {
            _T("process ")
            _T("by PID or name, optionally filtering by command line parameter")
         << std::endl;
-  ucout << _T("    -o <name|pid> : info only one process name criteria ")
+  ucout << _T("    -o <name|pid> [--details] : info only one process name ")
+           _T("criteria, optionally with details ")
         << std::endl;
-  ucout << _T("    -d <name|pid> : process details with command line for ")
-           _T("matching process(es)")
-        << std::endl;
+  ucout
+      << _T("    --details : show detailed process information (used with -o)")
+      << std::endl;
   ucout << _T("    -t [pid] : tree snapshot of current processes") << std::endl;
   ucout << _T("    -h    : show available options") << std::endl;
 }

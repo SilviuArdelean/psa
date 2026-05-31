@@ -85,6 +85,17 @@ std::vector<std::string> normalize_arguments(int argc, char* argv[]) {
     std::string argument = argv[i];
     normalize_windows_short_option(argument);
 
+    if (argument == "-o" && i + 2 < argc) {
+      std::string next_arg = argv[i + 1];
+      if (next_arg == "--details" && !is_flag_like_value(argv[i + 2])) {
+        cooked_storage.push_back("-o");
+        cooked_storage.push_back(argv[i + 2]);
+        cooked_storage.push_back("--details");
+        i += 2;
+        continue;
+      }
+    }
+
     if (should_expand_numeric_short_option(argument, i, argc, argv)) {
       cooked_storage.push_back(
           expand_numeric_short_option(argument, argv[i + 1]));

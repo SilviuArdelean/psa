@@ -244,8 +244,8 @@ TEST_F(PsaCliIntegrationTest, FlagO_KnownProcess) {
 #endif
 }
 
-TEST_F(PsaCliIntegrationTest, FlagD_KnownProcess) {
-  Argv av{"psa", "-d", "System"};
+TEST_F(PsaCliIntegrationTest, FlagDetails_KnownProcess) {
+  Argv av{"psa", "-o", "System", "--details"};
 #ifdef _UNICODE
   std::wstring out;
   EXPECT_TRUE(run_and_capture(av, out));
@@ -341,10 +341,14 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcessWithFilterParam) {
 }
 
 TEST_F(PsaCliIntegrationTest, FlagK_KillNonExistentProcessWithFilterParam) {
-  Argv av{"psa", "-k", "nonexistent_proc_xyz", "--filter-param", "nonexistent_val_abc"};
+  Argv av{"psa", "-k", "nonexistent_proc_xyz", "--filter-param",
+          "nonexistent_val_abc"};
   std::wstring out;
   EXPECT_TRUE(run_and_capture(av, out));
-  EXPECT_NE(out.find(L"No processes matching 'nonexistent_proc_xyz' with command line containing 'nonexistent_val_abc' were found."), std::wstring::npos);
+  EXPECT_NE(
+      out.find(L"No processes matching 'nonexistent_proc_xyz' with command "
+               L"line containing 'nonexistent_val_abc' were found."),
+      std::wstring::npos);
 }
 #else
 #include <signal.h>
@@ -391,9 +395,13 @@ TEST_F(PsaCliIntegrationTest, FlagK_KillDummyProcessWithFilterParam) {
 }
 
 TEST_F(PsaCliIntegrationTest, FlagK_KillNonExistentProcessWithFilterParam) {
-  Argv av{"psa", "-k", "nonexistent_proc_xyz", "--filter-param", "nonexistent_val_abc"};
+  Argv av{"psa", "-k", "nonexistent_proc_xyz", "--filter-param",
+          "nonexistent_val_abc"};
   std::string out;
   EXPECT_TRUE(run_and_capture(av, out));
-  EXPECT_NE(out.find("No processes matching 'nonexistent_proc_xyz' with command line containing 'nonexistent_val_abc' were found."), std::string::npos);
+  EXPECT_NE(
+      out.find("No processes matching 'nonexistent_proc_xyz' with command line "
+               "containing 'nonexistent_val_abc' were found."),
+      std::string::npos);
 }
 #endif

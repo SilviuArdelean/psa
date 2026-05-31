@@ -161,11 +161,11 @@ TEST_F(PsaCliTest, FlagAUpper_SameAsFlagA) {
 #endif
 
 // ===========================================================================
-// -d / -D  (print process details)
+// --details  (print process details)
 // ===========================================================================
 
-TEST_F(PsaCliTest, FlagD_PrintsWithDetails) {
-  Argv av{"psa", "-d", "chrome"};
+TEST_F(PsaCliTest, FlagDetails_PrintsWithDetails) {
+  Argv av{"psa", "-o", "chrome", "--details"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("PrintOne", fake.calls[0].name);
@@ -173,13 +173,31 @@ TEST_F(PsaCliTest, FlagD_PrintsWithDetails) {
   EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
 }
 
-TEST_F(PsaCliTest, FlagDUpper_SameAsFlagD) {
-  Argv av{"psa", "-D", "explorer"};
+TEST_F(PsaCliTest, FlagO_ThenDetails_ThenValue_NormalizesAndSucceeds) {
+  Argv av{"psa", "-o", "--details", "chrome"};
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("PrintOne", fake.calls[0].name);
   EXPECT_TRUE(fake.calls[0].show_details);
-  EXPECT_EQ(ustring(_T("explorer")), fake.calls[0].str_arg);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+}
+
+TEST_F(PsaCliTest, DetailsWithoutO_ReturnsFalse) {
+  Argv av{"psa", "--details", "chrome"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, DetailsAlone_ReturnsFalse) {
+  Argv av{"psa", "--details"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagD_IsUnknownOption_ReturnsFalse) {
+  Argv av{"psa", "-d", "chrome"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
 }
 
 // ===========================================================================
@@ -345,7 +363,7 @@ TEST_F(PsaCliTest, PrintOne_FailurePropagated) {
 
 TEST_F(PsaCliTest, PrintDetails_FailurePropagated) {
   fake.return_value = false;
-  Argv av{"psa", "-d", "chrome"};
+  Argv av{"psa", "-o", "chrome", "--details"};
   EXPECT_FALSE(run(av));
 }
 
@@ -379,8 +397,8 @@ TEST_F(PsaCliTest, FlagK_FlagAsArg_ReturnsFalse) {
   EXPECT_TRUE(fake.calls.empty());
 }
 
-TEST_F(PsaCliTest, FlagD_FlagAsArg_ReturnsFalse) {
-  Argv av{"psa", "-d", "-a"};
+TEST_F(PsaCliTest, FlagDetails_FlagAsArg_ReturnsFalse) {
+  Argv av{"psa", "-o", "-a", "--details"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }
