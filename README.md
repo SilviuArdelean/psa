@@ -13,9 +13,9 @@ Parameters
 * -e [no]   : top [no] most expensive memory consuming processes | top 10 by default
 * -k        : kill specific process by PID or name
 * --filter-param : filter processes to kill by command line substring (used with -k)
-* -o        : info only one process name criteria
+* -o        : info only one process name criteria (can be used with --details)
+* --details : show detailed process information (used with -o)
 * -t [pid]  : tree snapshot of current processes or of the subprocesses of a specified process PID.
-* -d <name|pid> : process details with command line for matching process(es)
 
 Usage
 ------------------------------------------
@@ -32,8 +32,8 @@ psa -e 20 > top_expensive_processes.txt   // top most 'expensive' processes and 
 psa -k notep                              // kill all the processs containing 'notep' within the process name
 psa -k 7891                               // kill the process having PID = 7891
 psa -k chrome --filter-param "network"    // kill all processes containing 'chrome' in name and 'network' in command line
-psa -d chrome                             // show details and command line for all processes matching 'chrome'
-psa -d 1234                               // show details and command line for process with PID 1234
+psa -o chrome --details                   // show details and command line for all processes matching 'chrome'
+psa -o 1234 --details                     // show details and command line for process with PID 1234
 ```
 
 Compatibility
