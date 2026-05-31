@@ -79,6 +79,7 @@ struct FakeProcessingOperations : ProcessingOperations {
     bool show_details = false;
     ustring str_arg;
     int int_arg = 0;
+    ustring cmdline_arg;
   };
 
   std::vector<Call> calls;
@@ -101,6 +102,12 @@ struct FakeProcessingOperations : ProcessingOperations {
 
   void KillProcesses(TCHAR const* argvProcessParam) override {
     calls.push_back({"KillProcesses", false, ustring(argvProcessParam)});
+  }
+
+  void KillProcessesWithCmdLine(const ustring& argvProcessParam,
+                                const ustring& cmdlineFilter) override {
+    calls.push_back({"KillProcessesWithCmdLine", false, argvProcessParam, 0,
+                     cmdlineFilter});
   }
 
   void GenerateProcessesTree(int const proc_pid,
@@ -231,6 +238,36 @@ TEST_F(PsaCliTest, FlagKUpper_SameAsFlagK) {
   EXPECT_EQ(ustring(_T("notepad")), fake.calls[0].str_arg);
 }
 
+TEST_F(PsaCliTest, FlagK_WithFilterParam) {
+  Argv av{"psa", "-k", "chrome", "--filter-param", "network"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("KillProcessesWithCmdLine", fake.calls[0].name);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+  EXPECT_EQ(ustring(_T("network")), fake.calls[0].cmdline_arg);
+}
+
+TEST_F(PsaCliTest, FlagK_WithFilterParam_ByPid) {
+  Argv av{"psa", "-k", "1234", "--filter-param", "network"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("KillProcessesWithCmdLine", fake.calls[0].name);
+  EXPECT_EQ(ustring(_T("1234")), fake.calls[0].str_arg);
+  EXPECT_EQ(ustring(_T("network")), fake.calls[0].cmdline_arg);
+}
+
+TEST_F(PsaCliTest, FlagK_WithEmptyFilterParam_ReturnsFalse) {
+  Argv av{"psa", "-k", "chrome", "--filter-param", ""};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FilterParamWithoutK_ReturnsFalse) {
+  Argv av{"psa", "--filter-param", "network"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
 // ===========================================================================
 // -o / -O  (print one process)
 // ===========================================================================
@@ -344,6 +381,12 @@ TEST_F(PsaCliTest, FlagK_FlagAsArg_ReturnsFalse) {
 
 TEST_F(PsaCliTest, FlagD_FlagAsArg_ReturnsFalse) {
   Argv av{"psa", "-d", "-a"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagK_OptionAsArg_ReturnsFalse) {
+  Argv av{"psa", "-k", "--filter-param", "micro_av"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }
