@@ -24,16 +24,16 @@ All the results can be redirected within a file.
 Usage examples.
 
 ```
-psa -t                                                // full snapshot tree
-psa -t 768                                         // tree with the children processes of the process PID 768
-psa -o chrome                                 // find how much memory uses your Chrome!   o_O
-psa -t > processes_tree.txt              // full snapshot tree redirection to a file
+psa -t                                    // full snapshot tree
+psa -t 768                                // tree with the children processes of the process PID 768
+psa -o chrome                             // find how much memory uses your Chrome!   o_O
+psa -t > processes_tree.txt               // full snapshot tree redirection to a file
 psa -e 20 > top_expensive_processes.txt   // top most 'expensive' processes and save information in a file
-psa -k notep                                    // kill all the processs containing 'notep' within the process name
-psa -k 7891                                       // kill the process having PID = 7891
-psa -k chrome --filter-param "network"         // kill all processes containing 'chrome' in name and 'network' in command line
-psa -d chrome                                 // show details and command line for all processes matching 'chrome'
-psa -d 1234                                      // show details and command line for process with PID 1234
+psa -k notep                              // kill all the processs containing 'notep' within the process name
+psa -k 7891                               // kill the process having PID = 7891
+psa -k chrome --filter-param "network"    // kill all processes containing 'chrome' in name and 'network' in command line
+psa -d chrome                             // show details and command line for all processes matching 'chrome'
+psa -d 1234                               // show details and command line for process with PID 1234
 ```
 
 Compatibility
