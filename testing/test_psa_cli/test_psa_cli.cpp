@@ -80,10 +80,12 @@ struct FakeProcessingOperations : ProcessingOperations {
     ustring str_arg;
     int int_arg = 0;
     ustring cmdline_arg;
+    uint32_t pid_arg = 0;
   };
 
   std::vector<Call> calls;
   bool return_value = true;
+  std::optional<proc_info_details> pid_lookup_result = std::nullopt;
 
   bool PrintAllProcessesInformation(bool const show_details = false) override {
     calls.push_back({"PrintAll", show_details});
@@ -110,6 +112,21 @@ struct FakeProcessingOperations : ProcessingOperations {
                      cmdlineFilter});
   }
 
+  std::optional<proc_info_details> GetProcessInfoByPid(
+      const uint32_t process_pid) override {
+    calls.push_back({"GetProcessInfoByPid", false, {}, 0, {}, process_pid});
+    return pid_lookup_result;
+  }
+
+  void PrintProcessInfoReport(const proc_info_details& details) override {
+    calls.push_back({"PrintProcessInfoReport",
+                     false,
+                     {},
+                     0,
+                     {},
+                     static_cast<uint32_t>(details.proc_pid)});
+  }
+
   void GenerateProcessesTree(int const proc_pid,
                              bool print_header = false) override {
     calls.push_back({"GenTree", print_header, {}, proc_pid});
@@ -126,6 +143,7 @@ class PsaCliTest : public ::testing::Test {
   void SetUp() override {
     fake.calls.clear();
     fake.return_value = true;
+    fake.pid_lookup_result = std::nullopt;
     optind = 0;  // Reset getopt state between tests.
     // XGetopt (Windows) uses a static `next` pointer that is only cleared
     // when optind == 0 at the start of a getopt() call.  Setting optind = 1
@@ -415,6 +433,71 @@ TEST_F(PsaCliTest, FlagO_FlagAsArg_ReturnsFalse) {
 
 TEST_F(PsaCliTest, FlagK_FlagAsArg_ReturnsFalse) {
   Argv av{"psa", "-k", "-a"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+// ===========================================================================
+// --pid  (process information by PID)
+// ===========================================================================
+
+TEST_F(PsaCliTest, FlagPid_ValidPositiveValue_CallsLookupAndPrintReport) {
+  proc_info_details details;
+  details.proc_pid = 1234;
+  details.proc_name = _T("dummy");
+  fake.pid_lookup_result = details;
+
+  Argv av{"psa", "--pid", "1234"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(2u, fake.calls.size());
+  EXPECT_EQ("GetProcessInfoByPid", fake.calls[0].name);
+  EXPECT_EQ(1234u, fake.calls[0].pid_arg);
+  EXPECT_EQ("PrintProcessInfoReport", fake.calls[1].name);
+  EXPECT_EQ(1234u, fake.calls[1].pid_arg);
+}
+
+TEST_F(PsaCliTest, FlagPid_NotFound_ReturnsFalse) {
+  fake.pid_lookup_result = std::nullopt;
+
+  Argv av{"psa", "--pid", "999999"};
+  EXPECT_FALSE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("GetProcessInfoByPid", fake.calls[0].name);
+  EXPECT_EQ(999999u, fake.calls[0].pid_arg);
+}
+
+TEST_F(PsaCliTest, FlagPid_InvalidAlpha_ReturnsFalse) {
+  Argv av{"psa", "--pid", "abc"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagPid_InvalidNegative_ReturnsFalse) {
+  Argv av{"psa", "--pid", "-1"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagPid_InvalidZero_ReturnsFalse) {
+  Argv av{"psa", "--pid", "0"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagPid_InvalidTrailingSpace_ReturnsFalse) {
+  Argv av{"psa", "--pid", "1234 "};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagPid_InvalidOverflow_ReturnsFalse) {
+  Argv av{"psa", "--pid", "4294967296"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagPid_MissingArgument_ReturnsFalse) {
+  Argv av{"psa", "--pid"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }
