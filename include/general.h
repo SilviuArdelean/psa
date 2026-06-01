@@ -26,6 +26,7 @@
 #include <cstdint>
 #include <iostream>
 #include <map>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -144,6 +145,20 @@ struct proc_info {
   proc_info(proc_info&& rhs) noexcept = default;
 
   proc_info& operator=(proc_info&& rhs) noexcept = default;
+};
+
+struct proc_info_details : public proc_info {
+  ustring executable_path;
+  std::optional<ustring> parent_name;
+  std::optional<ustring> user;
+  std::optional<uint32_t> session_id;
+  std::optional<ustring> architecture;
+  std::optional<ustring> start_time;
+  std::optional<ustring> integrity_level;
+  std::optional<bool> elevated;
+
+  proc_info_details() = default;
+  explicit proc_info_details(const proc_info& base) : proc_info(base) {}
 };
 
 using procs_map = std::multimap<DWORD, proc_info>;

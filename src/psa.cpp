@@ -33,6 +33,31 @@ static ustring to_ustring(const std::string& s);
 
 namespace {
 
+bool try_parse_positive_pid(const std::string& value, uint32_t& pid) {
+  if (value.empty()) {
+    return false;
+  }
+
+  uint64_t parsed = 0;
+  for (const unsigned char ch : value) {
+    if (!std::isdigit(ch)) {
+      return false;
+    }
+
+    parsed = (parsed * 10) + static_cast<uint64_t>(ch - '0');
+    if (parsed > static_cast<uint64_t>(UINT32_MAX)) {
+      return false;
+    }
+  }
+
+  if (parsed == 0) {
+    return false;
+  }
+
+  pid = static_cast<uint32_t>(parsed);
+  return true;
+}
+
 cxxopts::Options create_options() {
   cxxopts::Options options("psa", "Processes Status Analysis");
   options.add_options()("a", "List all processes information")(
@@ -43,7 +68,9 @@ cxxopts::Options create_options() {
               cxxopts::value<std::string>(),
               "<name|pid>")("o", "Info for one process matching name criteria",
                             cxxopts::value<std::string>(), "<name|pid>")(
-      "details", "Show detailed process information (used with -o)")
+      "pid", "Identify process information by PID",
+      cxxopts::value<std::string>(),
+      "<pid>")("details", "Show detailed process information (used with -o)")
 #ifdef _WIN32
       ("t,tree", "Tree snapshot of current processes",
        cxxopts::value<int>()->implicit_value("0"), "[pid]")
@@ -173,6 +200,25 @@ bool dispatch_requested_options(const cxxopts::ParseResult& result,
     return false;
   }
 
+  if (result.count("pid")) {
+    const std::string& pid_value = result["pid"].as<std::string>();
+    uint32_t pid = 0;
+    if (!try_parse_positive_pid(pid_value, pid)) {
+      ucout << _T("Error: PID must be a positive integer.") << std::endl;
+      return false;
+    }
+
+    auto details = processing_operations->GetProcessInfoByPid(pid);
+    if (!details.has_value()) {
+      ucout << _T("Error: Process with PID ") << pid << _T(" not found.")
+            << std::endl;
+      return false;
+    }
+
+    processing_operations->PrintProcessInfoReport(details.value());
+    good_params = true;
+  }
+
   if (result.count("t")) {
     processing_operations->GenerateProcessesTree(result["t"].as<int>());
     good_params = true;
@@ -200,6 +246,8 @@ void ShowParameters() {
         << std::endl;
   ucout << _T("    -o <name|pid> [--details] : info only one process name ")
            _T("criteria, optionally with details ")
+        << std::endl;
+  ucout << _T("    --pid <pid> : identify process information by PID")
         << std::endl;
   ucout
       << _T("    --details : show detailed process information (used with -o)")
