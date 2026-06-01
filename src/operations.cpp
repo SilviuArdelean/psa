@@ -101,7 +101,7 @@ ustring resolve_process_details(const proc_info& process) {
     return process.cmdline_args;
   }
 
-  return process_actions::GetProcessCmdLine(process.proc_pid);
+  return process_actions::get_process_cmdline(process.proc_pid);
 }
 
 void print_process_details(const proc_info& process) {
@@ -111,7 +111,7 @@ void print_process_details(const proc_info& process) {
     return;
   }
 
-  const auto path = process_actions::GetProcessPath(process.proc_pid);
+  const auto path = process_actions::get_process_path(process.proc_pid);
   if (!path.empty()) {
     ucout << _T("   path: [ ") << path.c_str() << _T(" ]") << std::endl;
   }
@@ -154,7 +154,7 @@ bool ProcessingOperations::BuildProcessesMap() {
         pe32.th32ProcessID,
         proc_info(pe32.th32ProcessID, pe32.th32ParentProcessID, pe32.szExeFile,
                   GetProcessUsedMemory(pe32.th32ProcessID),
-                  process_actions::GetProcessCmdLine(pe32.th32ProcessID)));
+                  process_actions::get_process_cmdline(pe32.th32ProcessID)));
 
   } while (Process32Next(hProcessSnap, &pe32));
 
@@ -174,7 +174,7 @@ bool ProcessingOperations::BuildProcessesMap() {
         proc_info(_process.tid, _process.ppid,
                   (_process.cmdline != NULL) ? *_process.cmdline : _process.cmd,
                   _process.vsize,
-                  process_actions::GetProcessCmdLine(_process.tid)));
+                  process_actions::get_process_cmdline(_process.tid)));
   }
 
   closeproc(proc);
@@ -321,6 +321,16 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
   }
 
   return true;
+}
+
+std::optional<proc_info_details> ProcessingOperations::GetProcessInfoByPid(
+    const uint32_t process_pid) {
+  return process_actions::get_process_details_info(process_pid);
+}
+
+void ProcessingOperations::PrintProcessInfoReport(
+    const proc_info_details& details) {
+  process_actions::print_process_info_report(details);
 }
 
 bool ProcessingOperations::PrintProcessDetailedInfo(DWORD pid) {
