@@ -274,6 +274,58 @@ TEST_F(PsaCliIntegrationTest, FlagT_TreeSnapshot) {
 #endif
 }
 
+TEST_F(PsaCliIntegrationTest, FlagPid_CurrentProcess_PrintsProcessReport) {
+#ifdef _WIN32
+  const uint32_t current_pid = static_cast<uint32_t>(GetCurrentProcessId());
+#else
+  const uint32_t current_pid = static_cast<uint32_t>(getpid());
+#endif
+
+  const std::string pid_str = std::to_string(current_pid);
+  Argv av{"psa", "--pid", pid_str.c_str()};
+
+#ifdef _UNICODE
+  std::wstring out;
+  EXPECT_TRUE(run_and_capture(av, out));
+  EXPECT_FALSE(out.empty());
+  EXPECT_NE(out.find(L"PID:"), std::wstring::npos);
+  EXPECT_NE(out.find(L"Name:"), std::wstring::npos);
+  EXPECT_NE(out.find(L"Path:"), std::wstring::npos);
+  EXPECT_NE(out.find(L"Command Line:"), std::wstring::npos);
+
+  std::wstring wpid;
+  for (char c : pid_str) {
+    wpid += static_cast<wchar_t>(c);
+  }
+  EXPECT_NE(out.find(wpid), std::wstring::npos);
+#else
+  std::string out;
+  EXPECT_TRUE(run_and_capture(av, out));
+  EXPECT_FALSE(out.empty());
+  EXPECT_NE(out.find("PID:"), std::string::npos);
+  EXPECT_NE(out.find("Name:"), std::string::npos);
+  EXPECT_NE(out.find("Path:"), std::string::npos);
+  EXPECT_NE(out.find("Command Line:"), std::string::npos);
+  EXPECT_NE(out.find(pid_str), std::string::npos);
+#endif
+}
+
+TEST_F(PsaCliIntegrationTest, FlagPid_NonexistentProcess_ReturnsFalseAndError) {
+  Argv av{"psa", "--pid", "4294967295"};
+
+#ifdef _UNICODE
+  std::wstring out;
+  EXPECT_FALSE(run_and_capture(av, out));
+  EXPECT_NE(out.find(L"Error: Process with PID 4294967295 not found."),
+            std::wstring::npos);
+#else
+  std::string out;
+  EXPECT_FALSE(run_and_capture(av, out));
+  EXPECT_NE(out.find("Error: Process with PID 4294967295 not found."),
+            std::string::npos);
+#endif
+}
+
 #ifdef _WIN32
 static HANDLE spawn_dummy_process(DWORD& pid) {
   STARTUPINFOW si = {sizeof(si)};

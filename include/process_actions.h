@@ -38,19 +38,27 @@
 #include <signal.h>
 #include <unistd.h>
 #include <fstream>
+#include <fcntl.h>
+#include <pwd.h>
+#include <sys/stat.h>
+#include <sstream>
 #endif
 
 #define process_fake_name _T("_|_")
 
 namespace process_actions {
+[[nodiscard]] std::optional<proc_info_details> get_process_details_info(
+    const uint32_t pid);
+void print_process_info_report(const proc_info_details& details);
+
 void kill_process_by_name(const TCHAR* process_name);
 void kill_process_by_pid(const int process_pid);
 void kill_process_by_name_optimized(const TCHAR* process_name,
                                     const procs_map& map_processes);
 void kill_process_by_pid_optimized(const int process_pid,
                                    const procs_map& map_processes);
-ustring GetProcessPath(int process_pid);
-[[nodiscard]] ustring GetProcessCmdLine(int process_pid);
+[[nodiscard]] ustring get_process_path(const int process_pid);
+[[nodiscard]] ustring get_process_cmdline(const int process_pid);
 
 bool is_essential_proccess(const int process_pid);
 void execute_kill_process(const int process_pid, const TCHAR* process_name);

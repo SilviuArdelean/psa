@@ -39,6 +39,9 @@ class ProcessingOperations {
   [[nodiscard]] virtual bool PrintProcessInformation(
       const ustring& process_name,
       bool const show_details = false);
+  [[nodiscard]] virtual std::optional<proc_info_details> GetProcessInfoByPid(
+      const uint32_t process_pid);
+  virtual void PrintProcessInfoReport(const proc_info_details& details);
   virtual void PrintTopExpensiveProcesses(const int top);
   virtual void KillProcesses(TCHAR const* argvProcessParam);
   virtual void KillProcessesWithCmdLine(const ustring& argvProcessParam,
