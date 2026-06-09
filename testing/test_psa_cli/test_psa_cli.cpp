@@ -207,8 +207,32 @@ TEST_F(PsaCliTest, DetailsWithoutO_ReturnsFalse) {
   EXPECT_TRUE(fake.calls.empty());
 }
 
-TEST_F(PsaCliTest, FlagD_IsUnknownOption_ReturnsFalse) {
-  Argv av{"psa", "-d", "chrome"};
+TEST_F(PsaCliTest, FlagDWithoutO_ReturnsFalse) {
+  Argv av{"psa", "-d"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagO_ThenShortD_ThenValue_NormalizesAndSucceeds) {
+  Argv av{"psa", "-o", "-d", "chrome"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("PrintOne", fake.calls[0].name);
+  EXPECT_TRUE(fake.calls[0].show_details);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+}
+
+TEST_F(PsaCliTest, FlagOD_CombinedShortOptions_NormalizesAndSucceeds) {
+  Argv av{"psa", "-od", "chrome"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("PrintOne", fake.calls[0].name);
+  EXPECT_TRUE(fake.calls[0].show_details);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+}
+
+TEST_F(PsaCliTest, FlagOD_WithoutValue_ReturnsFalse) {
+  Argv av{"psa", "-od"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }

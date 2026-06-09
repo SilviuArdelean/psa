@@ -13,8 +13,9 @@ Parameters
 * -e [no]   : top [no] most expensive memory consuming processes | top 10 by default
 * -k        : kill specific process by PID or name
 * --filter-param : filter processes to kill by command line substring (used with -k)
-* -o        : info only one process name criteria (can be used with --details)
-* --details : show detailed process information (used with -o)
+* -o        : info only one process name criteria (can be used with -d/--details)
+* -d, --details : show detailed process information (used with -o)
+* --pid <pid> : identify process information by PID (full process report)
 * -t [pid]  : tree snapshot of current processes or of the subprocesses of a specified process PID.
 
 Usage
@@ -34,6 +35,9 @@ psa -k 7891                               // kill the process having PID = 7891
 psa -k chrome --filter-param "network"    // kill all processes containing 'chrome' in name and 'network' in command line
 psa -o chrome --details                   // show details and command line for all processes matching 'chrome'
 psa -o 1234 --details                     // show details and command line for process with PID 1234
+psa -od 1234                              // short form with PID filter
+psa -o -d 1234                            // equivalent short form with PID filter
+psa --pid 1234                            // print full process report for PID 1234
 ```
 
 Compatibility

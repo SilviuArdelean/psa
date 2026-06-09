@@ -41,7 +41,7 @@ bool is_all_digits(const char* value) {
 void normalize_windows_short_option(std::string& argument) {
 #ifdef _WIN32
   if (argument.size() == 2 && argument[0] == '-' &&
-      std::strchr("AEKOT", argument[1])) {
+      std::strchr("ADEKOT", argument[1])) {
     argument[1] = static_cast<char>(tolower(argument[1]));
   }
 #else
@@ -85,9 +85,23 @@ std::vector<std::string> normalize_arguments(int argc, char* argv[]) {
     std::string argument = argv[i];
     normalize_windows_short_option(argument);
 
+    if (argument == "-od") {
+      cooked_storage.push_back("-o");
+      if (i + 1 < argc && !is_flag_like_value(argv[i + 1])) {
+        cooked_storage.push_back(argv[i + 1]);
+        cooked_storage.push_back("--details");
+        ++i;
+      } else {
+        cooked_storage.push_back("-d");
+      }
+
+      continue;
+    }
+
     if (argument == "-o" && i + 2 < argc) {
       std::string next_arg = argv[i + 1];
-      if (next_arg == "--details" && !is_flag_like_value(argv[i + 2])) {
+      if ((next_arg == "--details" || next_arg == "-d") &&
+          !is_flag_like_value(argv[i + 2])) {
         cooked_storage.push_back("-o");
         cooked_storage.push_back(argv[i + 2]);
         cooked_storage.push_back("--details");

@@ -70,7 +70,7 @@ cxxopts::Options create_options() {
                             cxxopts::value<std::string>(), "<name|pid>")(
       "pid", "Identify process information by PID",
       cxxopts::value<std::string>(),
-      "<pid>")("details", "Show detailed process information (used with -o)")
+      "<pid>")("d,details", "Show detailed process information (used with -o)")
 #ifdef _WIN32
       ("t,tree", "Tree snapshot of current processes",
        cxxopts::value<int>()->implicit_value("0"), "[pid]")
@@ -235,42 +235,52 @@ bool dispatch_requested_options(const cxxopts::ParseResult& result,
 }  // namespace
 
 void ShowParameters() {
-  ucout << _T("    -a    : list all processes information") << std::endl;
-  ucout << _T("    -e [no]    : top [no] most expensive memory consuming ")
-           _T("processes ")
-           _T("| top 10 by default ")
-        << std::endl;
-  ucout << _T("    -k <name|pid> [--filter-param <value>] : kill specific ")
-           _T("process ")
-           _T("by PID or name, optionally filtering by command line parameter")
-        << std::endl;
-  ucout << _T("    -o <name|pid> [--details] : info only one process name ")
-           _T("criteria, optionally with details ")
-        << std::endl;
-  ucout << _T("    --pid <pid> : identify process information by PID")
-        << std::endl;
-  ucout
-      << _T("    --details : show detailed process information (used with -o)")
-      << std::endl;
-  ucout << _T("    -t [pid] : tree snapshot of current processes") << std::endl;
-  ucout << _T("    -h    : show available options") << std::endl;
+  const auto print_parameter_line = [](const ustring& label,
+                                       const ustring& description) {
+    ucout << std::format(_T("    {:<36} : {}"), label, description)
+          << std::endl;
+  };
+
+  print_parameter_line(_T("-a"), _T("list all processes information"));
+  print_parameter_line(
+      _T("-e [no]"),
+      _T("top [no] most expensive memory consuming processes | top 10 by ")
+      _T("default"));
+  print_parameter_line(
+      _T("-k <name|pid> [--filter-param <value>]"),
+      _T("kill specific process by PID or name, optionally filtering by ")
+      _T("command line parameter"));
+  print_parameter_line(
+      _T("-o <name|pid> [-d|--details]"),
+      _T("info only one process name criteria, optionally with details"));
+  print_parameter_line(_T("--pid <pid>"),
+                       _T("identify process information by PID (full process ")
+                       _T("report)"));
+  print_parameter_line(
+      _T("-d, --details"),
+      _T("show detailed process information (used with -o)"));
+  print_parameter_line(
+      _T("-t [pid]"),
+      _T("tree snapshot of current processes or of the subprocesses of a ")
+      _T("specified process PID"));
+  print_parameter_line(_T("-h"), _T("show available options"));
 }
 
 void ShowAvailableInformation() {
-  ucout << _T("----------------------------------------------------------")
+  ucout << _T("----------------------------------------------------------------")
         << std::endl;
-  ucout << _T("     psa - Processes Status Analysis - version 0.4")
+  ucout << _T("        psa - Processes Status Analysis - version 0.4")
         << std::endl;
-  ucout << _T("----------------------------------------------------------")
+  ucout << _T("----------------------------------------------------------------")
         << std::endl;
 
   ShowParameters();
 
-  ucout << _T("----------------------------------------------------------")
+  ucout << _T("----------------------------------------------------------------")
         << std::endl;
-  ucout << _T("    Author: Silviu-Marius Ardelean https://ardelean.ch ")
+  ucout << _T("       Author: Silviu-Marius Ardelean https://ardelean.ch ")
         << std::endl;
-  ucout << _T("----------------------------------------------------------")
+  ucout << _T("----------------------------------------------------------------")
         << std::endl;
 }
 
