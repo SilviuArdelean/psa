@@ -107,4 +107,4 @@ If you use the submodule, do not commit the contents of `external/gtest`—only 
 Contributing
 ------------
 
-
+People on the project: @SilviuArdelean (Silviu-Marius Ardelean)
