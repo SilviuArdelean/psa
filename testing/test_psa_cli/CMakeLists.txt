@@ -82,13 +82,13 @@ if(WIN32)
             $<$<CONFIG:Release>:/O2>
         )
     endif()
-    target_link_libraries(test_psa_cli PRIVATE psapi shlwapi GTest::gtest)
+    target_link_libraries(test_psa_cli PRIVATE psapi shlwapi GTest::gtest fmt::fmt)
 elseif(UNIX AND NOT APPLE)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(PROCPS REQUIRED libprocps)
 
     target_include_directories(test_psa_cli PRIVATE ${PROCPS_INCLUDE_DIRS})
-    target_link_libraries(test_psa_cli PRIVATE ${PROCPS_LIBRARIES} GTest::gtest)
+    target_link_libraries(test_psa_cli PRIVATE ${PROCPS_LIBRARIES} GTest::gtest fmt::fmt)
     target_compile_options(test_psa_cli PRIVATE
         ${PROCPS_CFLAGS_OTHER}
         -Wswitch

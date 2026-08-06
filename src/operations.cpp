@@ -39,39 +39,49 @@
 
 namespace {
 
+ustring format_memory(ULONG64 bytes, bool no_decimals = false) {
+  if (bytes >= GB_DIVIDER)
+    return no_decimals ? psa::format(_T("{:.0f} GB"), ToGb(bytes))
+                       : psa::format(_T("{:.2f} GB"), ToGb(bytes));
+  if (bytes >= MB_DIVIDER)
+    return no_decimals ? psa::format(_T("{:.0f} MB"), ToMb(bytes))
+                       : psa::format(_T("{:.2f} MB"), ToMb(bytes));
+  return no_decimals ? psa::format(_T("{:.0f} KB"), ToKb(bytes))
+                     : psa::format(_T("{:.2f} KB"), ToKb(bytes));
+}
+
 void print_process_row(const proc_info& process, bool bracket_pid) {
+  const auto mem = format_memory(static_cast<ULONG64>(process.used_memory));
 #ifdef _WIN32
   if (bracket_pid) {
-    uprintf_s(_T("[PID: %d] \t %.4lf MB \t %-15s \n"), process.proc_pid,
-              ToMb(process.used_memory), process.proc_name.c_str());
+    uprintf_s(_T("[PID: %d] \t %s \t %-15s \n"), process.proc_pid, mem.c_str(),
+              process.proc_name.c_str());
     return;
   }
-
-  uprintf_s(_T("PID [%d] \t %.4lf MB \t %-15s \n"), process.proc_pid,
-            ToMb(process.used_memory), process.proc_name.c_str());
+  uprintf_s(_T("PID [%d] \t %s \t %-15s \n"), process.proc_pid, mem.c_str(),
+            process.proc_name.c_str());
 #else
   if (bracket_pid) {
-    uprintf_s("[PID: %d] \t %.4lf MB \t %-15s \n", process.proc_pid,
-              ToMb(process.used_memory), process.proc_name.c_str());
+    uprintf_s("[PID: %d] \t %s \t %-15s \n", process.proc_pid, mem.c_str(),
+              process.proc_name.c_str());
     return;
   }
-
-  uprintf_s("PID [%d] \t %.4lf MB \t %-15s \n", process.proc_pid,
-            ToMb(process.used_memory), process.proc_name.c_str());
+  uprintf_s("PID [%d] \t %s \t %-15s \n", process.proc_pid, mem.c_str(),
+            process.proc_name.c_str());
 #endif
 }
 
 void print_total_memory_summary(ULONG64 total_memory, int process_count) {
   ucout << _T("-----------------------------------") << std::endl;
-  uprintf_s(_T("   Total used memory: %.4lf MB  [ %d processes ]\n"),
-            ToMb(total_memory), process_count);
+  ucout << _T("   Total used memory: ") << format_memory(total_memory, true)
+        << _T("  [ ") << process_count << _T(" processes ]") << std::endl;
 }
 
 void print_all_processes_summary(ULONG64 total_memory, int process_count) {
   ucout << _T("--------------------------------------------------------")
         << std::endl;
-  uprintf_s(_T("   Total used memory: %.4lf MB  [ %d processes ]\n"),
-            ToMb(total_memory), process_count);
+  ucout << _T("   Total used memory: ") << format_memory(total_memory, true)
+        << _T("  [ ") << process_count << _T(" processes ]") << std::endl;
 }
 void print_insufficient_privileges_message() {
 #ifdef _WIN32
@@ -107,7 +117,7 @@ ustring resolve_process_details(const proc_info& process) {
 void print_process_details(const proc_info& process) {
   const auto cmdline = resolve_process_details(process);
   if (!cmdline.empty()) {
-    ucout << _T("   cmdl: [ ") << cmdline.c_str() << _T(" ]") << std::endl;
+    ucout << _T("[ Command Line: ") << cmdline.c_str() << _T(" ]") << std::endl;
     return;
   }
 
@@ -238,14 +248,14 @@ void ProcessingOperations::PrintTopExpensiveProcesses(const int top) {
   });
 
   for (const auto& ob : sorted) {
-    uprintf_s(_T(" [%d] \t %.2lf MB \t %-15s \n"), ob.pid, ToMb(ob.mem_usage),
-              ob.proc_name.c_str());
+    uprintf_s(_T(" [%d] \t %s \t %-15s \n"), ob.pid,
+              format_memory(ob.mem_usage).c_str(), ob.proc_name.c_str());
 
     processesAllSize += ob.mem_usage;
   }
 
-  ucout << "-------------------------------------------" << std::endl;
-  ucout << "   Total used memory: " << ToMb(processesAllSize) << " MB"
+  ucout << _T("-------------------------------------------") << std::endl;
+  ucout << _T("   Total used memory: ") << format_memory(processesAllSize, true)
         << std::endl;
 }
 
@@ -318,6 +328,56 @@ bool ProcessingOperations::PrintProcessInformation(const ustring& filter,
   } else {
     ucout << _T("Undetected process with '") << filter << _T("' name.")
           << std::endl;
+  }
+
+  return true;
+}
+
+bool ProcessingOperations::PrintProcessInformationWithCmdlineFilter(
+    const ustring& process_name,
+    const ustring& cmdline_filter,
+    bool const show_details) {
+  int process_count = 0;
+  ULONG64 all_processes_size = 0;
+
+  if (!EnsureProcessesMap())
+    return false;
+
+  if (process_name.empty() || cmdline_filter.empty())
+    return false;
+
+  ShowHeader();
+
+  const bool filter_is_pid = string_utils::is_number(process_name);
+  for (const auto& proc : map_processes_ | std::views::values) {
+    if (!process_matches_filter(proc, process_name, filter_is_pid)) {
+      continue;
+    }
+
+    if (!string_utils::search_substring(proc.cmdline_args, cmdline_filter)) {
+      continue;
+    }
+
+    print_process_row(proc, true);
+
+    if (show_details) {
+      print_process_details(proc);
+    }
+
+    all_processes_size += proc.used_memory;
+    process_count++;
+  }
+
+  if (process_count != 0) {
+    if (0 != all_processes_size) {
+      print_total_memory_summary(all_processes_size, process_count);
+    } else {
+      print_insufficient_privileges_message();
+    }
+  } else {
+    ucout << _T("No processes matched '") << process_name
+          << _T("' with command line containing '") << cmdline_filter
+          << _T("'.") << std::endl;
   }
 
   return true;
@@ -458,7 +518,7 @@ BOOL ProcessingOperations::SetPrivilege(HANDLE hToken,
   LUID luid;
 
   if (!LookupPrivilegeValue(NULL, lpszPrivilege, &luid)) {
-    std::cerr << std::format("LookupPrivilegeValue error: {}\n",
+    std::cerr << psa::format("LookupPrivilegeValue error: {}\n",
                              GetLastError());
     return FALSE;
   }
@@ -469,7 +529,7 @@ BOOL ProcessingOperations::SetPrivilege(HANDLE hToken,
 
   if (!AdjustTokenPrivileges(hToken, FALSE, &tp, sizeof(TOKEN_PRIVILEGES),
                              (PTOKEN_PRIVILEGES)NULL, (PDWORD)NULL)) {
-    std::cerr << std::format("AdjustTokenPrivileges error: {}\n",
+    std::cerr << psa::format("AdjustTokenPrivileges error: {}\n",
                              GetLastError());
     return FALSE;
   }
@@ -502,7 +562,7 @@ void ProcessingOperations::PrintError(const TCHAR* msg) {
     *p-- = 0;
   } while ((p >= sys_msg) && ((*p == '.') || (*p < 33)));
 
-  ucout << std::format(_T("\n  WARNING: {} failed with error {} ({})"), msg,
+  ucout << psa::format(_T("\n  WARNING: {} failed with error {} ({})"), msg,
                        num, sys_msg);
 }
 #endif
