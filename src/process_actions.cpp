@@ -21,6 +21,7 @@
  */
 
 #include "process_actions.h"
+#include "pch.h"
 
 namespace process_actions {
 
@@ -76,7 +77,7 @@ ustring format_system_time(const FILETIME& file_time) {
     return _T("<unavailable>");
   }
 
-  return std::format(_T("{:04}-{:02}-{:02} {:02}:{:02}:{:02}"),
+  return psa::format(_T("{:04}-{:02}-{:02} {:02}:{:02}:{:02}"),
                      system_time.wYear, system_time.wMonth, system_time.wDay,
                      system_time.wHour, system_time.wMinute,
                      system_time.wSecond);
@@ -296,7 +297,7 @@ std::optional<proc_info_details> get_process_details_info_win32(
 #ifndef _WIN32
 std::optional<proc_info_details> get_process_details_info_linux(
     const uint32_t pid) {
-  const std::string proc_dir = std::format("/proc/{}", pid);
+  const std::string proc_dir = psa::format("/proc/{}", pid);
   struct stat sb{};
   if (stat(proc_dir.c_str(), &sb) != 0) {
     return std::nullopt;
@@ -306,7 +307,7 @@ std::optional<proc_info_details> get_process_details_info_linux(
   details.proc_pid = static_cast<int>(pid);
   details.executable_path = get_process_path(static_cast<int>(pid));
 
-  std::string comm_path = std::format("{}/comm", proc_dir);
+  std::string comm_path = psa::format("{}/comm", proc_dir);
   std::ifstream comm_file(comm_path);
   if (comm_file) {
     std::string comm;
@@ -319,7 +320,7 @@ std::optional<proc_info_details> get_process_details_info_linux(
     details.cmdline_args = _T("<unavailable>");
   }
 
-  std::string status_path = std::format("{}/status", proc_dir);
+  std::string status_path = psa::format("{}/status", proc_dir);
   std::ifstream status_file(status_path);
   if (status_file) {
     std::string line;
@@ -341,7 +342,7 @@ std::optional<proc_info_details> get_process_details_info_linux(
     }
   }
 
-  std::string stat_path = std::format("{}/stat", proc_dir);
+  std::string stat_path = psa::format("{}/stat", proc_dir);
   std::ifstream stat_file(stat_path);
   if (stat_file) {
     std::string line;
@@ -372,15 +373,15 @@ std::optional<proc_info_details> get_process_details_info_linux(
       long itrealvalue = 0;
       unsigned long long starttime = 0;
 
-        if (!(iss >> state >> ppid >> pgrp >> session >> tty_nr >> tpgid >>
-          flags >> minflt >> cminflt >> majflt >> cmajflt >> utime >>
-          stime >> cutime >> cstime >> priority >> nice >> num_threads >>
-          itrealvalue >> starttime)) {
+      if (!(iss >> state >> ppid >> pgrp >> session >> tty_nr >> tpgid >>
+            flags >> minflt >> cminflt >> majflt >> cmajflt >> utime >> stime >>
+            cutime >> cstime >> priority >> nice >> num_threads >>
+            itrealvalue >> starttime)) {
         return details;
-        }
+      }
 
       details.session_id = session;
-        details.parent_pid = ppid;
+      details.parent_pid = ppid;
 
       long clk_tck = sysconf(_SC_CLK_TCK);
       if (clk_tck <= 0)
@@ -410,7 +411,7 @@ std::optional<proc_info_details> get_process_details_info_linux(
     }
   }
 
-  int exe_fd = open(std::format("{}/exe", proc_dir).c_str(), O_RDONLY);
+  int exe_fd = open(psa::format("{}/exe", proc_dir).c_str(), O_RDONLY);
   if (exe_fd >= 0) {
     unsigned char elf_header[20];
     if (read(exe_fd, elf_header, sizeof(elf_header)) == sizeof(elf_header)) {
@@ -589,7 +590,7 @@ ustring get_process_cmdline(const int process_pid) {
   if (us->Buffer && us->Length > 0)
     cmdline = ustring(us->Buffer, us->Length / sizeof(WCHAR));
 #else
-  const auto path = std::format("/proc/{}/cmdline", process_pid);
+  const auto path = psa::format("/proc/{}/cmdline", process_pid);
   std::ifstream f(path, std::ios::binary);
   if (!f)
     return cmdline;
@@ -628,32 +629,32 @@ void print_process_info_report(const proc_info_details& details) {
     if constexpr (std::is_same_v<value_t, bool>) {
       return opt.value() ? _T("Yes") : _T("No");
     } else if constexpr (std::is_integral_v<value_t>) {
-      return std::format(_T("{}"), opt.value());
+      return psa::format(_T("{}"), opt.value());
     } else {
       return opt.value();
     }
   };
 
-  ucout << std::format(_T("{:<14}{}\n"), _T("PID:"), details.proc_pid);
-  ucout << std::format(_T("{:<14}{}\n"), _T("Name:"), details.proc_name);
-  ucout << std::format(_T("{:<14}{}\n"), _T("Parent PID:"), details.parent_pid);
-  ucout << std::format(_T("{:<14}{}\n"), _T("Parent Name:"),
+  ucout << psa::format(_T("{:<14}{}\n"), _T("PID:"), details.proc_pid);
+  ucout << psa::format(_T("{:<14}{}\n"), _T("Name:"), details.proc_name);
+  ucout << psa::format(_T("{:<14}{}\n"), _T("Parent PID:"), details.parent_pid);
+  ucout << psa::format(_T("{:<14}{}\n"), _T("Parent Name:"),
                        format_optional_value(details.parent_name));
-  ucout << std::format(_T("{:<14}{}\n"), _T("User:"),
+  ucout << psa::format(_T("{:<14}{}\n"), _T("User:"),
                        format_optional_value(details.user));
-  ucout << std::format(_T("{:<14}{}\n"), _T("Session ID:"),
+  ucout << psa::format(_T("{:<14}{}\n"), _T("Session ID:"),
                        format_optional_value(details.session_id, _T("N/A")));
-  ucout << std::format(_T("{:<14}{}\n"), _T("Architecture:"),
+  ucout << psa::format(_T("{:<14}{}\n"), _T("Architecture:"),
                        format_optional_value(details.architecture));
-  ucout << std::format(_T("{:<14}{}\n"), _T("Start Time:"),
+  ucout << psa::format(_T("{:<14}{}\n"), _T("Start Time:"),
                        format_optional_value(details.start_time));
-  ucout << std::format(
+  ucout << psa::format(
       _T("{:<14}{}\n"), _T("Integrity:"),
       format_optional_value(details.integrity_level, _T("N/A")));
-  ucout << std::format(_T("{:<14}{}\n"), _T("Elevated:"),
+  ucout << psa::format(_T("{:<14}{}\n"), _T("Elevated:"),
                        format_optional_value(details.elevated, _T("N/A")));
-  ucout << std::format(_T("{:<14}{}\n"), _T("Path:"), details.executable_path);
-  ucout << std::format(_T("{:<14}{}\n"), _T("Command Line:"),
+  ucout << psa::format(_T("{:<14}{}\n"), _T("Path:"), details.executable_path);
+  ucout << psa::format(_T("{:<14}{}\n"), _T("Command Line:"),
                        details.cmdline_args);
 }
 
@@ -712,7 +713,7 @@ void execute_kill_process_optimized(const int process_pid,
 
 #ifdef __linux__
 ssize_t get_exe_for_pid(int pid, std::span<char> buf) {
-  const auto path = std::format("/proc/{}/exe", pid);
+  const auto path = psa::format("/proc/{}/exe", pid);
   return readlink(path.c_str(), buf.data(), buf.size() - 1);
 }
 #endif

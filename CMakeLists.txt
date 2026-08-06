@@ -11,6 +11,17 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # ---------------------------------------------------------------------------
+# fmt library for std::format fallback on older compilers
+# ---------------------------------------------------------------------------
+include(FetchContent)
+FetchContent_Declare(
+    fmt
+    URL      https://github.com/fmtlib/fmt/archive/refs/tags/10.2.1.zip
+    URL_HASH SHA256=312151a2d13c8327f5c9c586ac6cf7cddc1658e8f53edae0ec56509c8fa516c9
+)
+FetchContent_MakeAvailable(fmt)
+
+# ---------------------------------------------------------------------------
 # Output directories  (mirrors the old Build/<Config>/<Platform>/ layout)
 # ---------------------------------------------------------------------------
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")

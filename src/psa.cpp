@@ -25,6 +25,7 @@
 
 #include "cxxopts.hpp"
 #include "operations.h"
+#include "pch.h"
 #include "psa_cli_parsing.h"
 
 void ShowAvailableInformation();
@@ -58,6 +59,22 @@ bool try_parse_positive_pid(const std::string& value, uint32_t& pid) {
   return true;
 }
 
+bool try_get_cmdline_filter(const cxxopts::ParseResult& result,
+                            ustring& cmdline_filter) {
+  const std::string& cmdline_val = result["filter-param"].as<std::string>();
+  if (cmdline_val.empty() || cli_parsing::is_flag_like_value(cmdline_val)) {
+    ucout << _T("Error: option --filter-param requires a non-empty, ")
+             _T("non-flag value.")
+          << std::endl;
+    ucout << _T("More information:") << std::endl;
+    ShowParameters();
+    return false;
+  }
+
+  cmdline_filter = to_ustring(cmdline_val);
+  return true;
+}
+
 cxxopts::Options create_options() {
   cxxopts::Options options("psa", "Processes Status Analysis");
   options.add_options()("a", "List all processes information")(
@@ -79,16 +96,36 @@ cxxopts::Options create_options() {
        cxxopts::value<int>()->implicit_value("1"), "[pid]")
 #endif
           ("filter-param",
-           "Filter processes to kill by command line substring (used with -k)",
+           "Filter processes by command line substring (used with -k or -o)",
            cxxopts::value<std::string>(),
            "<value>")("h,help", "Show available options");
   return options;
 }
 
+bool apply_process_filter(const cxxopts::ParseResult& result,
+                          const ustring& filter,
+                          bool show_details,
+                          ProcessingOperations* po) {
+  if (result.count("filter-param")) {
+    ustring cmdline_filter;
+    if (!try_get_cmdline_filter(result, cmdline_filter)) {
+      return false;
+    }
+
+    return show_details ? po->PrintProcessInformationWithCmdlineFilter(
+                              filter, cmdline_filter, true)
+                        : po->PrintProcessInformationWithCmdlineFilter(
+                              filter, cmdline_filter);
+  } else {
+    return show_details ? po->PrintProcessInformation(filter, true)
+                        : po->PrintProcessInformation(filter);
+  }
+}
+
 bool handle_filter_option(const cxxopts::ParseResult& result,
                           const char* key,
                           bool show_details,
-                          ProcessingOperations* processing_operations,
+                          ProcessingOperations* po,
                           bool& good_params) {
   if (!result.count(key)) {
     return true;
@@ -104,11 +141,7 @@ bool handle_filter_option(const cxxopts::ParseResult& result,
   }
 
   const auto filter = to_ustring(value);
-  const bool ok =
-      show_details
-          ? processing_operations->PrintProcessInformation(filter, true)
-          : processing_operations->PrintProcessInformation(filter);
-  if (!ok) {
+  if (!apply_process_filter(result, filter, show_details, po)) {
     return false;
   }
 
@@ -133,16 +166,11 @@ bool handle_kill_option(const cxxopts::ParseResult& result,
 
   const auto filter = to_ustring(value);
   if (result.count("filter-param")) {
-    const std::string& cmdline_val = result["filter-param"].as<std::string>();
-    if (cmdline_val.empty() || cli_parsing::is_flag_like_value(cmdline_val)) {
-      ucout << _T("Error: option --filter-param requires a non-empty, ")
-               _T("non-flag value.")
-            << std::endl;
-      ucout << _T("More information:") << std::endl;
-      ShowParameters();
+    ustring cmdline_filter;
+    if (!try_get_cmdline_filter(result, cmdline_filter)) {
       return false;
     }
-    const auto cmdline_filter = to_ustring(cmdline_val);
+
     processing_operations->KillProcessesWithCmdLine(filter, cmdline_filter);
   } else {
     processing_operations->KillProcesses(filter.c_str());
@@ -168,8 +196,10 @@ void handle_entries_option(const cxxopts::ParseResult& result,
 
 bool dispatch_requested_options(const cxxopts::ParseResult& result,
                                 ProcessingOperations* processing_operations) {
-  if (result.count("filter-param") && !result.count("k")) {
-    ucout << _T("Error: --filter-param can only be used with -k.") << std::endl;
+  if (result.count("filter-param") && !result.count("k") &&
+      !result.count("o")) {
+    ucout << _T("Error: --filter-param can only be used with -k or -o.")
+          << std::endl;
     ShowParameters();
     return false;
   }
@@ -237,7 +267,7 @@ bool dispatch_requested_options(const cxxopts::ParseResult& result,
 void ShowParameters() {
   const auto print_parameter_line = [](const ustring& label,
                                        const ustring& description) {
-    ucout << std::format(_T("    {:<36} : {}"), label, description)
+    ucout << psa::format(_T("    {:<36} : {}"), label, description)
           << std::endl;
   };
 
@@ -251,14 +281,17 @@ void ShowParameters() {
       _T("kill specific process by PID or name, optionally filtering by ")
       _T("command line parameter"));
   print_parameter_line(
-      _T("-o <name|pid> [-d|--details]"),
-      _T("info only one process name criteria, optionally with details"));
+      _T("-o <name|pid> [-d|--details] [--filter-param <value>]"),
+      _T("info for process(es) matching name/PID, optionally with details ")
+      _T("and command line filter"));
   print_parameter_line(_T("--pid <pid>"),
                        _T("identify process information by PID (full process ")
                        _T("report)"));
+  print_parameter_line(_T("-d, --details"),
+                       _T("show detailed process information (used with -o)"));
   print_parameter_line(
-      _T("-d, --details"),
-      _T("show detailed process information (used with -o)"));
+      _T("--filter-param <value>"),
+      _T("filter by command line substring (used with -k or -o)"));
   print_parameter_line(
       _T("-t [pid]"),
       _T("tree snapshot of current processes or of the subprocesses of a ")
@@ -267,21 +300,25 @@ void ShowParameters() {
 }
 
 void ShowAvailableInformation() {
-  ucout << _T("----------------------------------------------------------------")
-        << std::endl;
+  ucout
+      << _T("----------------------------------------------------------------")
+      << std::endl;
   ucout << _T("        psa - Processes Status Analysis - version 0.4")
         << std::endl;
-  ucout << _T("----------------------------------------------------------------")
-        << std::endl;
+  ucout
+      << _T("----------------------------------------------------------------")
+      << std::endl;
 
   ShowParameters();
 
-  ucout << _T("----------------------------------------------------------------")
-        << std::endl;
+  ucout
+      << _T("----------------------------------------------------------------")
+      << std::endl;
   ucout << _T("       Author: Silviu-Marius Ardelean https://ardelean.ch ")
         << std::endl;
-  ucout << _T("----------------------------------------------------------------")
-        << std::endl;
+  ucout
+      << _T("----------------------------------------------------------------")
+      << std::endl;
 }
 
 // Convert parsed option values to the project's string type.

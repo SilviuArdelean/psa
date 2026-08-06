@@ -24,6 +24,9 @@ endif()
 
 add_executable(psa ${PSA_SOURCES} ${PSA_HEADERS})
 
+# --- Link fmt library for format support ---
+target_link_libraries(psa PRIVATE fmt::fmt)
+
 # --- Include directories ---
 target_include_directories(psa PRIVATE
     "${PSA_INCLUDE_DIR}"   # root include/

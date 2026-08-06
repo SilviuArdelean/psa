@@ -39,6 +39,10 @@ class ProcessingOperations {
   [[nodiscard]] virtual bool PrintProcessInformation(
       const ustring& process_name,
       bool const show_details = false);
+  [[nodiscard]] virtual bool PrintProcessInformationWithCmdlineFilter(
+      const ustring& process_name,
+      const ustring& cmdline_filter,
+      bool const show_details = false);
   [[nodiscard]] virtual std::optional<proc_info_details> GetProcessInfoByPid(
       const uint32_t process_pid);
   virtual void PrintProcessInfoReport(const proc_info_details& details);

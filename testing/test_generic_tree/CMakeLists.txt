@@ -51,7 +51,7 @@ if(WIN32)
             $<$<CONFIG:Release>:/OPT:ICF>
         )
     endif()
-    target_link_libraries(test_generic_tree PRIVATE psapi shlwapi GTest::gtest GTest::gtest_main)
+    target_link_libraries(test_generic_tree PRIVATE psapi shlwapi GTest::gtest GTest::gtest_main fmt::fmt)
 elseif(UNIX)
     target_compile_options(test_generic_tree PRIVATE
         -Wall
@@ -63,7 +63,7 @@ elseif(UNIX)
         $<$<CONFIG:Debug>:_DEBUG>
         $<$<CONFIG:Release>:NDEBUG>
     )
-    target_link_libraries(test_generic_tree PRIVATE GTest::gtest GTest::gtest_main)
+    target_link_libraries(test_generic_tree PRIVATE GTest::gtest GTest::gtest_main fmt::fmt)
 endif()
 
 # ---------------------------------------------------------------------------

@@ -98,6 +98,15 @@ struct FakeProcessingOperations : ProcessingOperations {
     return return_value;
   }
 
+  bool PrintProcessInformationWithCmdlineFilter(
+      const ustring& process_name,
+      const ustring& cmdline_filter,
+      bool const show_details = false) override {
+    calls.push_back({"PrintOneWithCmdlineFilter", show_details, process_name, 0,
+                     cmdline_filter});
+    return return_value;
+  }
+
   void PrintTopExpensiveProcesses(const int top) override {
     calls.push_back({"TopExpensive", false, {}, top});
   }
@@ -534,6 +543,83 @@ TEST_F(PsaCliTest, FlagDetails_FlagAsArg_ReturnsFalse) {
 
 TEST_F(PsaCliTest, FlagK_OptionAsArg_ReturnsFalse) {
   Argv av{"psa", "-k", "--filter-param", "micro_av"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+// ===========================================================================
+// --filter-param with -o  (filter by command-line substring)
+// ===========================================================================
+
+TEST_F(PsaCliTest, FlagO_WithFilterParam_CallsFilteringMethod) {
+  Argv av{"psa", "-o", "chrome", "--filter-param", "network"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("PrintOneWithCmdlineFilter", fake.calls[0].name);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+  EXPECT_EQ(ustring(_T("network")), fake.calls[0].cmdline_arg);
+  EXPECT_FALSE(fake.calls[0].show_details);
+}
+
+TEST_F(PsaCliTest, FlagO_WithFilterParam_AndDetails_CallsFilteringWithDetails) {
+  Argv av{"psa", "-o", "chrome", "--filter-param", "network", "--details"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("PrintOneWithCmdlineFilter", fake.calls[0].name);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+  EXPECT_EQ(ustring(_T("network")), fake.calls[0].cmdline_arg);
+  EXPECT_TRUE(fake.calls[0].show_details);
+}
+
+TEST_F(PsaCliTest, FlagO_WithFilterParam_ShortD_CallsFilteringWithDetails) {
+  Argv av{"psa", "-o", "chrome", "-d", "--filter-param", "network"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("PrintOneWithCmdlineFilter", fake.calls[0].name);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+  EXPECT_EQ(ustring(_T("network")), fake.calls[0].cmdline_arg);
+  EXPECT_TRUE(fake.calls[0].show_details);
+}
+
+TEST_F(PsaCliTest,
+       FlagO_WithFilterParam_OD_Combined_CallsFilteringWithDetails) {
+  Argv av{"psa", "-od", "chrome", "--filter-param", "network"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("PrintOneWithCmdlineFilter", fake.calls[0].name);
+  EXPECT_EQ(ustring(_T("chrome")), fake.calls[0].str_arg);
+  EXPECT_EQ(ustring(_T("network")), fake.calls[0].cmdline_arg);
+  EXPECT_TRUE(fake.calls[0].show_details);
+}
+
+TEST_F(PsaCliTest, FlagO_WithFilterParam_NoMatchesReturn) {
+  fake.return_value = false;
+  Argv av{"psa", "-o", "chrome", "--filter-param", "nonexistent"};
+  EXPECT_FALSE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("PrintOneWithCmdlineFilter", fake.calls[0].name);
+}
+
+TEST_F(PsaCliTest, FlagO_WithFilterParam_EmptyValue_ReturnsFalse) {
+  Argv av{"psa", "-o", "chrome", "--filter-param", ""};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagO_WithFilterParam_FlagLikeValue_ReturnsFalse) {
+  Argv av{"psa", "-o", "chrome", "--filter-param", "-x"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagO_WithFilterParam_MissingValue_ReturnsFalse) {
+  Argv av{"psa", "-o", "chrome", "--filter-param"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FilterParamWithoutO_ReturnsFalse) {
+  Argv av{"psa", "--filter-param", "network"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
 }

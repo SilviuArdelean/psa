@@ -8,7 +8,6 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
-#include <format>
 #include <iostream>
 #include <map>
 #include <memory>
@@ -16,6 +15,25 @@
 #include <ranges>
 #include <string>
 #include <vector>
+
+// Format library - use std::format if available, otherwise use fmt library.
+#if defined(__has_include)
+    #if __has_include(<format>)
+        #include <format>
+    #endif
+#endif
+
+#if defined(__cpp_lib_format) && __cpp_lib_format >= 201907L
+namespace psa {
+using std::format;
+}
+#else
+    #include <fmt/format.h>
+    #include <fmt/xchar.h>
+namespace psa {
+using fmt::format;
+}
+#endif
 
 // Windows-specific headers
 #ifdef _WIN32

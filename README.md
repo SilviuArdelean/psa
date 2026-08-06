@@ -1,7 +1,7 @@
 ### psa
 
 Processes Status Analysis
-version 0.4
+version 0.5
 ------------------------------------------
 
 Processes Status Analysis (psa) cross-platform application that allows different analyses over the operating system's processes.
@@ -9,14 +9,14 @@ Processes Status Analysis (psa) cross-platform application that allows different
 Parameters
 ------------------------------------------
 
-* -a        : list all processes information from current processes snapshot.
-* -e [no]   : top [no] most expensive memory consuming processes | top 10 by default
-* -k        : kill specific process by PID or name
-* --filter-param : filter processes to kill by command line substring (used with -k)
-* -o        : info only one process name criteria (can be used with -d/--details)
-* -d, --details : show detailed process information (used with -o)
-* --pid <pid> : identify process information by PID (full process report)
-* -t [pid]  : tree snapshot of current processes or of the subprocesses of a specified process PID.
+* `-a`                                     : list all processes information from current processes snapshot.
+* `-e [no]`                                : top [no] most expensive memory consuming processes | top 10 by default
+* `-k <name|pid> [--filter-param <value>]` : kill specific process by PID or name, optionally filtering by command line parameter
+* `-o <name|pid> [-d|--details] [--filter-param <value>]` : info for process(es) matching name/PID, optionally with details and command line filter
+* `-d, --details`                          : show detailed process information (used with `-o`)
+* `--filter-param <value>`                 : filter by command line substring (used with `-k` or `-o`)
+* `--pid <pid>`                            : identify process information by PID (full process report)
+* `-t [pid]`                               : tree snapshot of current processes or of the subprocesses of a specified process PID.
 
 Usage
 ------------------------------------------
@@ -25,19 +25,21 @@ All the results can be redirected within a file.
 Usage examples.
 
 ```
-psa -t                                    // full snapshot tree
-psa -t 768                                // tree with the children processes of the process PID 768
-psa -o chrome                             // find how much memory uses your Chrome!   o_O
-psa -t > processes_tree.txt               // full snapshot tree redirection to a file
-psa -e 20 > top_expensive_processes.txt   // top most 'expensive' processes and save information in a file
-psa -k notep                              // kill all the processs containing 'notep' within the process name
-psa -k 7891                               // kill the process having PID = 7891
-psa -k chrome --filter-param "network"    // kill all processes containing 'chrome' in name and 'network' in command line
-psa -o chrome --details                   // show details and command line for all processes matching 'chrome'
-psa -o 1234 --details                     // show details and command line for process with PID 1234
-psa -od 1234                              // short form with PID filter
-psa -o -d 1234                            // equivalent short form with PID filter
-psa --pid 1234                            // print full process report for PID 1234
+psa -t                                           // full snapshot tree
+psa -t 768                                       // tree with the children processes of the process PID 768
+psa -o chrome                                    // find how much memory uses your Chrome!   o_O
+psa -t > processes_tree.txt                      // full snapshot tree redirection to a file
+psa -e 20 > top_expensive_processes.txt          // top most 'expensive' processes and save information in a file
+psa -k notep                                     // kill all the processes containing 'notep' within the process name
+psa -k 7891                                      // kill the process having PID = 7891
+psa -k chrome --filter-param "network"           // kill all processes containing 'chrome' in name and 'network' in command line
+psa -o chrome --details                          // show details and command line for all processes matching 'chrome'
+psa -o 1234 --details                            // show details and command line for process with PID 1234
+psa -od 1234                                     // short form with PID filter
+psa -o -d 1234                                   // equivalent short form with PID filter
+psa -o chrome --filter-param network             // show all Chrome processes with 'network' in their command line
+psa -o chrome --filter-param network --details   // same, with detailed process information
+psa --pid 1234                                   // print full process report for PID 1234
 ```
 
 Compatibility
