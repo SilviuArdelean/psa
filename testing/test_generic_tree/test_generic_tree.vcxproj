@@ -198,6 +198,7 @@
     <ClCompile Include="..\..\src\psa_cli_parsing.cpp" />
     <ClCompile Include="..\..\src\psa.cpp" />
     <ClCompile Include="..\..\src\operations.cpp" />
+    <ClCompile Include="..\..\src\notification.cpp" />
     <ClCompile Include="test_generic_tree_main.cpp" />
     <ClCompile Include="..\..\src\process_actions.cpp" />
     <ClCompile Include="..\..\src\processes_tree_builder.cpp" />

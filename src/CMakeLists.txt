@@ -9,6 +9,7 @@ set(PSA_SOURCES
     operations.cpp
     processes_tree_builder.cpp
     process_actions.cpp
+    notification.cpp
 )
 
 set(PSA_HEADERS

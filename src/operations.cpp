@@ -26,6 +26,7 @@
 #include <cstdlib>
 #include <sstream>
 #include "fixed_queue.h"
+#include "notification.h"
 #include "process_actions.h"
 #include "processes_tree_builder.h"
 #include "string_utils.h"
@@ -429,6 +430,10 @@ void ProcessingOperations::GenerateProcessesTree(int const proc_pid,
     ucout << "Invalid Process ID | PID " << proc_pid
           << " not detected in memory" << std::endl;
   }
+}
+
+bool ProcessingOperations::ShowNotification(const std::string& message) {
+  return psa::system::show_notification("psa", message);
 }
 
 void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {

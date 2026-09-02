@@ -10,6 +10,9 @@
     <ClCompile Include="..\processes_tree_builder.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\notification.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Headers">
@@ -45,6 +48,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\pch.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\notification.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>

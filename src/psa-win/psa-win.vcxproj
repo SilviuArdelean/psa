@@ -188,6 +188,7 @@
     <ClInclude Include="..\psa_cli_parsing.h" />
     <ClInclude Include="..\processes_tree_builder.h" />
     <ClInclude Include="..\..\include\cxxopts.hpp" />
+    <ClInclude Include="..\..\include\notification.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
@@ -196,6 +197,7 @@
     <ClCompile Include="..\processes_tree_builder.cpp" />
     <ClCompile Include="..\process_actions.cpp" />
     <ClCompile Include="..\psa.cpp" />
+    <ClCompile Include="..\notification.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
