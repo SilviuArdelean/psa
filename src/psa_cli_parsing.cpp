@@ -63,6 +63,14 @@ std::string expand_numeric_short_option(const std::string& argument,
   return longform + value;
 }
 
+bool should_bind_notify_value(const std::string& argument,
+                              int index,
+                              int argc,
+                              char* argv[]) {
+  return argument == "--notify" && index + 1 < argc &&
+    argv[index + 1] != nullptr && argv[index + 1][0] != '-';
+}
+
 }  // namespace
 
 namespace cli_parsing {
@@ -117,6 +125,12 @@ std::vector<std::string> normalize_arguments(int argc, char* argv[]) {
       continue;
     }
 
+    if (should_bind_notify_value(argument, i, argc, argv)) {
+      cooked_storage.push_back(argument + "=" + argv[i + 1]);
+      ++i;
+      continue;
+    }
+
     cooked_storage.push_back(std::move(argument));
   }
 
@@ -139,3 +153,4 @@ bool is_flag_like_value(const std::string& value) {
 }
 
 }  // namespace cli_parsing
+

@@ -17,6 +17,7 @@ Parameters
 * `--filter-param <value>`                 : filter by command line substring (used with `-k` or `-o`)
 * `--pid <pid>`                            : identify process information by PID (full process report)
 * `-t [pid]`                               : tree snapshot of current processes or of the subprocesses of a specified process PID.
+* `--notify [message]`                     : show a native system notification with an optional custom message.
 
 Usage
 ------------------------------------------
@@ -40,6 +41,8 @@ psa -o -d 1234                                   // equivalent short form with P
 psa -o chrome --filter-param network             // show all Chrome processes with 'network' in their command line
 psa -o chrome --filter-param network --details   // same, with detailed process information
 psa --pid 1234                                   // print full process report for PID 1234
+psa --notify "disk usage high"                   // show a native OS notification
+psa -k chrome --notify "chrome processes killed" // combine a process action with a notification
 ```
 
 Compatibility
@@ -49,6 +52,12 @@ The currently supported operating systems:
 
 * Windows
 * Linux    - (Debian tested) requiers libprocps-dev library
+
+Notification support:
+
+* Windows  - uses a PowerShell-backed native dialog.
+* Linux    - uses `notify-send` and requires a running desktop notification service.
+* macOS    - notification wrapper not implemented yet.
 
 GoogleTest Submodule
 --------------------
@@ -63,6 +72,8 @@ If you are updating or changing the submodule, commit the `.gitmodules` file and
 
 Development Environment
 ----------------------
+
+For a full cross-platform build and test walkthrough, see `docs/build_and_test_guide.md`.
 
 **Compiler Requirements:**
 

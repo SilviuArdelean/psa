@@ -14,6 +14,9 @@
     <ClCompile Include="..\process_actions.cpp">
       <Filter>Sources</Filter>
     </ClCompile>
+    <ClCompile Include="..\notification.cpp">
+      <Filter>Sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\general.h">
@@ -50,6 +53,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\cxxopts.hpp" />
+    <ClInclude Include="..\..\include\notification.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Sources">

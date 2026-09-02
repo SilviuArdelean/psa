@@ -52,6 +52,7 @@ class ProcessingOperations {
                                         const ustring& cmdlineFilter);
   virtual void GenerateProcessesTree(int const proc_pid,
                                      bool print_header = false);
+    [[nodiscard]] virtual bool ShowNotification(const std::string& message);
 
  protected:
   [[nodiscard]] bool PrintProcessDetailedInfo(DWORD pid);

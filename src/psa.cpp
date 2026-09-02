@@ -97,8 +97,11 @@ cxxopts::Options create_options() {
 #endif
           ("filter-param",
            "Filter processes by command line substring (used with -k or -o)",
-           cxxopts::value<std::string>(),
-           "<value>")("h,help", "Show available options");
+           cxxopts::value<std::string>(), "<value>")(
+      "notify",
+      "Show a native system notification with an optional custom message",
+      cxxopts::value<std::string>()->implicit_value("psa notification"),
+      "[message]")("h,help", "Show available options");
   return options;
 }
 
@@ -253,7 +256,13 @@ bool dispatch_requested_options(const cxxopts::ParseResult& result,
     processing_operations->GenerateProcessesTree(result["t"].as<int>());
     good_params = true;
   }
-
+  if (result.count("notify")) {
+    if (!processing_operations->ShowNotification(
+            result["notify"].as<std::string>())) {
+      ucout << _T("Warning: Failed to show notification.") << std::endl;
+    }
+    good_params = true;
+  }
   if (!good_params) {
     ShowAvailableInformation();
     return false;
@@ -296,6 +305,10 @@ void ShowParameters() {
       _T("-t [pid]"),
       _T("tree snapshot of current processes or of the subprocesses of a ")
       _T("specified process PID"));
+  print_parameter_line(
+      _T("--notify [message]"),
+      _T("show a native system notification with an optional custom ")
+      _T("message"));
   print_parameter_line(_T("-h"), _T("show available options"));
 }
 

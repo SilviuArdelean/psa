@@ -140,6 +140,7 @@
     <ClCompile Include="..\processes_tree_builder.cpp" />
     <ClCompile Include="..\process_actions.cpp" />
     <ClCompile Include="..\psa.cpp" />
+    <ClCompile Include="..\notification.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\fixed_queue.h" />
@@ -149,6 +150,7 @@
     <ClInclude Include="..\..\include\process_actions.h" />
     <ClInclude Include="..\..\include\cxxopts.hpp" />
     <ClInclude Include="..\..\include\string_utils.h" />
+    <ClInclude Include="..\..\include\notification.h" />
     <ClInclude Include="..\operations.h" />
     <ClInclude Include="..\pch.h" />
     <ClInclude Include="..\psa_cli_parsing.h" />

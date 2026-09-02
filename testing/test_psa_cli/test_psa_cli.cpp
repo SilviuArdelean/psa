@@ -36,6 +36,30 @@
 int optind = 0;
 #endif
 
+#ifdef _UNICODE
+class UcoutCapture {
+ public:
+  UcoutCapture() : old_buf(std::wcout.rdbuf(capture.rdbuf())) {}
+  ~UcoutCapture() { std::wcout.rdbuf(old_buf); }
+  std::wstring str() const { return capture.str(); }
+
+ private:
+  std::wstringstream capture;
+  std::wstreambuf* old_buf;
+};
+#else
+class UcoutCapture {
+ public:
+  UcoutCapture() : old_buf(std::cout.rdbuf(capture.rdbuf())) {}
+  ~UcoutCapture() { std::cout.rdbuf(old_buf); }
+  std::string str() const { return capture.str(); }
+
+ private:
+  std::stringstream capture;
+  std::streambuf* old_buf;
+};
+#endif
+
 // ---------------------------------------------------------------------------
 // Platform-specific getopt state reset
 // ---------------------------------------------------------------------------
@@ -81,6 +105,7 @@ struct FakeProcessingOperations : ProcessingOperations {
     int int_arg = 0;
     ustring cmdline_arg;
     uint32_t pid_arg = 0;
+    std::string notify_arg;
   };
 
   std::vector<Call> calls;
@@ -139,6 +164,11 @@ struct FakeProcessingOperations : ProcessingOperations {
   void GenerateProcessesTree(int const proc_pid,
                              bool print_header = false) override {
     calls.push_back({"GenTree", print_header, {}, proc_pid});
+  }
+
+  bool ShowNotification(const std::string& message) override {
+    calls.push_back({"ShowNotification", false, {}, 0, {}, 0, message});
+    return return_value;
   }
 };
 
@@ -341,6 +371,52 @@ TEST_F(PsaCliTest, FilterParamWithoutK_ReturnsFalse) {
   Argv av{"psa", "--filter-param", "network"};
   EXPECT_FALSE(run(av));
   EXPECT_TRUE(fake.calls.empty());
+}
+
+// ===========================================================================
+// --notify  (native system notification)
+// ===========================================================================
+
+TEST_F(PsaCliTest, FlagNotify_WithMessage_InvokesShowNotification) {
+  Argv av{"psa", "--notify", "custom message"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("ShowNotification", fake.calls[0].name);
+  EXPECT_EQ("custom message", fake.calls[0].notify_arg);
+}
+
+TEST_F(PsaCliTest, FlagNotify_NoMessage_UsesImplicitDefault) {
+  Argv av{"psa", "--notify"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("ShowNotification", fake.calls[0].name);
+  EXPECT_EQ("psa notification", fake.calls[0].notify_arg);
+}
+
+TEST_F(PsaCliTest, FlagNotify_CombinesWithOtherFlags) {
+  Argv av{"psa", "-a", "--notify", "done"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(2u, fake.calls.size());
+  EXPECT_EQ("PrintAll", fake.calls[0].name);
+  EXPECT_EQ("ShowNotification", fake.calls[1].name);
+  EXPECT_EQ("done", fake.calls[1].notify_arg);
+}
+
+TEST_F(PsaCliTest, FlagNotify_Failure_PrintsWarningButReturnsTrue) {
+  fake.return_value = false;
+  Argv av{"psa", "--notify", "custom message"};
+  UcoutCapture cap;
+
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("ShowNotification", fake.calls[0].name);
+#ifdef _UNICODE
+  EXPECT_NE(std::wstring::npos,
+            cap.str().find(L"Warning: Failed to show notification."));
+#else
+  EXPECT_NE(std::string::npos,
+            cap.str().find("Warning: Failed to show notification."));
+#endif
 }
 
 // ===========================================================================
