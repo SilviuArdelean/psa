@@ -31,6 +31,8 @@ bool has_legacy_help_switch(int argc, char* argv[]);
 std::vector<std::string> normalize_arguments(int argc, char* argv[]);
 std::vector<const char*> build_argv_view(
     const std::vector<std::string>& cooked_storage);
+bool has_explicit_option_value(const std::vector<std::string>& arguments,
+                               const std::string& option_name);
 bool is_flag_like_value(const std::string& value);
 
 }  // namespace cli_parsing

@@ -75,6 +75,22 @@ bool try_get_cmdline_filter(const cxxopts::ParseResult& result,
   return true;
 }
 
+bool try_get_notification_title(const cxxopts::ParseResult& result,
+                                std::string& title) {
+  const std::string& title_value = result["notify-title"].as<std::string>();
+  if (title_value.empty() || cli_parsing::is_flag_like_value(title_value)) {
+    ucout << _T("Error: option --notify-title requires a non-empty, ")
+             _T("non-flag value.")
+          << std::endl;
+    ucout << _T("More information:") << std::endl;
+    ShowParameters();
+    return false;
+  }
+
+  title = title_value;
+  return true;
+}
+
 cxxopts::Options create_options() {
   cxxopts::Options options("psa", "Processes Status Analysis");
   options.add_options()("a", "List all processes information")(
@@ -101,7 +117,11 @@ cxxopts::Options create_options() {
       "notify",
       "Show a native system notification with an optional custom message",
       cxxopts::value<std::string>()->implicit_value("psa notification"),
-      "[message]")("h,help", "Show available options");
+      "[message]")(
+      "notify-title",
+      "Customize the notification title (requires --notify with a message)",
+      cxxopts::value<std::string>(),
+      "<title>")("h,help", "Show available options");
   return options;
 }
 
@@ -198,6 +218,7 @@ void handle_entries_option(const cxxopts::ParseResult& result,
 }
 
 bool dispatch_requested_options(const cxxopts::ParseResult& result,
+                                bool notify_has_explicit_message,
                                 ProcessingOperations* processing_operations) {
   if (result.count("filter-param") && !result.count("k") &&
       !result.count("o")) {
@@ -209,6 +230,21 @@ bool dispatch_requested_options(const cxxopts::ParseResult& result,
 
   if (result.count("details") && !result.count("o")) {
     ucout << _T("Error: --details can only be used with -o.") << std::endl;
+    ShowParameters();
+    return false;
+  }
+
+  if (result.count("notify-title") && !result.count("notify")) {
+    ucout << _T("Error: --notify-title can only be used with --notify.")
+          << std::endl;
+    ShowParameters();
+    return false;
+  }
+
+  if (result.count("notify-title") && !notify_has_explicit_message) {
+    ucout << _T("Error: --notify-title requires --notify to include an ")
+             _T("explicit message.")
+          << std::endl;
     ShowParameters();
     return false;
   }
@@ -257,8 +293,14 @@ bool dispatch_requested_options(const cxxopts::ParseResult& result,
     good_params = true;
   }
   if (result.count("notify")) {
+    std::string notification_title = "psa";
+    if (result.count("notify-title") &&
+        !try_get_notification_title(result, notification_title)) {
+      return false;
+    }
+
     if (!processing_operations->ShowNotification(
-            result["notify"].as<std::string>())) {
+            result["notify"].as<std::string>(), notification_title)) {
       ucout << _T("Warning: Failed to show notification.") << std::endl;
     }
     good_params = true;
@@ -309,6 +351,9 @@ void ShowParameters() {
       _T("--notify [message]"),
       _T("show a native system notification with an optional custom ")
       _T("message"));
+  print_parameter_line(_T("--notify-title <title>"),
+                       _T("customize the notification title (used with ")
+                       _T("--notify <message>)"));
   print_parameter_line(_T("-h"), _T("show available options"));
 }
 
@@ -368,6 +413,8 @@ bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
   auto cooked_storage = cli_parsing::normalize_arguments(argc, argv);
   auto cooked_argv = cli_parsing::build_argv_view(cooked_storage);
   const int cooked_argc = static_cast<int>(cooked_argv.size());
+  const bool notify_has_explicit_message =
+      cli_parsing::has_explicit_option_value(cooked_storage, "--notify");
 
   auto options = create_options();
 
@@ -385,7 +432,7 @@ bool ProcessCommandLine(int argc, char* argv[], ProcessingOperations* pPO) {
     return true;
   }
 
-  return dispatch_requested_options(result, pPO);
+  return dispatch_requested_options(result, notify_has_explicit_message, pPO);
 }
 
 #ifndef PSA_TEST_BUILD

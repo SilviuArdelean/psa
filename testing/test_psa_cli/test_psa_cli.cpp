@@ -106,6 +106,7 @@ struct FakeProcessingOperations : ProcessingOperations {
     ustring cmdline_arg;
     uint32_t pid_arg = 0;
     std::string notify_arg;
+    std::string notify_title;
   };
 
   std::vector<Call> calls;
@@ -166,8 +167,10 @@ struct FakeProcessingOperations : ProcessingOperations {
     calls.push_back({"GenTree", print_header, {}, proc_pid});
   }
 
-  bool ShowNotification(const std::string& message) override {
-    calls.push_back({"ShowNotification", false, {}, 0, {}, 0, message});
+  bool ShowNotification(const std::string& message,
+                        const std::string& title) override {
+    calls.push_back({"ShowNotification", false, {}, 0, {}, 0, message,
+                     title});
     return return_value;
   }
 };
@@ -383,6 +386,7 @@ TEST_F(PsaCliTest, FlagNotify_WithMessage_InvokesShowNotification) {
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("ShowNotification", fake.calls[0].name);
   EXPECT_EQ("custom message", fake.calls[0].notify_arg);
+  EXPECT_EQ("psa", fake.calls[0].notify_title);
 }
 
 TEST_F(PsaCliTest, FlagNotify_NoMessage_UsesImplicitDefault) {
@@ -391,6 +395,35 @@ TEST_F(PsaCliTest, FlagNotify_NoMessage_UsesImplicitDefault) {
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("ShowNotification", fake.calls[0].name);
   EXPECT_EQ("psa notification", fake.calls[0].notify_arg);
+  EXPECT_EQ("psa", fake.calls[0].notify_title);
+}
+
+TEST_F(PsaCliTest, FlagNotifyTitle_WithNotify_UsesCustomTitle) {
+  Argv av{"psa", "--notify", "custom message", "--notify-title",
+          "Process Status Analysis"};
+  EXPECT_TRUE(run(av));
+  ASSERT_EQ(1u, fake.calls.size());
+  EXPECT_EQ("ShowNotification", fake.calls[0].name);
+  EXPECT_EQ("custom message", fake.calls[0].notify_arg);
+  EXPECT_EQ("Process Status Analysis", fake.calls[0].notify_title);
+}
+
+TEST_F(PsaCliTest, FlagNotifyTitle_WithImplicitNotifyMessage_ReturnsFalse) {
+  Argv av{"psa", "--notify", "--notify-title", "Process Status Analysis"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagNotifyTitle_WithoutNotify_ReturnsFalse) {
+  Argv av{"psa", "--notify-title", "Process Status Analysis"};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
+}
+
+TEST_F(PsaCliTest, FlagNotifyTitle_WithEmptyValue_ReturnsFalse) {
+  Argv av{"psa", "--notify", "custom message", "--notify-title", ""};
+  EXPECT_FALSE(run(av));
+  EXPECT_TRUE(fake.calls.empty());
 }
 
 TEST_F(PsaCliTest, FlagNotify_CombinesWithOtherFlags) {
@@ -400,6 +433,7 @@ TEST_F(PsaCliTest, FlagNotify_CombinesWithOtherFlags) {
   EXPECT_EQ("PrintAll", fake.calls[0].name);
   EXPECT_EQ("ShowNotification", fake.calls[1].name);
   EXPECT_EQ("done", fake.calls[1].notify_arg);
+  EXPECT_EQ("psa", fake.calls[1].notify_title);
 }
 
 TEST_F(PsaCliTest, FlagNotify_Failure_PrintsWarningButReturnsTrue) {
@@ -410,6 +444,7 @@ TEST_F(PsaCliTest, FlagNotify_Failure_PrintsWarningButReturnsTrue) {
   EXPECT_TRUE(run(av));
   ASSERT_EQ(1u, fake.calls.size());
   EXPECT_EQ("ShowNotification", fake.calls[0].name);
+  EXPECT_EQ("psa", fake.calls[0].notify_title);
 #ifdef _UNICODE
   EXPECT_NE(std::wstring::npos,
             cap.str().find(L"Warning: Failed to show notification."));

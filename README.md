@@ -18,6 +18,7 @@ Parameters
 * `--pid <pid>`                            : identify process information by PID (full process report)
 * `-t [pid]`                               : tree snapshot of current processes or of the subprocesses of a specified process PID.
 * `--notify [message]`                     : show a native system notification with an optional custom message.
+* `--notify-title <title>`                 : customize the notification title used with `--notify <message>`.
 
 Usage
 ------------------------------------------
@@ -42,6 +43,7 @@ psa -o chrome --filter-param network             // show all Chrome processes wi
 psa -o chrome --filter-param network --details   // same, with detailed process information
 psa --pid 1234                                   // print full process report for PID 1234
 psa --notify "disk usage high"                   // show a native OS notification
+psa --notify "disk usage high" --notify-title "Process Watch" // customize the notification title
 psa -k chrome --notify "chrome processes killed" // combine a process action with a notification
 ```
 
