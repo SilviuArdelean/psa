@@ -432,8 +432,10 @@ void ProcessingOperations::GenerateProcessesTree(int const proc_pid,
   }
 }
 
-bool ProcessingOperations::ShowNotification(const std::string& message) {
-  return psa::system::show_notification("psa", message);
+bool ProcessingOperations::ShowNotification(const std::string& message,
+                                            const std::string& title) {
+  return psa::system::show_notification(title.empty() ? "psa" : title,
+                                        message);
 }
 
 void ProcessingOperations::KillProcesses(TCHAR const* argvProcessParam) {

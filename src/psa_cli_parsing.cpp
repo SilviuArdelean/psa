@@ -148,6 +148,19 @@ std::vector<const char*> build_argv_view(
   return cooked_argv;
 }
 
+bool has_explicit_option_value(const std::vector<std::string>& arguments,
+                               const std::string& option_name) {
+  const std::string option_prefix = option_name + "=";
+
+  for (const auto& argument : arguments) {
+    if (argument.rfind(option_prefix, 0) == 0) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool is_flag_like_value(const std::string& value) {
   return !value.empty() && value[0] == '-';
 }
