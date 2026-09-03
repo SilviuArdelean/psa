@@ -119,7 +119,7 @@ cxxopts::Options create_options() {
       cxxopts::value<std::string>()->implicit_value("psa notification"),
       "[message]")(
       "notify-title",
-      "Customize the notification title (used with --notify)",
+      "Customize the notification title (requires --notify with a message)",
       cxxopts::value<std::string>(),
       "<title>")("h,help", "Show available options");
   return options;
